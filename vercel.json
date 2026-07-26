@@ -1,5 +1,4 @@
 {
-  "version": 2,
   "rewrites": [
     {
       "source": "/api/(.*)",
@@ -10,7 +9,7 @@
       "destination": "/api/index.js"
     },
     {
-      "source": "/((?!assets|images|uploads|.*\\..*).*)",
+      "source": "/((?!api|assets|images|uploads|.*\\..*).*)",
       "destination": "/index.html"
     }
   ]
