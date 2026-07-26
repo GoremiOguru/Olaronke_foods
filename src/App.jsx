@@ -5,6 +5,7 @@ import DishCatalog from './components/DishCatalog';
 import CartDrawer from './components/CartDrawer';
 import AuthModal from './components/AuthModal';
 import WhatsAppModal from './components/WhatsAppModal';
+import MyOrdersModal from './components/MyOrdersModal';
 import AdminDashboard from './components/AdminDashboard';
 import NotificationToast from './components/NotificationToast';
 import Footer from './components/Footer';
@@ -14,6 +15,7 @@ export default function App() {
   const { user, isAdmin } = useAuth();
   const [isAdminView, setIsAdminView] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isMyOrdersOpen, setIsMyOrdersOpen] = useState(false);
 
   const scrollToCatalog = () => {
     const el = document.getElementById('catalog-section');
@@ -31,6 +33,7 @@ export default function App() {
         onOpenAdmin={() => setIsAdminView(true)}
         isAdminView={isAdminView}
         setIsAdminView={setIsAdminView}
+        onOpenMyOrders={() => setIsMyOrdersOpen(true)}
       />
 
       {/* Main Content Area: Switch between Admin Dashboard and Student View */}
@@ -49,6 +52,7 @@ export default function App() {
       <CartDrawer onOpenAuth={() => setIsAuthOpen(true)} />
       <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
       <WhatsAppModal />
+      <MyOrdersModal isOpen={isMyOrdersOpen} onClose={() => setIsMyOrdersOpen(false)} />
       <NotificationToast />
 
       {/* Footer */}

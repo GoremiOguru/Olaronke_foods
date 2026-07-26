@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useSocket } from '../context/SocketContext';
 
-export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdminView }) {
+export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdminView, onOpenMyOrders }) {
   const { user, logout, isAdmin } = useAuth();
   const { totalQuantityCount, setIsCartOpen } = useCart();
   const { isConnected, notifications } = useSocket();
@@ -128,27 +128,39 @@ export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdmi
                   <ChevronDown className="w-4 h-4 text-slate-400" />
                 </button>
 
-                {showUserDropdown && (
-                  <div className="absolute right-0 mt-3 w-56 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-2 z-50">
-                    <div className="p-3 border-b border-slate-800">
-                      <p className="text-xs font-bold text-white">{user.name}</p>
-                      <p className="text-[11px] text-slate-400 font-mono truncate">{user.email}</p>
-                      <span className="inline-block mt-1.5 px-2 py-0.5 text-[10px] font-semibold bg-brand-lemon/20 text-brand-lemon-glow rounded border border-brand-lemon/30">
-                        {user.role === 'admin' ? 'Vendor Admin Staff' : 'Topfaith Student Verified'}
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => {
-                        logout();
-                        setShowUserDropdown(false);
-                      }}
-                      className="w-full mt-1 flex items-center space-x-2 px-3 py-2 text-xs font-semibold text-rose-400 hover:bg-rose-500/10 rounded-xl transition-colors text-left"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      <span>Log Out</span>
-                    </button>
-                  </div>
-                )}
+                    {showUserDropdown && (
+                      <div className="absolute right-0 mt-3 w-56 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-2 z-50">
+                        <div className="p-3 border-b border-slate-800">
+                          <p className="text-xs font-bold text-white">{user.name}</p>
+                          <p className="text-[11px] text-slate-400 font-mono truncate">{user.email}</p>
+                          <span className="inline-block mt-1.5 px-2 py-0.5 text-[10px] font-semibold bg-brand-lemon/20 text-brand-lemon-glow rounded border border-brand-lemon/30">
+                            {user.role === 'admin' ? 'Vendor Admin Staff' : 'Topfaith Student Verified'}
+                          </span>
+                        </div>
+
+                        <button
+                          onClick={() => {
+                            if (onOpenMyOrders) onOpenMyOrders();
+                            setShowUserDropdown(false);
+                          }}
+                          className="w-full mt-1 flex items-center space-x-2 px-3 py-2 text-xs font-bold text-amber-300 hover:bg-slate-800 rounded-xl transition-colors text-left"
+                        >
+                          <ShoppingBag className="w-4 h-4 text-brand-orange" />
+                          <span>My Orders & Receipts</span>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            logout();
+                            setShowUserDropdown(false);
+                          }}
+                          className="w-full mt-1 flex items-center space-x-2 px-3 py-2 text-xs font-semibold text-rose-400 hover:bg-rose-500/10 rounded-xl transition-colors text-left"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          <span>Log Out</span>
+                        </button>
+                      </div>
+                    )}
               </div>
             ) : (
               <button

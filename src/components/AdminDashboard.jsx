@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Flame, Plus, Minus, ToggleLeft, ToggleRight, DollarSign, CheckCircle2, Clock, PackageCheck, AlertTriangle, RefreshCw, Search, ShieldCheck, User, MessageCircle, Trash2, Key, Users, MapPin, Package, UtensilsCrossed, Upload, Image as ImageIcon, Check, Edit3, X, Bell, BellRing, Smartphone } from 'lucide-react';
+import { Flame, Plus, Minus, ToggleLeft, ToggleRight, DollarSign, CheckCircle2, Clock, PackageCheck, AlertTriangle, RefreshCw, Search, ShieldCheck, User, MessageCircle, Trash2, Key, Users, MapPin, Package, UtensilsCrossed, Upload, Image as ImageIcon, Check, Edit3, X, Bell, BellRing, Smartphone, Printer, Calendar, Filter } from 'lucide-react';
 import { useSocket } from '../context/SocketContext';
 import { useAuth } from '../context/AuthContext';
+import OfficialReceiptModal from './OfficialReceiptModal';
 
 export default function AdminDashboard() {
   const { dishes, setDishes, socket, pushPermission, requestPushPermission } = useSocket();
@@ -11,6 +12,9 @@ export default function AdminDashboard() {
   const [staffList, setStaffList] = useState([]);
   const [activeTab, setActiveTab] = useState('inventory');
   const [orderSearch, setOrderSearch] = useState('');
+  const [dateFilter, setDateFilter] = useState('all'); // 'all', 'today', 'week', 'month'
+  const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'Pending Payment Verification', 'Preparing', 'Ready for Pickup', 'Completed', 'Cancelled'
+  const [selectedPrintOrder, setSelectedPrintOrder] = useState(null);
   const [dishSearch, setDishSearch] = useState('');
   const [deletingDishId, setDeletingDishId] = useState(null);
 
@@ -307,7 +311,13 @@ export default function AdminDashboard() {
     }
   };
 
-  const totalRevenue = orders.reduce((sum, o) => sum + (o.status !== 'Cancelled' ? o.totalPrice : 0), 0);
+  const now = new Date();
+  const isSameDay = (d1, d2) => d1.getDate() === d2.getDate() && d1.getMonth() === d2.getMonth() && d1.getFullYear() === d2.getFullYear();
+
+  const isWithinDays = (date, days) => {
+    const diff = now.getTime() - date.getTime();
+    return diff >= 0 && diff <= days * 24 * 60 * 60 * 1000;
+  };
 
   const filteredDishes = dishes.filter(d => 
     d.name.toLowerCase().includes(dishSearch.toLowerCase()) || 
@@ -315,13 +325,42 @@ export default function AdminDashboard() {
     (d.description && d.description.toLowerCase().includes(dishSearch.toLowerCase()))
   );
 
-  const filteredOrders = orders.filter(o =>
-    o.studentName.toLowerCase().includes(orderSearch.toLowerCase()) ||
-    o.studentEmail.toLowerCase().includes(orderSearch.toLowerCase()) ||
-    o.id.toLowerCase().includes(orderSearch.toLowerCase()) ||
-    (o.pickupCode && String(o.pickupCode).includes(orderSearch)) ||
-    getPickupCode(o).includes(orderSearch)
-  );
+  const filteredOrders = orders.filter(o => {
+    const orderDate = new Date(o.createdAt || Date.now());
+
+    // 1. Date Filter
+    if (dateFilter === 'today' && !isSameDay(orderDate, now)) return false;
+    if (dateFilter === 'week' && !isWithinDays(orderDate, 7)) return false;
+    if (dateFilter === 'month' && !isWithinDays(orderDate, 30)) return false;
+
+    // 2. Status Filter
+    if (statusFilter !== 'all') {
+      if (statusFilter === 'Pending Payment Verification' && o.status !== 'Pending Payment Verification') return false;
+      if (statusFilter === 'Preparing' && (o.status !== 'Preparing' && o.status !== 'Payment Confirmed & Preparing')) return false;
+      if (statusFilter === 'Ready for Pickup' && (!o.status.includes('Ready'))) return false;
+      if (statusFilter === 'Completed' && o.status !== 'Completed') return false;
+      if (statusFilter === 'Cancelled' && o.status !== 'Cancelled') return false;
+    }
+
+    // 3. Search Query Filter
+    const q = orderSearch.toLowerCase().trim();
+    if (!q) return true;
+    return (
+      (o.studentName && o.studentName.toLowerCase().includes(q)) ||
+      (o.studentEmail && o.studentEmail.toLowerCase().includes(q)) ||
+      (o.id && o.id.toLowerCase().includes(q)) ||
+      (o.hostelAddress && o.hostelAddress.toLowerCase().includes(q)) ||
+      (o.pickupCode && String(o.pickupCode).includes(q)) ||
+      getPickupCode(o).includes(q)
+    );
+  });
+
+  const totalRevenue = filteredOrders.reduce((sum, o) => sum + (o.status !== 'Cancelled' ? o.totalPrice : 0), 0);
+  const pendingCount = filteredOrders.filter(o => o.status === 'Pending Payment Verification').length;
+  const preparingCount = filteredOrders.filter(o => o.status === 'Preparing' || o.status === 'Payment Confirmed & Preparing').length;
+  const readyCount = filteredOrders.filter(o => o.status && o.status.includes('Ready')).length;
+  const completedCount = filteredOrders.filter(o => o.status === 'Completed').length;
+  const cancelledCount = filteredOrders.filter(o => o.status === 'Cancelled').length;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 py-8 px-4 sm:px-6 lg:px-8">
@@ -748,60 +787,143 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* TAB 2: LIVE STUDENT ORDERS QUEUE */}
+        {/* TAB 2: LIVE STUDENT ORDERS QUEUE & HISTORY ANALYTICS */}
         {activeTab === 'orders' && (
           <div className="space-y-6">
+            
+            {/* Top Bar: Title & Search */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h2 className="text-xl font-black text-white">Student Incoming Orders</h2>
-                <p className="text-xs text-slate-400">Verify 3-digit secret pickup code before handing over meals.</p>
+                <h2 className="text-xl font-black text-white flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-brand-orange" /> Student Order History & Live Queue
+                </h2>
+                <p className="text-xs text-slate-400">Track orders by date, verify payment, cancel unconfirmed orders, or print receipts.</p>
               </div>
-              <div className="relative w-72">
+
+              <div className="relative w-full sm:w-72">
                 <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   value={orderSearch}
                   onChange={(e) => setOrderSearch(e.target.value)}
-                  placeholder="Search student name, email or code..."
-                  className="w-full bg-slate-900 border border-slate-800 text-white pl-9 pr-3 py-2 rounded-xl text-xs focus:outline-none"
+                  placeholder="Search name, email, code or hostel..."
+                  className="w-full bg-slate-900 border border-slate-800 text-white pl-9 pr-3 py-2 rounded-xl text-xs focus:outline-none focus:border-brand-orange"
                 />
               </div>
             </div>
 
+            {/* Filter Bar 1: Date Range Tabs */}
+            <div className="bg-slate-900 p-3 rounded-2xl border border-slate-800 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center space-x-2">
+                <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5 text-brand-orange" /> Period:
+                </span>
+                {[
+                  { key: 'all', label: 'All Time' },
+                  { key: 'today', label: 'Today' },
+                  { key: 'week', label: 'This Week' },
+                  { key: 'month', label: 'This Month' }
+                ].map(tf => (
+                  <button
+                    key={tf.key}
+                    onClick={() => setDateFilter(tf.key)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all ${
+                      dateFilter === tf.key
+                        ? 'bg-brand-orange text-white shadow-orange-glow'
+                        : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                    }`}
+                  >
+                    {tf.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="text-xs font-bold text-amber-300">
+                Period Revenue: <strong className="text-white text-sm font-black">₦{totalRevenue.toLocaleString()}</strong> ({filteredOrders.length} orders)
+              </div>
+            </div>
+
+            {/* Filter Bar 2: Status Filter Pills */}
+            <div className="flex items-center space-x-2 overflow-x-auto pb-1 text-xs">
+              <span className="text-slate-400 font-bold flex items-center gap-1 shrink-0">
+                <Filter className="w-3.5 h-3.5 text-brand-lemon-glow" /> Status:
+              </span>
+              {[
+                { key: 'all', label: `All (${filteredOrders.length})` },
+                { key: 'Pending Payment Verification', label: `⏳ Pending (${pendingCount})` },
+                { key: 'Preparing', label: `🍳 Cooking (${preparingCount})` },
+                { key: 'Ready for Pickup', label: `🚚 Ready (${readyCount})` },
+                { key: 'Completed', label: `✅ Completed (${completedCount})` },
+                { key: 'Cancelled', label: `❌ Cancelled (${cancelledCount})` }
+              ].map(sf => (
+                <button
+                  key={sf.key}
+                  onClick={() => setStatusFilter(sf.key)}
+                  className={`px-3 py-1 rounded-xl text-[11px] font-bold whitespace-nowrap transition-colors ${
+                    statusFilter === sf.key
+                      ? 'bg-slate-800 text-brand-lemon-glow border border-brand-lemon/50'
+                      : 'bg-slate-950 text-slate-400 hover:text-slate-200 border border-slate-800'
+                  }`}
+                >
+                  {sf.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Orders Feed List */}
             {filteredOrders.length === 0 ? (
               <div className="glass-card p-12 rounded-3xl text-center border border-slate-800">
                 <PackageCheck className="w-12 h-12 text-slate-600 mx-auto mb-2" />
-                <p className="font-extrabold text-white">No student orders match your search</p>
+                <p className="font-extrabold text-white">No student orders match your selected filters</p>
+                <p className="text-xs text-slate-500 mt-1">Try switching date range or status filters above.</p>
               </div>
             ) : (
               <div className="space-y-4">
                 {filteredOrders.map((ord) => {
                   const codeDisplay = getPickupCode(ord);
+                  const orderTimeStr = new Date(ord.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                  const orderDateStr = new Date(ord.createdAt || Date.now()).toLocaleDateString();
+
                   return (
                     <div
                       key={ord.id}
                       className="glass-card p-5 rounded-3xl border border-slate-800 flex flex-col lg:flex-row lg:items-center justify-between gap-6"
                     >
                       <div className="space-y-3 max-w-xl">
+                        
+                        {/* Header Badge Row */}
                         <div className="flex items-center space-x-3 flex-wrap gap-y-2">
                           <span className="font-mono text-xs font-black bg-slate-950 text-brand-orange px-2.5 py-1 rounded-lg border border-slate-800">
                             #{ord.id}
                           </span>
 
                           <span className="flex items-center gap-1 font-mono text-xs font-black bg-brand-orange/20 text-amber-300 px-3 py-1 rounded-lg border border-brand-orange/50 shadow-inner">
-                            <Key className="w-3.5 h-3.5 text-brand-orange" /> Secret Pickup Code: <strong className="text-amber-300 text-sm font-mono">#{codeDisplay}</strong>
+                            <Key className="w-3.5 h-3.5 text-brand-orange" /> Pickup Code: <strong className="text-amber-300 text-sm font-mono">#{codeDisplay}</strong>
                           </span>
 
-                          <span className="text-xs text-slate-400">
-                            {new Date(ord.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          <span className="text-xs text-slate-400 flex items-center gap-1">
+                            <Clock className="w-3.5 h-3.5 text-slate-500" /> {orderDateStr} at {orderTimeStr}
                           </span>
                         </div>
 
-                        <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-1">
-                          <p className="text-xs font-extrabold text-white flex items-center gap-1.5">
-                            <User className="w-4 h-4 text-brand-orange" />
-                            Student Name: <span className="text-brand-lemon-glow font-black text-sm">{ord.studentName}</span>
-                          </p>
+                        {/* Customer & Address Details Box */}
+                        <div className="bg-slate-950 p-3.5 rounded-2xl border border-slate-800 space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <p className="text-xs font-extrabold text-white flex items-center gap-1.5">
+                              <User className="w-4 h-4 text-brand-orange" />
+                              Student: <span className="text-brand-lemon-glow font-black text-sm">{ord.studentName}</span>
+                            </p>
+
+                            <button
+                              onClick={() => setSelectedPrintOrder(ord)}
+                              className="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-amber-300 text-[11px] font-bold rounded-lg border border-amber-500/30 flex items-center gap-1"
+                              title="Print official receipt"
+                            >
+                              <Printer className="w-3 h-3 text-amber-400" />
+                              <span>Print Receipt</span>
+                            </button>
+                          </div>
+
                           <p className="text-xs text-slate-400 font-mono">{ord.studentEmail}</p>
 
                           <p className="text-xs font-bold pt-1 text-sky-300 flex items-center gap-1">
@@ -825,8 +947,9 @@ export default function AdminDashboard() {
                           )}
                         </div>
 
+                        {/* Itemized Order Breakdown */}
                         <div className="space-y-1">
-                          <p className="text-[11px] uppercase font-bold text-slate-500">Itemized Order:</p>
+                          <p className="text-[11px] uppercase font-bold text-slate-500">Items Ordered:</p>
                           <div className="flex flex-wrap gap-2">
                             {ord.items.map((item, idx) => (
                               <span key={idx} className="bg-slate-950 text-slate-200 text-xs font-semibold px-2.5 py-1 rounded-xl border border-slate-800">
@@ -840,8 +963,10 @@ export default function AdminDashboard() {
                             )}
                           </div>
                         </div>
+
                       </div>
 
+                      {/* Right Action Column */}
                       <div className="lg:text-right space-y-3">
                         <div>
                           <span className="text-[10px] uppercase font-bold text-slate-500 block">Total Amount</span>
@@ -849,21 +974,51 @@ export default function AdminDashboard() {
                         </div>
 
                         <div className="space-y-2">
-                          <span className="text-xs font-bold text-slate-400 block">Update Status:</span>
+                          <span className="text-xs font-bold text-slate-400 block">Update Order Status:</span>
                           <div className="flex flex-wrap gap-1.5 lg:justify-end">
-                            {['Pending Payment Verification', 'Preparing', 'Ready for Pickup', 'Completed', 'Cancelled'].map((st) => (
-                              <button
-                                key={st}
-                                onClick={() => handleOrderStatusChange(ord.id, st)}
-                                className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all ${
-                                  ord.status === st
-                                    ? st === 'Completed' ? 'bg-brand-lemon text-slate-950 shadow-lemon-glow' : 'bg-brand-orange text-white shadow-orange-glow'
-                                    : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
-                                }`}
-                              >
-                                {st}
-                              </button>
-                            ))}
+                            <button
+                              onClick={() => handleOrderStatusChange(ord.id, 'Payment Confirmed & Preparing')}
+                              className={`px-2.5 py-1.5 rounded-xl text-xs font-extrabold transition-all ${
+                                ord.status === 'Payment Confirmed & Preparing' || ord.status === 'Preparing'
+                                  ? 'bg-amber-500 text-slate-950 font-black shadow-lg'
+                                  : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                              }`}
+                            >
+                              ✅ Confirm Payment & Cook
+                            </button>
+
+                            <button
+                              onClick={() => handleOrderStatusChange(ord.id, 'Ready for Pickup / Out for Delivery')}
+                              className={`px-2.5 py-1.5 rounded-xl text-xs font-extrabold transition-all ${
+                                ord.status && ord.status.includes('Ready')
+                                  ? 'bg-sky-500 text-slate-950 font-black shadow-lg'
+                                  : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                              }`}
+                            >
+                              🚚 Ready / Delivery
+                            </button>
+
+                            <button
+                              onClick={() => handleOrderStatusChange(ord.id, 'Completed')}
+                              className={`px-2.5 py-1.5 rounded-xl text-xs font-extrabold transition-all ${
+                                ord.status === 'Completed'
+                                  ? 'bg-brand-lemon text-slate-950 font-black shadow-lemon-glow'
+                                  : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                              }`}
+                            >
+                              🎉 Completed
+                            </button>
+
+                            <button
+                              onClick={() => handleOrderStatusChange(ord.id, 'Cancelled')}
+                              className={`px-2.5 py-1.5 rounded-xl text-xs font-extrabold transition-all ${
+                                ord.status === 'Cancelled'
+                                  ? 'bg-rose-600 text-white font-black'
+                                  : 'bg-slate-950 text-rose-400 hover:bg-rose-500/20 border border-slate-800'
+                              }`}
+                            >
+                              ❌ Cancel Order
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -874,6 +1029,14 @@ export default function AdminDashboard() {
               </div>
             )}
           </div>
+        )}
+
+        {/* Printable Official Receipt Modal Triggered by Admin */}
+        {selectedPrintOrder && (
+          <OfficialReceiptModal
+            order={selectedPrintOrder}
+            onClose={() => setSelectedPrintOrder(null)}
+          />
         )}
 
         {/* TAB 3: ADMIN STAFF ROSTER */}
