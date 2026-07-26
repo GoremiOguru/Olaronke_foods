@@ -1,13 +1,14 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import { useAuth } from './AuthContext';
+import { defaultDishes } from '../data/defaultDishes';
 
 const SocketContext = createContext();
 
 export function SocketProvider({ children }) {
   const [socket, setSocket] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
-  const [dishes, setDishes] = useState([]);
+  const [dishes, setDishes] = useState(defaultDishes);
   const [notifications, setNotifications] = useState([]);
   const [pushPermission, setPushPermission] = useState(
     typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'default'
@@ -34,9 +35,11 @@ export function SocketProvider({ children }) {
   };
 
   useEffect(() => {
-    // Connect socket
+    // Connect socket safely (avoids crashing on serverless deployments)
     const newSocket = io(window.location.origin, {
-      transports: ['websocket', 'polling']
+      transports: ['websocket', 'polling'],
+      autoConnect: true,
+      reconnectionAttempts: 5
     });
 
     newSocket.on('connect', () => {
@@ -57,9 +60,15 @@ export function SocketProvider({ children }) {
       setIsConnected(false);
     });
 
+    newSocket.on('connect_error', () => {
+      setIsConnected(false);
+    });
+
     // Listen for live inventory updates (scoops left, prices, availability)
     newSocket.on('inventory:update', (updatedDishes) => {
-      setDishes(updatedDishes);
+      if (Array.isArray(updatedDishes) && updatedDishes.length > 0) {
+        setDishes(updatedDishes);
+      }
     });
 
     // Listen for new student orders (Notify Admin Staff on phone & browser)
@@ -80,8 +89,7 @@ export function SocketProvider({ children }) {
             new Notification(`🚨 B'feastas Order #${newOrder.id}`, {
               body: `Student: ${newOrder.studentName}\nPickup Code: #${newOrder.pickupCode || '582'}\nTotal: ₦${newOrder.totalPrice.toLocaleString()}`,
               icon: "/images/jollof_rice.png",
-              badge: "/images/jollof_rice.png",
-              vibrate: [200, 100, 200]
+              badge: "/images/jollof_rice.png"
             });
           } catch (e) {
             console.error('Notification error:', e);
@@ -130,14 +138,22 @@ export function SocketProvider({ children }) {
     }
   }, [user, socket, isConnected]);
 
-  // Initial fetch for dishes catalog
+  // Initial fetch for dishes catalog with robust fallback
   useEffect(() => {
     fetch('/api/dishes')
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) setDishes(data);
+      .then(res => {
+        if (!res.ok) throw new Error('API dishes endpoint unavailable');
+        return res.json();
       })
-      .catch(err => console.error('Failed to fetch initial dishes catalog:', err));
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          setDishes(data);
+        }
+      })
+      .catch(err => {
+        console.warn('Using default fallback dishes catalog for Vercel deployment:', err);
+        setDishes(defaultDishes);
+      });
   }, []);
 
   const addNotification = (toast) => {
