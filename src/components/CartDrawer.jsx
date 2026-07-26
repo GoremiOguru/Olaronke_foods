@@ -228,7 +228,7 @@ export default function CartDrawer({ onOpenAuth }) {
                           : 'bg-slate-900 border-slate-800 text-slate-400'
                       }`}
                     >
-                      Hostel Delivery
+                      Hostel Delivery (+₦500)
                     </button>
                   </div>
 
@@ -280,9 +280,9 @@ export default function CartDrawer({ onOpenAuth }) {
                   </div>
                 )}
 
-                <div className="flex justify-between text-brand-lemon-glow">
-                  <span>Delivery ({isHostelDelivery ? 'Hostel Room' : 'Cafeteria Pickup'})</span>
-                  <span className="font-mono font-bold">FREE</span>
+                <div className="flex justify-between text-sky-300">
+                  <span>Hostel Doorstep Delivery ({isHostelDelivery ? 'Hostel Room' : 'Cafeteria Pickup'})</span>
+                  <span className="font-mono font-bold">{isHostelDelivery ? '₦500' : 'FREE'}</span>
                 </div>
 
                 <div className="flex justify-between pt-2 border-t border-slate-800 text-base font-black text-white">

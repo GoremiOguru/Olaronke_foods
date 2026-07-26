@@ -312,7 +312,8 @@ app.post(['/api/orders', '/orders'], authenticateToken, (req, res) => {
 
   const mealsTotal = items.reduce((sum, i) => sum + (i.price * i.scoops), 0);
   const takeoutFee = includeTakeoutPack !== false ? (db.settings.takeoutPrice || 300) : 0;
-  const totalPrice = mealsTotal + takeoutFee;
+  const deliveryFee = isHostelDelivery ? 500 : 0;
+  const totalPrice = mealsTotal + takeoutFee + deliveryFee;
 
   const pickupCode = String(Math.floor(100 + Math.random() * 900));
   const orderId = `ORD-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -326,6 +327,7 @@ app.post(['/api/orders', '/orders'], authenticateToken, (req, res) => {
     items,
     includeTakeoutPack: includeTakeoutPack !== false,
     takeoutFee,
+    deliveryFee,
     isHostelDelivery: Boolean(isHostelDelivery),
     hostelAddress: isHostelDelivery ? hostelAddress.trim() : '',
     totalPrice,

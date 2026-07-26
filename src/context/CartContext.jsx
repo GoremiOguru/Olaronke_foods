@@ -116,7 +116,8 @@ export function CartProvider({ children }) {
   // Price calculations breakdown
   const mealsTotal = cart.reduce((sum, item) => sum + (item.price * item.scoops), 0);
   const takeoutFee = includeTakeoutPack ? 300 : 0;
-  const grandTotal = mealsTotal + takeoutFee;
+  const deliveryFee = isHostelDelivery ? 500 : 0;
+  const grandTotal = mealsTotal + takeoutFee + deliveryFee;
   const totalQuantityCount = cart.reduce((sum, item) => sum + item.scoops, 0);
 
   const checkout = async () => {
@@ -185,6 +186,7 @@ export function CartProvider({ children }) {
       clearCart,
       mealsTotal,
       takeoutFee,
+      deliveryFee,
       grandTotal,
       totalQuantityCount,
       includeTakeoutPack,

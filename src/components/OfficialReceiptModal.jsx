@@ -120,6 +120,14 @@ export default function OfficialReceiptModal({ order, onClose }) {
                   <span className="col-span-4 text-right font-mono font-bold text-slate-900">₦300</span>
                 </div>
               )}
+
+              {order.isHostelDelivery && (
+                <div className="pt-2 grid grid-cols-12 gap-2 items-center text-sky-700 font-semibold">
+                  <span className="col-span-6">Hostel Doorstep Delivery Fee</span>
+                  <span className="col-span-2 text-center font-mono">1 delivery</span>
+                  <span className="col-span-4 text-right font-mono font-bold text-slate-900">₦500</span>
+                </div>
+              )}
             </div>
 
             {/* Total Footer */}

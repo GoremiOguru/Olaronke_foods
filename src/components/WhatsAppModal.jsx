@@ -31,9 +31,10 @@ export default function WhatsAppModal() {
     .join('\n');
 
   const takeoutLine = order.includeTakeoutPack ? `• Plastic Takeout Container - ₦300\n` : '';
-  const deliveryLine = order.isHostelDelivery ? `🚚 Delivery Address: ${order.hostelAddress}` : `📍 Cafeteria Pickup`;
+  const deliveryFeeLine = order.isHostelDelivery ? `• Hostel Doorstep Delivery Fee - ₦500\n` : '';
+  const deliveryLine = order.isHostelDelivery ? `🚚 Hostel Delivery: ${order.hostelAddress}` : `📍 Cafeteria Pickup`;
 
-  const rawMessage = `Hello Isaac! 👋\nI have placed an order on B'feastas website:\n\n🔑 Secret 3-Digit Pickup Code: #${pickupCodeDisplay}\n📌 Order Reference: #${order.id}\n👤 Student Name: ${order.studentName}\n📧 Student Email: ${order.studentEmail}\n${deliveryLine}\n\n🛒 Order Breakdown:\n${itemsFormatted}\n${takeoutLine}\n💰 Total Amount Paid: ₦${order.totalPrice.toLocaleString()}\n\nAttached is my payment receipt to OLARONKE OGIDAN (MONIEPOINT). Please verify and prepare my meal!`;
+  const rawMessage = `Hello Isaac! 👋\nI have placed an order on B'feastas website:\n\n🔑 Secret 3-Digit Pickup Code: #${pickupCodeDisplay}\n📌 Order Reference: #${order.id}\n👤 Student Name: ${order.studentName}\n📧 Student Email: ${order.studentEmail}\n${deliveryLine}\n\n🛒 Order Breakdown:\n${itemsFormatted}\n${takeoutLine}${deliveryFeeLine}💰 Total Amount Paid: ₦${order.totalPrice.toLocaleString()}\n\nAttached is my payment receipt to OLARONKE OGIDAN (MONIEPOINT). Please verify and prepare my meal!`;
 
   const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(rawMessage)}`;
 

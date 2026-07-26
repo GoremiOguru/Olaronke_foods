@@ -358,7 +358,8 @@ app.post('/api/orders', authenticateToken, (req, res) => {
 
   const mealsTotal = items.reduce((sum, i) => sum + (i.price * i.scoops), 0);
   const takeoutFee = includeTakeoutPack !== false ? (db.settings.takeoutPrice || 300) : 0;
-  const totalPrice = mealsTotal + takeoutFee;
+  const deliveryFee = isHostelDelivery ? 500 : 0;
+  const totalPrice = mealsTotal + takeoutFee + deliveryFee;
 
   // Always generate guaranteed 3-digit pickup code between 100 and 999
   const pickupCode = String(Math.floor(100 + Math.random() * 900));
@@ -373,6 +374,7 @@ app.post('/api/orders', authenticateToken, (req, res) => {
     items,
     includeTakeoutPack: includeTakeoutPack !== false,
     takeoutFee,
+    deliveryFee,
     isHostelDelivery: Boolean(isHostelDelivery),
     hostelAddress: isHostelDelivery ? hostelAddress.trim() : '',
     totalPrice,
