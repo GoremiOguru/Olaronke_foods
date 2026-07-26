@@ -1,11 +1,15 @@
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import { fileURLToPath } from 'url';
 import bcrypt from 'bcryptjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const DB_FILE = path.join(__dirname, 'database.json');
+const LOCAL_DB_FILE = path.join(__dirname, 'database.json');
+const TMP_DB_FILE = path.join(os.tmpdir(), 'olaronke_database.json');
+
+let cachedDB = null;
 
 // Authentic Nigerian Campus Food Dishes & Drinks for B'feastas
 const defaultDishes = [
@@ -235,26 +239,66 @@ function getInitialDatabase() {
 }
 
 export function loadDB() {
-  try {
-    if (!fs.existsSync(DB_FILE)) {
-      const initial = getInitialDatabase();
-      fs.writeFileSync(DB_FILE, JSON.stringify(initial, null, 2));
-      return initial;
-    }
-    const data = fs.readFileSync(DB_FILE, 'utf8');
-    return JSON.parse(data);
-  } catch (err) {
-    console.error('Error loading DB:', err);
-    const initial = getInitialDatabase();
-    fs.writeFileSync(DB_FILE, JSON.stringify(initial, null, 2));
-    return initial;
+  if (cachedDB) {
+    return cachedDB;
   }
+
+  // 1. Try reading from /tmp/olaronke_database.json (persisted in warm serverless instances)
+  try {
+    if (fs.existsSync(TMP_DB_FILE)) {
+      const data = fs.readFileSync(TMP_DB_FILE, 'utf8');
+      const parsed = JSON.parse(data);
+      if (parsed && Array.isArray(parsed.users) && Array.isArray(parsed.dishes)) {
+        cachedDB = parsed;
+        return cachedDB;
+      }
+    }
+  } catch (err) {
+    console.warn('Unable to read DB from tmp directory:', err.message);
+  }
+
+  // 2. Try reading from local database.json
+  try {
+    if (fs.existsSync(LOCAL_DB_FILE)) {
+      const data = fs.readFileSync(LOCAL_DB_FILE, 'utf8');
+      const parsed = JSON.parse(data);
+      if (parsed && Array.isArray(parsed.users) && Array.isArray(parsed.dishes)) {
+        cachedDB = parsed;
+        return cachedDB;
+      }
+    }
+  } catch (err) {
+    console.warn('Unable to read DB from local file:', err.message);
+  }
+
+  // 3. Fallback to default in-memory database
+  cachedDB = getInitialDatabase();
+
+  // Try persisting to /tmp or local
+  saveDB(cachedDB);
+
+  return cachedDB;
 }
 
 export function saveDB(data) {
+  cachedDB = data;
+
+  let localSaved = false;
+  // Try local file write (works on local server runs)
   try {
-    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
+    fs.writeFileSync(LOCAL_DB_FILE, JSON.stringify(data, null, 2));
+    localSaved = true;
   } catch (err) {
-    console.error('Error saving DB:', err);
+    // Expected to fail on read-only file systems like Vercel
+  }
+
+  // If local file write failed (e.g. Vercel read-only filesystem), write to /tmp
+  if (!localSaved) {
+    try {
+      fs.writeFileSync(TMP_DB_FILE, JSON.stringify(data, null, 2));
+    } catch (err) {
+      console.warn('Unable to persist DB to tmp:', err.message);
+    }
   }
 }
+

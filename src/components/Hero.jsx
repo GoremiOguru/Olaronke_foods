@@ -10,17 +10,17 @@ export default function Hero({ onExploreClick }) {
 
   return (
     <div className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-brand-bg py-12 md:py-16 px-4 sm:px-6 lg:px-8 border-b border-slate-800">
-      
+
       {/* Background Blobs */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-brand-orange/10 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-brand-lemon/10 rounded-full blur-3xl pointer-events-none"></div>
 
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          
+
           {/* Headlines */}
           <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-            
+
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-lemon/10 border border-brand-lemon/30 text-brand-lemon-glow text-xs font-extrabold uppercase tracking-wide">
               <Sparkles className="w-4 h-4 text-brand-orange animate-pulse" />
               <span>Topfaith University Campus Dining</span>
@@ -68,7 +68,7 @@ export default function Hero({ onExploreClick }) {
                 className="w-full sm:w-auto flex items-center justify-center space-x-2 bg-brand-lemon hover:bg-lime-400 text-slate-950 font-black px-6 py-4 rounded-2xl shadow-lemon-glow transition-all text-base border border-brand-lemon/30"
               >
                 <MessageCircle className="w-5 h-5 fill-slate-950" />
-                <span>WhatsApp Isaac (08133314798)</span>
+                <span>WhatsApp our Staff (08133314798)</span>
               </a>
             </div>
 

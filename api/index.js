@@ -31,10 +31,32 @@ function requireAdmin(req, res, next) {
   next();
 }
 
+// Health check endpoint
+app.get(['/api/health', '/health', '/api', '/'], (req, res) => {
+  return res.json({ status: 'ok', message: "B'feastas Serverless API is active and responsive." });
+});
+
+// -------------------------------------------------------------
+// IMAGE UPLOAD ROUTE
+// -------------------------------------------------------------
+app.post(['/api/upload', '/upload'], authenticateToken, requireAdmin, (req, res) => {
+  const { imageData } = req.body;
+
+  if (!imageData) {
+    return res.status(400).json({ message: 'No image file data provided' });
+  }
+
+  // Return the base64 data URL directly to ensure instant rendering in production
+  return res.status(201).json({
+    imageUrl: imageData,
+    message: 'Product photo uploaded successfully!'
+  });
+});
+
 // -------------------------------------------------------------
 // AUTHENTICATION ROUTES
 // -------------------------------------------------------------
-app.post('/api/auth/register', (req, res) => {
+app.post(['/api/auth/register', '/auth/register'], (req, res) => {
   const { name, email, password, role } = req.body;
 
   if (!name || !email || !password) {
@@ -95,7 +117,7 @@ app.post('/api/auth/register', (req, res) => {
   });
 });
 
-app.post('/api/auth/login', (req, res) => {
+app.post(['/api/auth/login', '/auth/login'], (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -130,7 +152,7 @@ app.post('/api/auth/login', (req, res) => {
   });
 });
 
-app.get('/api/auth/me', authenticateToken, (req, res) => {
+app.get(['/api/auth/me', '/auth/me'], authenticateToken, (req, res) => {
   const db = loadDB();
   const user = db.users.find(u => u.id === req.user.id);
   if (!user) return res.status(404).json({ message: 'User not found' });
@@ -145,7 +167,7 @@ app.get('/api/auth/me', authenticateToken, (req, res) => {
   });
 });
 
-app.get('/api/admin/staff', authenticateToken, requireAdmin, (req, res) => {
+app.get(['/api/admin/staff', '/admin/staff'], authenticateToken, requireAdmin, (req, res) => {
   const db = loadDB();
   const staffList = db.users
     .filter(u => u.role === 'admin')
@@ -162,12 +184,12 @@ app.get('/api/admin/staff', authenticateToken, requireAdmin, (req, res) => {
 // -------------------------------------------------------------
 // DISHES & INVENTORY ROUTES
 // -------------------------------------------------------------
-app.get('/api/dishes', (req, res) => {
+app.get(['/api/dishes', '/dishes'], (req, res) => {
   const db = loadDB();
   return res.json(db.dishes);
 });
 
-app.post('/api/dishes', authenticateToken, requireAdmin, (req, res) => {
+app.post(['/api/dishes', '/dishes'], authenticateToken, requireAdmin, (req, res) => {
   const { name, description, price, scoopsLeft, isAvailable, category, image, unitType } = req.body;
 
   if (!name || price === undefined || scoopsLeft === undefined) {
@@ -193,7 +215,7 @@ app.post('/api/dishes', authenticateToken, requireAdmin, (req, res) => {
   return res.status(201).json(newDish);
 });
 
-app.patch('/api/dishes/:id', authenticateToken, requireAdmin, (req, res) => {
+app.patch(['/api/dishes/:id', '/dishes/:id'], authenticateToken, requireAdmin, (req, res) => {
   const { id } = req.params;
   const { scoopsLeft, isAvailable, price, name, description, category, image, unitType } = req.body;
 
@@ -221,7 +243,7 @@ app.patch('/api/dishes/:id', authenticateToken, requireAdmin, (req, res) => {
   return res.json(dish);
 });
 
-app.delete('/api/dishes/:id', authenticateToken, requireAdmin, (req, res) => {
+app.delete(['/api/dishes/:id', '/dishes/:id'], authenticateToken, requireAdmin, (req, res) => {
   const { id } = req.params;
   const db = loadDB();
 
@@ -237,7 +259,7 @@ app.delete('/api/dishes/:id', authenticateToken, requireAdmin, (req, res) => {
 // -------------------------------------------------------------
 // ORDERS ROUTES
 // -------------------------------------------------------------
-app.get('/api/orders', authenticateToken, (req, res) => {
+app.get(['/api/orders', '/orders'], authenticateToken, (req, res) => {
   const db = loadDB();
   if (req.user.role === 'admin') {
     const sorted = [...db.orders].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -250,7 +272,7 @@ app.get('/api/orders', authenticateToken, (req, res) => {
   }
 });
 
-app.post('/api/orders', authenticateToken, (req, res) => {
+app.post(['/api/orders', '/orders'], authenticateToken, (req, res) => {
   const { items, includeTakeoutPack, isHostelDelivery, hostelAddress } = req.body;
 
   if (!items || !Array.isArray(items) || items.length === 0) {
@@ -265,7 +287,13 @@ app.post('/api/orders', authenticateToken, (req, res) => {
 
   for (const item of items) {
     const dish = db.dishes.find(d => d.id === item.dishId);
-    if (dish && dish.scoopsLeft < item.scoops) {
+    if (!dish) {
+      return res.status(400).json({ message: `Dish "${item.dishName || item.dishId}" is no longer on the menu.` });
+    }
+    if (!dish.isAvailable) {
+      return res.status(400).json({ message: `Sorry, "${dish.name}" is currently unavailable.` });
+    }
+    if (dish.scoopsLeft < item.scoops) {
       return res.status(400).json({
         message: `Insufficient quantity for "${dish.name}". Only ${dish.scoopsLeft} ${dish.unitType || 'portions'} remaining!`
       });
@@ -311,7 +339,7 @@ app.post('/api/orders', authenticateToken, (req, res) => {
   return res.status(201).json(newOrder);
 });
 
-app.patch('/api/orders/:id/status', authenticateToken, requireAdmin, (req, res) => {
+app.patch(['/api/orders/:id/status', '/orders/:id/status'], authenticateToken, requireAdmin, (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
 
@@ -331,3 +359,4 @@ app.patch('/api/orders/:id/status', authenticateToken, requireAdmin, (req, res) 
 
 // Vercel Serverless Function Export
 export default app;
+

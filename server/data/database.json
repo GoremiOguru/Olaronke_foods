@@ -4,7 +4,7 @@
       "id": "usr-admin-1",
       "name": "Olaronke Ogidan (Head Admin)",
       "email": "olaronkestaff@gmail.com",
-      "passwordHash": "$2a$10$eO1Wvh177S16QJqgC.RzQ.71261Jq7J38uN9S8Jq7J38uN9S8Jq7J",
+      "passwordHash": "$2a$10$YjEOqpbqXhcHKQ/y1CxMe.nZVcrVy/itVNGyc.1v10meVamnvRF2q",
       "role": "admin",
       "lastLogin": "2026-07-25T11:20:00.000Z",
       "createdAt": "2026-07-25T10:00:00.000Z"
@@ -13,7 +13,7 @@
       "id": "usr-admin-2",
       "name": "Isaac (Vendor Staff)",
       "email": "isaac.vendor@gmail.com",
-      "passwordHash": "$2a$10$eO1Wvh177S16QJqgC.RzQ.71261Jq7J38uN9S8Jq7J38uN9S8Jq7J",
+      "passwordHash": "$2a$10$YjEOqpbqXhcHKQ/y1CxMe.nZVcrVy/itVNGyc.1v10meVamnvRF2q",
       "role": "admin",
       "lastLogin": "2026-07-25T11:45:00.000Z",
       "createdAt": "2026-07-25T10:00:00.000Z"
@@ -22,7 +22,7 @@
       "id": "usr-student-1",
       "name": "Emeka Okafor",
       "email": "emeka.okafor@topfaith.edu.ng",
-      "passwordHash": "$2a$10$eO1Wvh177S16QJqgC.RzQ.71261Jq7J38uN9S8Jq7J38uN9S8Jq7J",
+      "passwordHash": "$2a$10$W9zfMmbskRMDa6lWf92AueSB9BGvrzztjSCZgicL6RhGdNOUQEQ76",
       "role": "student",
       "createdAt": "2026-07-25T10:00:00.000Z"
     },
