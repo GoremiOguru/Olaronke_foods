@@ -480,6 +480,26 @@ app.delete('/api/orders/:id', authenticateToken, requireAdmin, (req, res) => {
   return res.json({ message: `Order #${id} deleted successfully.` });
 });
 
+app.get('/api/settings', (req, res) => {
+  const db = loadDB();
+  return res.json(db.settings);
+});
+
+app.patch('/api/settings', authenticateToken, requireAdmin, (req, res) => {
+  const { accountName, bankName, accountNumber, whatsappName, whatsappNumber, takeoutPrice } = req.body;
+  const db = loadDB();
+
+  if (accountName !== undefined) db.settings.accountName = accountName.trim();
+  if (bankName !== undefined) db.settings.bankName = bankName.trim();
+  if (accountNumber !== undefined) db.settings.accountNumber = accountNumber.trim();
+  if (whatsappName !== undefined) db.settings.whatsappName = whatsappName.trim();
+  if (whatsappNumber !== undefined) db.settings.whatsappNumber = whatsappNumber.trim();
+  if (takeoutPrice !== undefined) db.settings.takeoutPrice = Number(takeoutPrice);
+
+  saveDB(db);
+  return res.json(db.settings);
+});
+
 // SOCKET CONNECTION
 io.on('connection', (socket) => {
   socket.on('join:room', (data) => {

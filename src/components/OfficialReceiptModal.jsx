@@ -146,14 +146,22 @@ export default function OfficialReceiptModal({ order, onClose }) {
             <span className="text-[10px] bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded font-mono">PAID</span>
           </div>
 
-          {/* Print / Save Action Buttons */}
+          {/* Print / Save & Close Action Buttons */}
           <div className="flex items-center space-x-3 pt-2 print:hidden">
             <button
               onClick={handlePrint}
-              className="w-full py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs shadow-lg transition-all flex items-center justify-center space-x-2"
+              className="flex-1 py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs shadow-lg transition-all flex items-center justify-center space-x-2"
             >
               <Printer className="w-4 h-4 text-amber-400" />
-              <span>🖨️ Download / Print Official PDF Receipt</span>
+              <span>🖨️ Download / Print PDF</span>
+            </button>
+
+            <button
+              onClick={onClose}
+              className="px-5 py-3.5 rounded-2xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-extrabold text-xs transition-all flex items-center justify-center space-x-1"
+            >
+              <X className="w-4 h-4 text-slate-600" />
+              <span>Close</span>
             </button>
           </div>
 

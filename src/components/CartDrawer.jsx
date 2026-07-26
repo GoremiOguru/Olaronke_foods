@@ -58,11 +58,11 @@ export default function CartDrawer({ onOpenAuth }) {
         className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity"
       ></div>
 
-      <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
+      <div className="fixed inset-y-0 right-0 max-w-full flex pl-0 sm:pl-10">
         <div className="w-screen max-w-md bg-slate-950 border-l border-slate-800 shadow-2xl flex flex-col justify-between">
           
           {/* Header */}
-          <div className="p-6 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+          <div className="p-4 sm:p-6 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 rounded-xl bg-brand-orange text-white flex items-center justify-center font-bold shadow-orange-glow">
                 <ShoppingBag className="w-5 h-5" />
@@ -263,31 +263,33 @@ export default function CartDrawer({ onOpenAuth }) {
                 </p>
 
                 {cart.map(item => (
-                  <div key={item.dishId} className="flex justify-between text-slate-400">
-                    <span>
+                  <div key={item.dishId} className="flex justify-between items-center text-slate-400 gap-2">
+                    <span className="truncate max-w-[200px] sm:max-w-[260px]">
                       {item.dishName} ({item.scoops} × ₦{item.price.toLocaleString()})
                     </span>
-                    <span className="font-mono font-bold text-slate-200">
+                    <span className="font-mono font-bold text-slate-200 shrink-0">
                       ₦{(item.price * item.scoops).toLocaleString()}
                     </span>
                   </div>
                 ))}
 
                 {includeTakeoutPack && (
-                  <div className="flex justify-between text-brand-orange">
+                  <div className="flex justify-between items-center text-brand-orange">
                     <span>Plastic Takeout Container</span>
-                    <span className="font-mono font-bold">₦300</span>
+                    <span className="font-mono font-bold shrink-0">₦300</span>
                   </div>
                 )}
 
-                <div className="flex justify-between text-sky-300">
-                  <span>Hostel Doorstep Delivery ({isHostelDelivery ? 'Hostel Room' : 'Cafeteria Pickup'})</span>
-                  <span className="font-mono font-bold">{isHostelDelivery ? '₦500' : 'FREE'}</span>
+                <div className="flex justify-between items-center text-sky-300">
+                  <span className="truncate max-w-[210px] sm:max-w-[270px]">
+                    Delivery ({isHostelDelivery ? 'Hostel Room' : 'Cafeteria Pickup'})
+                  </span>
+                  <span className="font-mono font-bold shrink-0">{isHostelDelivery ? '₦500' : 'FREE'}</span>
                 </div>
 
-                <div className="flex justify-between pt-2 border-t border-slate-800 text-base font-black text-white">
+                <div className="flex justify-between items-center pt-2 border-t border-slate-800 text-base font-black text-white">
                   <span>Grand Total</span>
-                  <span className="text-brand-orange">₦{grandTotal.toLocaleString()}</span>
+                  <span className="text-brand-orange text-lg">₦{grandTotal.toLocaleString()}</span>
                 </div>
               </div>
 

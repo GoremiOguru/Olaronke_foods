@@ -26,6 +26,50 @@ export default function AdminDashboard() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadSuccessMsg, setUploadSuccessMsg] = useState('');
 
+  const [vendorSettings, setVendorSettings] = useState({
+    accountName: 'OLARONKE OGIDAN',
+    bankName: 'MONIEPOINT',
+    accountNumber: '8234786544',
+    whatsappName: 'Isaac',
+    whatsappNumber: '08133314798',
+    takeoutPrice: 300
+  });
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [settingsSuccessMsg, setSettingsSuccessMsg] = useState('');
+
+  useEffect(() => {
+    fetch('/api/settings')
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data) setVendorSettings(data);
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleSaveSettings = async (e) => {
+    e.preventDefault();
+    setSavingSettings(true);
+    setSettingsSuccessMsg('');
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(vendorSettings)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to update settings');
+      setVendorSettings(data);
+      setSettingsSuccessMsg('🎉 Vendor Bank Account & Payment Settings saved successfully!');
+    } catch (err) {
+      alert(err.message || 'Error saving settings');
+    } finally {
+      setSavingSettings(false);
+    }
+  };
+
   const [newDish, setNewDish] = useState({
     name: '',
     description: '',
@@ -521,6 +565,17 @@ export default function AdminDashboard() {
           >
             <Plus className="w-4 h-4" />
             <span>Add New Food</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('settings')}
+            className={`px-5 py-3 rounded-2xl font-extrabold text-sm transition-all flex items-center space-x-2 whitespace-nowrap ${
+              activeTab === 'settings'
+                ? 'bg-brand-lemon text-slate-950 font-black shadow-lemon-glow'
+                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+            }`}
+          >
+            <span>⚙️ Bank & Payment Settings</span>
           </button>
         </div>
 
@@ -1258,6 +1313,113 @@ export default function AdminDashboard() {
                 className="w-full py-4 rounded-2xl bg-brand-lemon hover:bg-lime-400 text-slate-950 font-black text-sm transition-all shadow-lemon-glow"
               >
                 {addingDish ? 'Publishing Food...' : 'Publish Food to Live Catalog'}
+              </button>
+            </form>
+          </div>
+        )}
+
+        {/* TAB 5: VENDOR BANK ACCOUNT & APP SETTINGS (NO CODE NEEDED) */}
+        {activeTab === 'settings' && (
+          <div className="glass-card p-8 rounded-3xl border border-slate-800 max-w-2xl mx-auto space-y-6">
+            <div>
+              <h2 className="text-xl font-black text-white flex items-center gap-2">
+                <span>⚙️ No-Code Vendor Payment & Contact Settings</span>
+              </h2>
+              <p className="text-xs text-slate-400">
+                Staff can permanently update bank transfer details and WhatsApp numbers directly from this panel without writing any code.
+              </p>
+            </div>
+
+            {settingsSuccessMsg && (
+              <div className="p-4 rounded-2xl bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 text-xs font-bold flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 shrink-0" />
+                <span>{settingsSuccessMsg}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSaveSettings} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">Bank Account Holder Name</label>
+                <input
+                  type="text"
+                  required
+                  value={vendorSettings.accountName || ''}
+                  onChange={(e) => setVendorSettings({ ...vendorSettings, accountName: e.target.value })}
+                  placeholder="e.g. OLARONKE OGIDAN"
+                  className="w-full bg-slate-950 border border-slate-700 text-white px-4 py-3 rounded-xl text-sm focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Bank Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={vendorSettings.bankName || ''}
+                    onChange={(e) => setVendorSettings({ ...vendorSettings, bankName: e.target.value })}
+                    placeholder="e.g. MONIEPOINT"
+                    className="w-full bg-slate-950 border border-slate-700 text-white px-4 py-3 rounded-xl text-sm focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Moniepoint Account Number</label>
+                  <input
+                    type="text"
+                    required
+                    value={vendorSettings.accountNumber || ''}
+                    onChange={(e) => setVendorSettings({ ...vendorSettings, accountNumber: e.target.value })}
+                    placeholder="e.g. 8234786544"
+                    className="w-full bg-slate-950 border border-slate-700 text-white px-4 py-3 rounded-xl text-sm font-mono focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Staff WhatsApp Contact Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={vendorSettings.whatsappName || ''}
+                    onChange={(e) => setVendorSettings({ ...vendorSettings, whatsappName: e.target.value })}
+                    placeholder="e.g. Isaac"
+                    className="w-full bg-slate-950 border border-slate-700 text-white px-4 py-3 rounded-xl text-sm focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Staff WhatsApp Phone Number</label>
+                  <input
+                    type="text"
+                    required
+                    value={vendorSettings.whatsappNumber || ''}
+                    onChange={(e) => setVendorSettings({ ...vendorSettings, whatsappNumber: e.target.value })}
+                    placeholder="e.g. 08133314798"
+                    className="w-full bg-slate-950 border border-slate-700 text-white px-4 py-3 rounded-xl text-sm font-mono focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">Plastic Takeout Container Fee (₦)</label>
+                <input
+                  type="number"
+                  required
+                  value={vendorSettings.takeoutPrice || 300}
+                  onChange={(e) => setVendorSettings({ ...vendorSettings, takeoutPrice: Number(e.target.value) })}
+                  placeholder="300"
+                  className="w-full bg-slate-950 border border-slate-700 text-white px-4 py-3 rounded-xl text-sm font-mono focus:outline-none"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={savingSettings}
+                className="w-full py-4 rounded-2xl bg-brand-lemon hover:bg-lime-400 text-slate-950 font-black text-sm transition-all shadow-lemon-glow"
+              >
+                {savingSettings ? 'Saving Settings...' : 'Save Settings permanently'}
               </button>
             </form>
           </div>
