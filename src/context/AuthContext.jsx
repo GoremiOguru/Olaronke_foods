@@ -43,11 +43,31 @@ export function AuthProvider({ children }) {
       });
   }, [token]);
 
+  const getUserVault = () => {
+    try {
+      const v = localStorage.getItem('olaronke_vault');
+      return v ? JSON.parse(v) : [];
+    } catch {
+      return [];
+    }
+  };
+
+  const saveToUserVault = (userObj) => {
+    try {
+      const vault = getUserVault();
+      const exists = vault.find(u => u.email.toLowerCase() === userObj.email.toLowerCase());
+      if (!exists) {
+        vault.push(userObj);
+        localStorage.setItem('olaronke_vault', JSON.stringify(vault));
+      }
+    } catch {}
+  };
+
   const login = async (email, password) => {
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ email, password, userVault: getUserVault() })
     });
 
     const data = await res.json();
@@ -57,6 +77,7 @@ export function AuthProvider({ children }) {
 
     localStorage.setItem('olaronke_token', data.token);
     localStorage.setItem('olaronke_user', JSON.stringify(data.user));
+    saveToUserVault(data.user);
     setToken(data.token);
     setUser(data.user);
     return data.user;
@@ -76,6 +97,7 @@ export function AuthProvider({ children }) {
 
     localStorage.setItem('olaronke_token', data.token);
     localStorage.setItem('olaronke_user', JSON.stringify(data.user));
+    saveToUserVault(data.user);
     setToken(data.token);
     setUser(data.user);
     return data.user;

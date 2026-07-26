@@ -14,10 +14,23 @@ import { useAuth } from './context/AuthContext';
 
 export default function App() {
   const { user, isAdmin } = useAuth();
-  const [isAdminView, setIsAdminView] = useState(false);
+  const [isAdminView, setIsAdminView] = useState(() => {
+    try {
+      return localStorage.getItem('olaronke_admin_view') === 'true';
+    } catch {
+      return false;
+    }
+  });
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isMyOrdersOpen, setIsMyOrdersOpen] = useState(false);
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+
+  const handleSetAdminView = (val) => {
+    setIsAdminView(val);
+    try {
+      localStorage.setItem('olaronke_admin_view', String(val));
+    } catch {}
+  };
 
   const scrollToCatalog = () => {
     const el = document.getElementById('catalog-section');
@@ -32,9 +45,9 @@ export default function App() {
       {/* Global Navbar */}
       <Navbar
         onOpenAuth={() => setIsAuthOpen(true)}
-        onOpenAdmin={() => setIsAdminView(true)}
+        onOpenAdmin={() => handleSetAdminView(true)}
         isAdminView={isAdminView}
-        setIsAdminView={setIsAdminView}
+        setIsAdminView={handleSetAdminView}
         onOpenMyOrders={() => setIsMyOrdersOpen(true)}
         onOpenChangePassword={() => setIsChangePasswordOpen(true)}
       />

@@ -118,7 +118,7 @@ app.post(['/api/auth/register', '/auth/register'], (req, res) => {
 });
 
 app.post(['/api/auth/login', '/auth/login'], (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, userVault } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({ message: 'Please provide email and password.' });
@@ -126,7 +126,23 @@ app.post(['/api/auth/login', '/auth/login'], (req, res) => {
 
   const cleanEmail = email.trim().toLowerCase();
   const db = loadDB();
-  const user = db.users.find(u => u.email.toLowerCase() === cleanEmail);
+  let user = db.users.find(u => u.email.toLowerCase() === cleanEmail);
+
+  if (!user && userVault && Array.isArray(userVault)) {
+    const vaultUser = userVault.find(u => u.email?.toLowerCase() === cleanEmail);
+    if (vaultUser) {
+      user = {
+        id: vaultUser.id || `usr-${Date.now()}`,
+        name: vaultUser.name || 'Student User',
+        email: cleanEmail,
+        passwordHash: bcrypt.hashSync(password, bcrypt.genSaltSync(10)),
+        role: vaultUser.role || 'student',
+        lastLogin: new Date().toISOString()
+      };
+      db.users.push(user);
+      saveDB(db);
+    }
+  }
 
   if (!user || !bcrypt.compareSync(password, user.passwordHash)) {
     return res.status(401).json({ message: 'Invalid email or password credentials.' });
@@ -168,7 +184,7 @@ app.get(['/api/auth/me', '/auth/me'], authenticateToken, (req, res) => {
 });
 
 app.post(['/api/auth/reset-password', '/auth/reset-password'], (req, res) => {
-  const { email, newPassword } = req.body;
+  const { email, newPassword, userVault } = req.body;
 
   if (!email || !newPassword) {
     return res.status(400).json({ message: 'Please provide email and new password.' });
@@ -180,7 +196,23 @@ app.post(['/api/auth/reset-password', '/auth/reset-password'], (req, res) => {
 
   const cleanEmail = email.trim().toLowerCase();
   const db = loadDB();
-  const user = db.users.find(u => u.email.toLowerCase() === cleanEmail);
+  let user = db.users.find(u => u.email.toLowerCase() === cleanEmail);
+
+  if (!user && userVault && Array.isArray(userVault)) {
+    const vaultUser = userVault.find(u => u.email?.toLowerCase() === cleanEmail);
+    if (vaultUser) {
+      user = {
+        id: vaultUser.id || `usr-${Date.now()}`,
+        name: vaultUser.name || 'User',
+        email: cleanEmail,
+        passwordHash: bcrypt.hashSync(newPassword, bcrypt.genSaltSync(10)),
+        role: vaultUser.role || (cleanEmail.endsWith('@topfaith.edu.ng') ? 'student' : 'admin'),
+        lastLogin: new Date().toISOString()
+      };
+      db.users.push(user);
+      saveDB(db);
+    }
+  }
 
   if (!user) {
     return res.status(404).json({ message: 'No registered user found with this email address.' });

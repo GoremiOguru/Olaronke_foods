@@ -31,10 +31,16 @@ export default function AuthModal({ isOpen, onClose }) {
       }
       setLoading(true);
       try {
+        let vault = [];
+        try {
+          const v = localStorage.getItem('olaronke_vault');
+          if (v) vault = JSON.parse(v);
+        } catch {}
+
         const res = await fetch('/api/auth/reset-password', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, newPassword: password })
+          body: JSON.stringify({ email, newPassword: password, userVault: vault })
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || 'Password reset failed');
