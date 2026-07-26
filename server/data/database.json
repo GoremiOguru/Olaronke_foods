@@ -190,6 +190,110 @@
       "isAvailable": true,
       "category": "Drinks & Refreshments",
       "image": "/images/zobo_drink.png"
+    },
+    {
+      "id": "dish-15",
+      "name": "Boiled Hard Egg (1 Piece)",
+      "description": "Freshly boiled hard egg. Great side add-on for rice or noodles.",
+      "price": 300,
+      "scoopsLeft": 30,
+      "unitType": "piece",
+      "isAvailable": true,
+      "category": "Sides & Extras",
+      "image": "/images/eggs_sausages.png"
+    },
+    {
+      "id": "dish-16",
+      "name": "Golden Fried Egg (1 Piece)",
+      "description": "Seasoned fried egg cooked fresh with onions & peppers.",
+      "price": 500,
+      "scoopsLeft": 25,
+      "unitType": "piece",
+      "isAvailable": true,
+      "category": "Sides & Extras",
+      "image": "/images/eggs_sausages.png"
+    },
+    {
+      "id": "dish-17",
+      "name": "Boiled Chicken Franc Sausage (1 Piece)",
+      "description": "Tender boiled premium Chicken Franc sausage piece.",
+      "price": 500,
+      "scoopsLeft": 25,
+      "unitType": "piece",
+      "isAvailable": true,
+      "category": "Sides & Extras",
+      "image": "/images/eggs_sausages.png"
+    },
+    {
+      "id": "dish-18",
+      "name": "Golden Fried Chicken Franc Sausage (1 Piece)",
+      "description": "Crispy fried juicy Chicken Franc sausage piece.",
+      "price": 500,
+      "scoopsLeft": 25,
+      "unitType": "piece",
+      "isAvailable": true,
+      "category": "Sides & Extras",
+      "image": "/images/eggs_sausages.png"
+    },
+    {
+      "id": "dish-19",
+      "name": "Campus Special Indomie Noodles",
+      "description": "Hot cooked campus Indomie noodles with chili peppers & spices. Prepared fresh on demand.",
+      "price": 1000,
+      "scoopsLeft": 30,
+      "unitType": "plate",
+      "isAvailable": true,
+      "category": "Made-to-Order & On-Demand",
+      "prepTime": "40 mins - 1 hr",
+      "image": "/images/indomie_noodles.png"
+    },
+    {
+      "id": "dish-20",
+      "name": "Classic Chicken Shawarma (1 Sausage)",
+      "description": "Juicy grilled chicken shawarma wrap with cream sauce & 1 Chicken Franc sausage.",
+      "price": 3500,
+      "scoopsLeft": 20,
+      "unitType": "wrap",
+      "isAvailable": true,
+      "category": "Made-to-Order & On-Demand",
+      "prepTime": "40 mins - 1 hr",
+      "image": "/images/shawarma.png"
+    },
+    {
+      "id": "dish-21",
+      "name": "Double Supreme Chicken & Beef Shawarma (2 Sausages)",
+      "description": "Loaded mixed chicken & beef shawarma wrap with 2 Chicken Franc sausages & double cream sauce.",
+      "price": 5500,
+      "scoopsLeft": 20,
+      "unitType": "wrap",
+      "isAvailable": true,
+      "category": "Made-to-Order & On-Demand",
+      "prepTime": "40 mins - 1 hr",
+      "image": "/images/shawarma.png"
+    },
+    {
+      "id": "dish-22",
+      "name": "Toasted Sandwich (Fried Egg + 1 Sausage)",
+      "description": "Golden toasted sandwich loaded with 1 fried egg & 1 Chicken Franc sausage.",
+      "price": 1500,
+      "scoopsLeft": 25,
+      "unitType": "portion",
+      "isAvailable": true,
+      "category": "Made-to-Order & On-Demand",
+      "prepTime": "40 mins - 1 hr",
+      "image": "/images/toasted_sandwich.png"
+    },
+    {
+      "id": "dish-23",
+      "name": "Double Sausage Toasted Sandwich (Fried Egg + 2 Sausages)",
+      "description": "Deluxe toasted sandwich loaded with 1 fried egg & 2 Chicken Franc sausages.",
+      "price": 2000,
+      "scoopsLeft": 25,
+      "unitType": "portion",
+      "isAvailable": true,
+      "category": "Made-to-Order & On-Demand",
+      "prepTime": "40 mins - 1 hr",
+      "image": "/images/toasted_sandwich.png"
     }
   ],
   "orders": [

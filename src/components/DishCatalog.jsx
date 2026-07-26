@@ -9,7 +9,7 @@ export default function DishCatalog() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [sortBy, setSortBy] = useState('popular');
 
-  const categories = ['All', 'Rice Dishes', 'Chicken & Proteins', 'Swallow & Soups', 'Sides & Extras', 'Drinks & Refreshments'];
+  const categories = ['All', 'Rice Dishes', 'Chicken & Proteins', 'Swallow & Soups', 'Sides & Extras', 'Made-to-Order & On-Demand', 'Drinks & Refreshments'];
 
   const filteredDishes = useMemo(() => {
     let result = [...dishes];

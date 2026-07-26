@@ -1,21 +1,24 @@
 import React, { useState } from 'react';
-import { Plus, Minus, ShoppingBag, Flame, AlertCircle } from 'lucide-react';
+import { Plus, Minus, ShoppingBag, Flame, AlertCircle, Clock } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
 export default function DishCard({ dish }) {
   const { addToCart } = useCart();
   const [selectedQty, setSelectedQty] = useState(1);
 
-  const { id, name, description, price, scoopsLeft, isAvailable, category, image, unitType } = dish;
+  const { id, name, description, price, scoopsLeft, isAvailable, category, image, unitType, prepTime } = dish;
 
   const isOutOfStock = !isAvailable || scoopsLeft <= 0;
 
   let labelUnit = unitType || 'scoop';
   if (category === 'Drinks & Refreshments') {
     labelUnit = 'bottle';
-  } else if (category === 'Chicken & Proteins') {
+  } else if (category === 'Chicken & Proteins' && !unitType) {
     labelUnit = price >= 1000 ? 'portion' : 'piece';
   }
+
+  const isMadeToOrder = category === 'Made-to-Order & On-Demand' || prepTime;
+  const timeText = prepTime || '40 mins - 1 hr';
 
   let stockBadgeStyle = "bg-brand-lemon/20 text-brand-lemon-glow border-brand-lemon/40";
   let stockText = `${scoopsLeft} ${labelUnit}${scoopsLeft > 1 ? 's' : ''} left`;
@@ -92,6 +95,14 @@ export default function DishCard({ dish }) {
           <p className="text-slate-400 text-xs leading-relaxed line-clamp-2">
             {description}
           </p>
+
+          {/* Made to Order Prep Time Badge */}
+          {isMadeToOrder && (
+            <div className="mt-2.5 inline-flex items-center gap-1.5 text-[11px] font-bold text-amber-300 bg-amber-950/80 border border-amber-500/40 px-3 py-1 rounded-xl">
+              <Clock className="w-3.5 h-3.5 text-amber-400 animate-spin-slow" />
+              <span>Prep Time: {timeText}</span>
+            </div>
+          )}
         </div>
 
         {/* Price & Quantity Controls */}

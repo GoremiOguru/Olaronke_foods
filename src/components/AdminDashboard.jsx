@@ -702,6 +702,7 @@ export default function AdminDashboard() {
                       <option value="Chicken & Proteins">Chicken & Proteins</option>
                       <option value="Swallow & Soups">Swallow & Soups</option>
                       <option value="Sides & Extras">Sides & Extras</option>
+                      <option value="Made-to-Order & On-Demand">Made-to-Order & On-Demand</option>
                       <option value="Drinks & Refreshments">Drinks & Refreshments</option>
                     </select>
                   </div>
@@ -718,6 +719,7 @@ export default function AdminDashboard() {
                       <option value="piece">piece</option>
                       <option value="bottle">bottle</option>
                       <option value="plate">plate</option>
+                      <option value="wrap">wrap</option>
                     </select>
                   </div>
                 </div>
@@ -1028,6 +1030,7 @@ export default function AdminDashboard() {
                     <option value="portion">portion</option>
                     <option value="piece">piece</option>
                     <option value="plate">plate</option>
+                    <option value="wrap">wrap</option>
                   </select>
                 </div>
               </div>
@@ -1040,11 +1043,12 @@ export default function AdminDashboard() {
                     onChange={(e) => setNewDish({ ...newDish, category: e.target.value })}
                     className="w-full bg-slate-950 border border-slate-700 text-white px-4 py-3 rounded-xl text-sm focus:outline-none"
                   >
-                    <option value="Drinks & Refreshments">Drinks & Refreshments</option>
                     <option value="Rice Dishes">Rice Dishes</option>
                     <option value="Chicken & Proteins">Chicken & Proteins</option>
                     <option value="Swallow & Soups">Swallow & Soups</option>
                     <option value="Sides & Extras">Sides & Extras</option>
+                    <option value="Made-to-Order & On-Demand">Made-to-Order & On-Demand</option>
+                    <option value="Drinks & Refreshments">Drinks & Refreshments</option>
                   </select>
                 </div>
 
