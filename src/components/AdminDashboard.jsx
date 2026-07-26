@@ -1,0 +1,1077 @@
+import React, { useState, useEffect } from 'react';
+import { Flame, Plus, Minus, ToggleLeft, ToggleRight, DollarSign, CheckCircle2, Clock, PackageCheck, AlertTriangle, RefreshCw, Search, ShieldCheck, User, MessageCircle, Trash2, Key, Users, MapPin, Package, UtensilsCrossed, Upload, Image as ImageIcon, Check, Edit3, X, Bell, BellRing, Smartphone } from 'lucide-react';
+import { useSocket } from '../context/SocketContext';
+import { useAuth } from '../context/AuthContext';
+
+export default function AdminDashboard() {
+  const { dishes, setDishes, socket, pushPermission, requestPushPermission } = useSocket();
+  const { token, user: currentUser } = useAuth();
+
+  const [orders, setOrders] = useState([]);
+  const [staffList, setStaffList] = useState([]);
+  const [activeTab, setActiveTab] = useState('inventory');
+  const [orderSearch, setOrderSearch] = useState('');
+  const [dishSearch, setDishSearch] = useState('');
+  const [deletingDishId, setDeletingDishId] = useState(null);
+
+  // Editing Dish Title & Description State
+  const [editingDish, setEditingDish] = useState(null);
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  // File upload state for admin
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadSuccessMsg, setUploadSuccessMsg] = useState('');
+
+  const [newDish, setNewDish] = useState({
+    name: '',
+    description: '',
+    price: 500,
+    scoopsLeft: 30,
+    unitType: 'scoop',
+    category: 'Rice Dishes',
+    image: '/images/jollof_rice.png'
+  });
+  const [addingDish, setAddingDish] = useState(false);
+  const [dishSuccessMsg, setDishSuccessMsg] = useState('');
+
+  // Helper for guaranteed 3-digit pickup code
+  const getPickupCode = (ord) => {
+    if (ord?.pickupCode) return String(ord.pickupCode);
+    if (!ord?.id) return '582';
+    let num = 0;
+    for (let i = 0; i < ord.id.length; i++) num += ord.id.charCodeAt(i);
+    return String(100 + (num % 900));
+  };
+
+  const fetchOrdersAndStaff = async () => {
+    if (!token) return;
+    try {
+      const [resOrders, resStaff] = await Promise.all([
+        fetch('/api/orders', { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch('/api/admin/staff', { headers: { 'Authorization': `Bearer ${token}` } })
+      ]);
+
+      if (resOrders.ok) {
+        const dataOrders = await resOrders.json();
+        setOrders(dataOrders);
+      }
+      if (resStaff.ok) {
+        const dataStaff = await resStaff.json();
+        setStaffList(dataStaff);
+      }
+    } catch (err) {
+      console.error('Error fetching admin data:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrdersAndStaff();
+  }, [token]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on('order:new', (newOrder) => {
+      setOrders(prev => [newOrder, ...prev]);
+      try {
+        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+        audio.play().catch(() => {});
+      } catch (e) {}
+    });
+
+    socket.on('order:status_updated', (updatedOrder) => {
+      setOrders(prev => prev.map(o => o.id === updatedOrder.id ? updatedOrder : o));
+    });
+
+    return () => {
+      socket.off('order:new');
+      socket.off('order:status_updated');
+    };
+  }, [socket]);
+
+  // Handle uploading product image file directly from phone or laptop
+  const handleFileUpload = async (e, isEditMode = false) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file (PNG, JPG, JPEG, WEBP).');
+      return;
+    }
+
+    setUploadingImage(true);
+    setUploadSuccessMsg('');
+
+    try {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64Data = reader.result;
+
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ imageData: base64Data, fileName: file.name })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const uploadedUrl = data.imageUrl;
+
+          if (isEditMode && editingDish) {
+            setEditingDish(prev => ({ ...prev, image: uploadedUrl }));
+          } else {
+            setNewDish(prev => ({ ...prev, image: uploadedUrl }));
+          }
+
+          setUploadSuccessMsg('✅ Image uploaded successfully!');
+          setTimeout(() => setUploadSuccessMsg(''), 4000);
+        } else {
+          alert('Failed to upload image. Please try again.');
+        }
+        setUploadingImage(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      console.error('Error during image upload:', err);
+      alert('Error uploading image file.');
+      setUploadingImage(false);
+    }
+  };
+
+  // Save Dish Title, Description, Price, Stock & Photo Edit
+  const handleSaveDishEdit = async (e) => {
+    e.preventDefault();
+    if (!editingDish) return;
+    setSavingEdit(true);
+
+    try {
+      const res = await fetch(`/api/dishes/${editingDish.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: editingDish.name,
+          description: editingDish.description,
+          price: Number(editingDish.price),
+          scoopsLeft: Number(editingDish.scoopsLeft),
+          unitType: editingDish.unitType,
+          category: editingDish.category,
+          image: editingDish.image,
+          isAvailable: editingDish.isAvailable
+        })
+      });
+
+      if (res.ok) {
+        const updated = await res.json();
+        setDishes(prev => prev.map(d => d.id === updated.id ? updated : d));
+        setEditingDish(null);
+      }
+    } catch (err) {
+      console.error('Failed to save dish edits:', err);
+      alert('Error saving dish edits');
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  const handleScoopChange = async (dishId, newScoops) => {
+    const validScoops = Math.max(0, newScoops);
+    setDishes(prev => prev.map(d => d.id === dishId ? { ...d, scoopsLeft: validScoops, isAvailable: validScoops > 0 ? d.isAvailable : false } : d));
+
+    try {
+      await fetch(`/api/dishes/${dishId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ scoopsLeft: validScoops })
+      });
+    } catch (err) {
+      console.error('Failed to update stock:', err);
+    }
+  };
+
+  const handleToggleAvailability = async (dishId, currentAvailability) => {
+    const nextState = !currentAvailability;
+    setDishes(prev => prev.map(d => d.id === dishId ? { ...d, isAvailable: nextState } : d));
+
+    try {
+      await fetch(`/api/dishes/${dishId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ isAvailable: nextState })
+      });
+    } catch (err) {
+      console.error('Failed to toggle availability:', err);
+    }
+  };
+
+  const handlePriceChange = async (dishId, newPrice) => {
+    const priceNum = Math.max(0, Number(newPrice));
+    setDishes(prev => prev.map(d => d.id === dishId ? { ...d, price: priceNum } : d));
+
+    try {
+      await fetch(`/api/dishes/${dishId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ price: priceNum })
+      });
+    } catch (err) {
+      console.error('Failed to update price:', err);
+    }
+  };
+
+  const handleDeleteDish = async (dishId, dishName) => {
+    if (!window.confirm(`Are you sure you want to delete "${dishName}" from B'feastas catalog?`)) {
+      return;
+    }
+
+    setDeletingDishId(dishId);
+    try {
+      const res = await fetch(`/api/dishes/${dishId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (res.ok) {
+        setDishes(prev => prev.filter(d => d.id !== dishId));
+      }
+    } catch (err) {
+      console.error('Failed to delete dish:', err);
+    } finally {
+      setDeletingDishId(null);
+    }
+  };
+
+  const handleOrderStatusChange = async (orderId, newStatus) => {
+    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus, confirmedByAdmin: currentUser?.name } : o));
+
+    try {
+      await fetch(`/api/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+    } catch (err) {
+      console.error('Failed to update order status:', err);
+    }
+  };
+
+  const handleCreateDish = async (e) => {
+    e.preventDefault();
+    setAddingDish(true);
+    setDishSuccessMsg('');
+
+    try {
+      const res = await fetch('/api/dishes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(newDish)
+      });
+
+      if (res.ok) {
+        setDishSuccessMsg(`🎉 "${newDish.name}" published to live B'feastas catalog!`);
+        setNewDish({
+          name: '',
+          description: '',
+          price: 500,
+          scoopsLeft: 30,
+          unitType: 'scoop',
+          category: 'Rice Dishes',
+          image: '/images/jollof_rice.png'
+        });
+        setTimeout(() => setActiveTab('inventory'), 1200);
+      }
+    } catch (err) {
+      console.error('Error adding dish:', err);
+    } finally {
+      setAddingDish(false);
+    }
+  };
+
+  const totalRevenue = orders.reduce((sum, o) => sum + (o.status !== 'Cancelled' ? o.totalPrice : 0), 0);
+
+  const filteredDishes = dishes.filter(d => 
+    d.name.toLowerCase().includes(dishSearch.toLowerCase()) || 
+    d.category.toLowerCase().includes(dishSearch.toLowerCase()) ||
+    (d.description && d.description.toLowerCase().includes(dishSearch.toLowerCase()))
+  );
+
+  const filteredOrders = orders.filter(o =>
+    o.studentName.toLowerCase().includes(orderSearch.toLowerCase()) ||
+    o.studentEmail.toLowerCase().includes(orderSearch.toLowerCase()) ||
+    o.id.toLowerCase().includes(orderSearch.toLowerCase()) ||
+    (o.pickupCode && String(o.pickupCode).includes(orderSearch)) ||
+    getPickupCode(o).includes(orderSearch)
+  );
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-100 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto space-y-8">
+        
+        {/* Admin Header Banner */}
+        <div className="glass-card p-6 rounded-3xl border border-brand-orange/30 flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950">
+          <div className="flex items-center space-x-4">
+            <div className="w-14 h-14 rounded-2xl bg-brand-orange/20 text-brand-orange border border-brand-orange/40 flex items-center justify-center font-black">
+              <ShieldCheck className="w-8 h-8" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-black text-white">B'feastas Vendor Staff Control Panel</h1>
+                <span className="px-2.5 py-0.5 text-[10px] font-black uppercase bg-brand-lemon/20 text-brand-lemon-glow rounded-full border border-brand-lemon/40">
+                  REAL-TIME SYNC ACTIVE
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Staff Account: <strong className="text-brand-orange">{currentUser?.name}</strong> ({currentUser?.email})
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-3">
+            {/* Phone Home Screen Notification Button */}
+            <button
+              onClick={requestPushPermission}
+              className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md ${
+                pushPermission === 'granted'
+                  ? 'bg-brand-lemon/20 text-brand-lemon-glow border border-brand-lemon/40'
+                  : 'bg-brand-orange text-white hover:bg-orange-600 shadow-orange-glow'
+              }`}
+              title="Get phone home screen alerts when new orders arrive"
+            >
+              <Smartphone className="w-4 h-4" />
+              <BellRing className="w-4 h-4" />
+              <span>
+                {pushPermission === 'granted'
+                  ? 'Phone Home Screen Alerts Active'
+                  : 'Enable Phone Home Screen Alerts'}
+              </span>
+            </button>
+
+            <button
+              onClick={fetchOrdersAndStaff}
+              className="flex items-center space-x-2 bg-slate-900 hover:bg-slate-800 text-slate-200 px-4 py-2.5 rounded-xl text-xs font-bold border border-slate-800 transition-colors"
+            >
+              <RefreshCw className="w-4 h-4 text-brand-lemon-glow" />
+              <span>Refresh Feed</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Live Overview Stats Bar */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="glass-card p-5 rounded-2xl border border-slate-800">
+            <div className="flex justify-between items-center text-slate-400 mb-2">
+              <span className="text-xs font-extrabold uppercase">Total Orders</span>
+              <PackageCheck className="w-5 h-5 text-sky-400" />
+            </div>
+            <p className="text-3xl font-black text-white">{orders.length}</p>
+            <p className="text-[11px] text-slate-500 mt-1">Live student order queue</p>
+          </div>
+
+          <div className="glass-card p-5 rounded-2xl border border-slate-800">
+            <div className="flex justify-between items-center text-slate-400 mb-2">
+              <span className="text-xs font-extrabold uppercase">Total Revenue</span>
+              <DollarSign className="w-5 h-5 text-brand-lemon-glow" />
+            </div>
+            <p className="text-3xl font-black text-brand-lemon-glow">₦{totalRevenue.toLocaleString()}</p>
+            <p className="text-[11px] text-slate-500 mt-1">Includes ₦300 takeout packs</p>
+          </div>
+
+          <div className="glass-card p-5 rounded-2xl border border-slate-800">
+            <div className="flex justify-between items-center text-slate-400 mb-2">
+              <span className="text-xs font-extrabold uppercase">Active Dishes</span>
+              <Flame className="w-5 h-5 text-brand-orange" />
+            </div>
+            <p className="text-3xl font-black text-white">{dishes.length}</p>
+            <p className="text-[11px] text-slate-500 mt-1">{dishes.filter(d => d.isAvailable).length} available for order</p>
+          </div>
+
+          <div className="glass-card p-5 rounded-2xl border border-slate-800">
+            <div className="flex justify-between items-center text-slate-400 mb-2">
+              <span className="text-xs font-extrabold uppercase">Vendor Staff</span>
+              <Users className="w-5 h-5 text-brand-orange" />
+            </div>
+            <p className="text-3xl font-black text-brand-orange">{staffList.length}</p>
+            <p className="text-[11px] text-slate-500 mt-1">Registered admin staff</p>
+          </div>
+        </div>
+
+        {/* Tab Navigation Controls */}
+        <div className="flex items-center space-x-3 border-b border-slate-800 pb-2 overflow-x-auto">
+          <button
+            onClick={() => setActiveTab('inventory')}
+            className={`px-5 py-3 rounded-2xl font-extrabold text-sm transition-all flex items-center space-x-2 whitespace-nowrap ${
+              activeTab === 'inventory'
+                ? 'bg-brand-orange text-white shadow-orange-glow'
+                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+            }`}
+          >
+            <Flame className="w-4 h-4" />
+            <span>Portion & Inventory ({dishes.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('orders')}
+            className={`px-5 py-3 rounded-2xl font-extrabold text-sm transition-all flex items-center space-x-2 whitespace-nowrap ${
+              activeTab === 'orders'
+                ? 'bg-brand-orange text-white shadow-orange-glow'
+                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+            }`}
+          >
+            <User className="w-4 h-4" />
+            <span>Student Orders ({orders.length})</span>
+            {orders.some(o => o.status === 'Pending Payment Verification') && (
+              <span className="w-2.5 h-2.5 rounded-full bg-brand-lemon-glow animate-ping"></span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setActiveTab('staff')}
+            className={`px-5 py-3 rounded-2xl font-extrabold text-sm transition-all flex items-center space-x-2 whitespace-nowrap ${
+              activeTab === 'staff'
+                ? 'bg-brand-lemon text-slate-950 font-black shadow-lemon-glow'
+                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+            }`}
+          >
+            <Users className="w-4 h-4" />
+            <span>Vendor Staff Roster ({staffList.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('add-dish')}
+            className={`px-5 py-3 rounded-2xl font-extrabold text-sm transition-all flex items-center space-x-2 whitespace-nowrap ${
+              activeTab === 'add-dish'
+                ? 'bg-brand-lemon text-slate-950 font-black shadow-lemon-glow'
+                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+            }`}
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add New Food</span>
+          </button>
+        </div>
+
+        {/* TAB 1: INVENTORY MANAGER */}
+        {activeTab === 'inventory' && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-black text-white">Live Catalog Controls</h2>
+                <p className="text-xs text-slate-400">Click "✏️ Edit Info" to change food titles, descriptions, prices or photos.</p>
+              </div>
+              <div className="relative w-72">
+                <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={dishSearch}
+                  onChange={(e) => setDishSearch(e.target.value)}
+                  placeholder="Search food item..."
+                  className="w-full bg-slate-900 border border-slate-800 text-white pl-9 pr-3 py-2 rounded-xl text-xs focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredDishes.map((dish) => {
+                const labelUnit = dish.unitType || (dish.category === 'Drinks & Refreshments' ? 'bottle' : 'scoop');
+                return (
+                  <div
+                    key={dish.id}
+                    className={`glass-card p-5 rounded-3xl border transition-all space-y-4 ${
+                      !dish.isAvailable || dish.scoopsLeft === 0
+                        ? 'border-slate-800 opacity-80'
+                        : dish.scoopsLeft <= 5
+                        ? 'border-brand-orange/60 shadow-orange-glow'
+                        : 'border-slate-800 hover:border-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-start space-x-3">
+                      <img
+                        src={dish.image}
+                        alt={dish.name}
+                        className="w-16 h-16 rounded-2xl object-cover border border-slate-700 shrink-0"
+                      />
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-extrabold text-white text-base truncate">{dish.name}</h4>
+                          <button
+                            onClick={() => handleDeleteDish(dish.id, dish.name)}
+                            disabled={deletingDishId === dish.id}
+                            className="p-1 text-slate-500 hover:text-rose-400 rounded transition-colors"
+                            title="Delete food item"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <p className="text-[11px] text-brand-orange font-semibold">{dish.category}</p>
+                        <p className="text-xs text-slate-400 line-clamp-2 mt-0.5">{dish.description}</p>
+                      </div>
+                    </div>
+
+                    {/* Edit Dish Title & Details Trigger Button */}
+                    <div className="flex items-center justify-between pt-1">
+                      <button
+                        onClick={() => setEditingDish({ ...dish })}
+                        className="w-full flex items-center justify-center space-x-1.5 py-2 bg-slate-800 hover:bg-slate-700 text-brand-lemon-glow rounded-xl text-xs font-bold border border-slate-700 transition-colors"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                        <span>Edit Food Title, Description & Photo</span>
+                      </button>
+                    </div>
+
+                    <div className="p-3 bg-slate-950 rounded-2xl border border-slate-800 space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-slate-400 font-semibold">Stock Remaining:</span>
+                        <span className={`font-black text-sm ${dish.scoopsLeft <= 5 ? 'text-brand-orange' : 'text-brand-lemon-glow'}`}>
+                          {dish.scoopsLeft} {labelUnit}s
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between space-x-2 pt-1">
+                        <button
+                          onClick={() => handleScoopChange(dish.id, dish.scoopsLeft - 5)}
+                          className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-extrabold rounded-lg"
+                        >
+                          -5
+                        </button>
+                        <button
+                          onClick={() => handleScoopChange(dish.id, dish.scoopsLeft - 1)}
+                          className="w-8 h-8 bg-slate-800 hover:bg-slate-700 text-white rounded-lg flex items-center justify-center font-bold"
+                        >
+                          <Minus className="w-4 h-4" />
+                        </button>
+
+                        <input
+                          type="number"
+                          value={dish.scoopsLeft}
+                          onChange={(e) => handleScoopChange(dish.id, e.target.value)}
+                          className="w-14 text-center bg-slate-900 border border-slate-700 text-amber-300 text-sm font-black py-1 rounded-lg focus:outline-none"
+                        />
+
+                        <button
+                          onClick={() => handleScoopChange(dish.id, dish.scoopsLeft + 1)}
+                          className="w-8 h-8 bg-slate-800 hover:bg-slate-700 text-white rounded-lg flex items-center justify-center font-bold"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleScoopChange(dish.id, dish.scoopsLeft + 5)}
+                          className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-extrabold rounded-lg"
+                        >
+                          +5
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+                      <span className="text-xs text-slate-400 font-bold">Status:</span>
+                      <button
+                        onClick={() => handleToggleAvailability(dish.id, dish.isAvailable)}
+                        className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold transition-colors ${
+                          dish.isAvailable
+                            ? 'bg-brand-lemon/20 text-brand-lemon-glow border border-brand-lemon/30'
+                            : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                        }`}
+                      >
+                        {dish.isAvailable ? <ToggleRight className="w-4 h-4 text-brand-lemon-glow" /> : <ToggleLeft className="w-4 h-4 text-rose-400" />}
+                        <span>{dish.isAvailable ? 'Available' : 'Out of Stock'}</span>
+                      </button>
+                    </div>
+
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* EDIT DISH TITLE & DESCRIPTION MODAL */}
+        {editingDish && (
+          <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in">
+            <div className="relative w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden text-slate-100 p-6 space-y-5">
+              
+              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 className="text-lg font-black text-white flex items-center gap-2">
+                  <Edit3 className="w-5 h-5 text-brand-orange" /> Edit Dish Title & Details
+                </h3>
+                <button
+                  onClick={() => setEditingDish(null)}
+                  className="p-1.5 rounded-xl text-slate-400 hover:text-white bg-slate-800"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveDishEdit} className="space-y-4">
+                
+                {/* Photo uploader */}
+                <div className="p-3 bg-slate-950 rounded-2xl border border-slate-800 flex items-center space-x-4">
+                  <img
+                    src={editingDish.image || '/images/jollof_rice.png'}
+                    alt="Dish preview"
+                    className="w-16 h-16 rounded-xl object-cover border border-slate-700"
+                  />
+                  <div className="space-y-1">
+                    <p className="text-xs font-bold text-white">Food Image</p>
+                    <label className="cursor-pointer bg-brand-orange text-white text-xs font-extrabold px-3 py-1.5 rounded-lg shadow-orange-glow inline-flex items-center gap-1.5">
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>{uploadingImage ? 'Uploading...' : 'Upload New Photo'}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileUpload(e, true)}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Dish Title / Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingDish.name}
+                    onChange={(e) => setEditingDish({ ...editingDish, name: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-700 text-white px-3.5 py-2.5 rounded-xl text-sm focus:outline-none focus:border-brand-orange font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Dish Description</label>
+                  <textarea
+                    rows={3}
+                    value={editingDish.description}
+                    onChange={(e) => setEditingDish({ ...editingDish, description: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-700 text-white px-3.5 py-2.5 rounded-xl text-xs focus:outline-none focus:border-brand-orange"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">Price (₦)</label>
+                    <input
+                      type="number"
+                      required
+                      value={editingDish.price}
+                      onChange={(e) => setEditingDish({ ...editingDish, price: Number(e.target.value) })}
+                      className="w-full bg-slate-950 border border-slate-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">Stock Count</label>
+                    <input
+                      type="number"
+                      required
+                      value={editingDish.scoopsLeft}
+                      onChange={(e) => setEditingDish({ ...editingDish, scoopsLeft: Number(e.target.value) })}
+                      className="w-full bg-slate-950 border border-slate-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">Category</label>
+                    <select
+                      value={editingDish.category}
+                      onChange={(e) => setEditingDish({ ...editingDish, category: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-700 text-white px-3 py-2 rounded-xl text-xs focus:outline-none"
+                    >
+                      <option value="Rice Dishes">Rice Dishes</option>
+                      <option value="Chicken & Proteins">Chicken & Proteins</option>
+                      <option value="Swallow & Soups">Swallow & Soups</option>
+                      <option value="Sides & Extras">Sides & Extras</option>
+                      <option value="Drinks & Refreshments">Drinks & Refreshments</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">Unit Label</label>
+                    <select
+                      value={editingDish.unitType}
+                      onChange={(e) => setEditingDish({ ...editingDish, unitType: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-700 text-white px-3 py-2 rounded-xl text-xs focus:outline-none"
+                    >
+                      <option value="scoop">scoop</option>
+                      <option value="portion">portion</option>
+                      <option value="piece">piece</option>
+                      <option value="bottle">bottle</option>
+                      <option value="plate">plate</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end space-x-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditingDish(null)}
+                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold"
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={savingEdit}
+                    className="px-6 py-2.5 bg-gradient-to-r from-brand-orange to-amber-600 hover:from-orange-500 hover:to-amber-700 text-white rounded-xl text-xs font-black shadow-orange-glow"
+                  >
+                    {savingEdit ? 'Saving Edits...' : 'Save Live Edits'}
+                  </button>
+                </div>
+
+              </form>
+
+            </div>
+          </div>
+        )}
+
+        {/* TAB 2: LIVE STUDENT ORDERS QUEUE */}
+        {activeTab === 'orders' && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-black text-white">Student Incoming Orders</h2>
+                <p className="text-xs text-slate-400">Verify 3-digit secret pickup code before handing over meals.</p>
+              </div>
+              <div className="relative w-72">
+                <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={orderSearch}
+                  onChange={(e) => setOrderSearch(e.target.value)}
+                  placeholder="Search student name, email or code..."
+                  className="w-full bg-slate-900 border border-slate-800 text-white pl-9 pr-3 py-2 rounded-xl text-xs focus:outline-none"
+                />
+              </div>
+            </div>
+
+            {filteredOrders.length === 0 ? (
+              <div className="glass-card p-12 rounded-3xl text-center border border-slate-800">
+                <PackageCheck className="w-12 h-12 text-slate-600 mx-auto mb-2" />
+                <p className="font-extrabold text-white">No student orders match your search</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {filteredOrders.map((ord) => {
+                  const codeDisplay = getPickupCode(ord);
+                  return (
+                    <div
+                      key={ord.id}
+                      className="glass-card p-5 rounded-3xl border border-slate-800 flex flex-col lg:flex-row lg:items-center justify-between gap-6"
+                    >
+                      <div className="space-y-3 max-w-xl">
+                        <div className="flex items-center space-x-3 flex-wrap gap-y-2">
+                          <span className="font-mono text-xs font-black bg-slate-950 text-brand-orange px-2.5 py-1 rounded-lg border border-slate-800">
+                            #{ord.id}
+                          </span>
+
+                          <span className="flex items-center gap-1 font-mono text-xs font-black bg-brand-orange/20 text-amber-300 px-3 py-1 rounded-lg border border-brand-orange/50 shadow-inner">
+                            <Key className="w-3.5 h-3.5 text-brand-orange" /> Secret Pickup Code: <strong className="text-amber-300 text-sm font-mono">#{codeDisplay}</strong>
+                          </span>
+
+                          <span className="text-xs text-slate-400">
+                            {new Date(ord.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+
+                        <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-1">
+                          <p className="text-xs font-extrabold text-white flex items-center gap-1.5">
+                            <User className="w-4 h-4 text-brand-orange" />
+                            Student Name: <span className="text-brand-lemon-glow font-black text-sm">{ord.studentName}</span>
+                          </p>
+                          <p className="text-xs text-slate-400 font-mono">{ord.studentEmail}</p>
+
+                          <p className="text-xs font-bold pt-1 text-sky-300 flex items-center gap-1">
+                            {ord.isHostelDelivery ? (
+                              <>
+                                <MapPin className="w-3.5 h-3.5 text-sky-400" />
+                                Hostel Delivery: <span className="text-white font-bold">{ord.hostelAddress}</span>
+                              </>
+                            ) : (
+                              <>
+                                <Package className="w-3.5 h-3.5 text-brand-lemon-glow" />
+                                Cafeteria Pickup
+                              </>
+                            )}
+                          </p>
+
+                          {ord.confirmedByAdmin && (
+                            <p className="text-[10px] text-slate-500 pt-0.5">
+                              Last updated by: <strong className="text-slate-300">{ord.confirmedByAdmin}</strong>
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="space-y-1">
+                          <p className="text-[11px] uppercase font-bold text-slate-500">Itemized Order:</p>
+                          <div className="flex flex-wrap gap-2">
+                            {ord.items.map((item, idx) => (
+                              <span key={idx} className="bg-slate-950 text-slate-200 text-xs font-semibold px-2.5 py-1 rounded-xl border border-slate-800">
+                                {item.dishName} ({item.scoops} {item.unitType || 'portion'}{item.scoops > 1 ? 's' : ''})
+                              </span>
+                            ))}
+                            {ord.includeTakeoutPack && (
+                              <span className="bg-brand-orange/10 text-brand-orange-glow text-xs font-semibold px-2 py-1 rounded-xl border border-brand-orange/30">
+                                Plastic Takeout Container (+₦300)
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="lg:text-right space-y-3">
+                        <div>
+                          <span className="text-[10px] uppercase font-bold text-slate-500 block">Total Amount</span>
+                          <span className="text-2xl font-black text-white">₦{ord.totalPrice.toLocaleString()}</span>
+                        </div>
+
+                        <div className="space-y-2">
+                          <span className="text-xs font-bold text-slate-400 block">Update Status:</span>
+                          <div className="flex flex-wrap gap-1.5 lg:justify-end">
+                            {['Pending Payment Verification', 'Preparing', 'Ready for Pickup', 'Completed', 'Cancelled'].map((st) => (
+                              <button
+                                key={st}
+                                onClick={() => handleOrderStatusChange(ord.id, st)}
+                                className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all ${
+                                  ord.status === st
+                                    ? st === 'Completed' ? 'bg-brand-lemon text-slate-950 shadow-lemon-glow' : 'bg-brand-orange text-white shadow-orange-glow'
+                                    : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                                }`}
+                              >
+                                {st}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 3: ADMIN STAFF ROSTER */}
+        {activeTab === 'staff' && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-black text-white flex items-center gap-2">
+                <Users className="w-5 h-5 text-brand-lemon-glow" /> Vendor Staff Roster
+              </h2>
+              <p className="text-xs text-slate-400">Previously registered and logged-in administrator staff members.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {staffList.map((staff) => (
+                <div
+                  key={staff.id}
+                  className="glass-card p-5 rounded-3xl border border-slate-800 space-y-3"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 rounded-2xl bg-brand-lemon/20 text-brand-lemon-glow border border-brand-lemon/40 flex items-center justify-center font-black text-lg">
+                      {staff.name ? staff.name.charAt(0) : 'S'}
+                    </div>
+                    <div>
+                      <h4 className="font-extrabold text-white text-base">{staff.name}</h4>
+                      <p className="text-xs text-slate-400 font-mono">{staff.email}</p>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-800 flex justify-between items-center text-xs">
+                    <span className="text-slate-500">Last Logged In:</span>
+                    <span className="text-brand-lemon-glow font-semibold">
+                      {new Date(staff.lastLogin).toLocaleDateString()} at {new Date(staff.lastLogin).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: ADD NEW FOOD FORM WITH PHOTO UPLOADER */}
+        {activeTab === 'add-dish' && (
+          <div className="glass-card p-8 rounded-3xl border border-slate-800 max-w-2xl mx-auto space-y-6">
+            <div>
+              <h2 className="text-xl font-black text-white flex items-center gap-2">
+                <Plus className="w-5 h-5 text-brand-lemon-glow" /> Add New Food to B'feastas Catalog
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Upload photos of your dish directly from your phone/device gallery!
+              </p>
+            </div>
+
+            {dishSuccessMsg && (
+              <div className="p-4 rounded-2xl bg-brand-lemon/20 border border-brand-lemon/40 text-brand-lemon-glow font-bold text-sm">
+                {dishSuccessMsg}
+              </div>
+            )}
+
+            {uploadSuccessMsg && (
+              <div className="p-3 rounded-2xl bg-sky-500/20 border border-sky-400/40 text-sky-200 font-bold text-xs">
+                {uploadSuccessMsg}
+              </div>
+            )}
+
+            <form onSubmit={handleCreateDish} className="space-y-4">
+              
+              {/* Product Photo Upload Section (No Code Needed!) */}
+              <div className="p-4 bg-slate-950 rounded-2xl border-2 border-dashed border-slate-800 text-center space-y-3">
+                <div className="flex items-center justify-center space-x-3">
+                  <img
+                    src={newDish.image || '/images/jollof_rice.png'}
+                    alt="Preview"
+                    className="w-20 h-20 rounded-2xl object-cover border border-slate-700 shadow-md"
+                  />
+                  <div className="text-left space-y-1">
+                    <p className="text-xs font-bold text-white flex items-center gap-1.5">
+                      <ImageIcon className="w-4 h-4 text-brand-lemon-glow" /> Product Food Photo
+                    </p>
+                    <p className="text-[11px] text-slate-400">
+                      Tap below to select a photo from your phone or device gallery.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-center space-x-3">
+                  <label className="cursor-pointer bg-brand-orange hover:bg-orange-600 text-white text-xs font-extrabold px-4 py-2.5 rounded-xl shadow-orange-glow flex items-center gap-2 transition-transform hover:scale-105">
+                    <Upload className="w-4 h-4" />
+                    <span>{uploadingImage ? 'Uploading Photo...' : '📁 Upload Photo from Device'}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleFileUpload(e, false)}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">Dish / Item Name</label>
+                <input
+                  type="text"
+                  required
+                  value={newDish.name}
+                  onChange={(e) => setNewDish({ ...newDish, name: e.target.value })}
+                  placeholder="e.g. Viju Milk 50cl / Sosa Orange Juice"
+                  className="w-full bg-slate-950 border border-slate-700 text-white px-4 py-3 rounded-xl text-sm focus:outline-none focus:border-brand-orange font-bold"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">Description</label>
+                <textarea
+                  rows={2}
+                  value={newDish.description}
+                  onChange={(e) => setNewDish({ ...newDish, description: e.target.value })}
+                  placeholder="Short appetizing description..."
+                  className="w-full bg-slate-950 border border-slate-700 text-white px-4 py-3 rounded-xl text-sm focus:outline-none focus:border-brand-orange"
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Price (₦)</label>
+                  <input
+                    type="number"
+                    required
+                    value={newDish.price}
+                    onChange={(e) => setNewDish({ ...newDish, price: Number(e.target.value) })}
+                    className="w-full bg-slate-950 border border-slate-700 text-white px-4 py-3 rounded-xl text-sm focus:outline-none font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Initial Stock Count</label>
+                  <input
+                    type="number"
+                    required
+                    value={newDish.scoopsLeft}
+                    onChange={(e) => setNewDish({ ...newDish, scoopsLeft: Number(e.target.value) })}
+                    className="w-full bg-slate-950 border border-slate-700 text-white px-4 py-3 rounded-xl text-sm focus:outline-none font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Unit Type</label>
+                  <select
+                    value={newDish.unitType}
+                    onChange={(e) => setNewDish({ ...newDish, unitType: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-700 text-white px-4 py-3 rounded-xl text-sm focus:outline-none font-bold"
+                  >
+                    <option value="bottle">bottle</option>
+                    <option value="scoop">scoop</option>
+                    <option value="portion">portion</option>
+                    <option value="piece">piece</option>
+                    <option value="plate">plate</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Category</label>
+                  <select
+                    value={newDish.category}
+                    onChange={(e) => setNewDish({ ...newDish, category: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-700 text-white px-4 py-3 rounded-xl text-sm focus:outline-none"
+                  >
+                    <option value="Drinks & Refreshments">Drinks & Refreshments</option>
+                    <option value="Rice Dishes">Rice Dishes</option>
+                    <option value="Chicken & Proteins">Chicken & Proteins</option>
+                    <option value="Swallow & Soups">Swallow & Soups</option>
+                    <option value="Sides & Extras">Sides & Extras</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Image Path / URL</label>
+                  <input
+                    type="text"
+                    value={newDish.image}
+                    onChange={(e) => setNewDish({ ...newDish, image: e.target.value })}
+                    placeholder="/images/..."
+                    className="w-full bg-slate-950 border border-slate-700 text-white px-4 py-3 rounded-xl text-sm focus:outline-none font-mono"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={addingDish}
+                className="w-full py-4 rounded-2xl bg-brand-lemon hover:bg-lime-400 text-slate-950 font-black text-sm transition-all shadow-lemon-glow"
+              >
+                {addingDish ? 'Publishing Food...' : 'Publish Food to Live Catalog'}
+              </button>
+            </form>
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+}
