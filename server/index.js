@@ -413,6 +413,22 @@ app.patch('/api/orders/:id/status', authenticateToken, requireAdmin, (req, res) 
   return res.json(order);
 });
 
+app.delete('/api/orders/:id', authenticateToken, requireAdmin, (req, res) => {
+  const { id } = req.params;
+  const db = loadDB();
+  const index = db.orders.findIndex(o => o.id === id);
+
+  if (index === -1) {
+    return res.status(404).json({ message: 'Order not found' });
+  }
+
+  db.orders.splice(index, 1);
+  saveDB(db);
+
+  io.emit('orders:update', db.orders);
+  return res.json({ message: `Order #${id} deleted successfully.` });
+});
+
 // SOCKET CONNECTION
 io.on('connection', (socket) => {
   socket.on('join:room', (data) => {

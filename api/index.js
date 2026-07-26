@@ -359,6 +359,21 @@ app.patch(['/api/orders/:id/status', '/orders/:id/status'], authenticateToken, r
   return res.json(order);
 });
 
+app.delete(['/api/orders/:id', '/orders/:id'], authenticateToken, requireAdmin, (req, res) => {
+  const { id } = req.params;
+  const db = loadDB();
+  const index = db.orders.findIndex(o => o.id === id);
+
+  if (index === -1) {
+    return res.status(404).json({ message: 'Order not found' });
+  }
+
+  db.orders.splice(index, 1);
+  saveDB(db);
+
+  return res.json({ message: `Order #${id} deleted successfully.` });
+});
+
 // Vercel Serverless Function Export
 export default app;
 

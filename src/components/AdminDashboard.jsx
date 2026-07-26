@@ -276,6 +276,22 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleDeleteOrder = async (orderId) => {
+    if (!window.confirm(`Permanently remove Order #${orderId} from history?`)) return;
+    setOrders(prev => prev.filter(o => o.id !== orderId));
+
+    try {
+      await fetch(`/api/orders/${orderId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+    } catch (err) {
+      console.error('Failed to delete order:', err);
+    }
+  };
+
   const handleCreateDish = async (e) => {
     e.preventDefault();
     setAddingDish(true);
@@ -1018,6 +1034,15 @@ export default function AdminDashboard() {
                               }`}
                             >
                               ❌ Cancel Order
+                            </button>
+
+                            <button
+                              onClick={() => handleDeleteOrder(ord.id)}
+                              className="px-2.5 py-1.5 rounded-xl text-xs font-extrabold bg-slate-950 text-slate-500 hover:text-rose-400 border border-slate-800 transition-colors flex items-center gap-1"
+                              title="Permanently remove order record"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              <span>Delete</span>
                             </button>
                           </div>
                         </div>

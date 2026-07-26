@@ -3,7 +3,14 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('olaronke_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
   const [token, setToken] = useState(localStorage.getItem('olaronke_token') || null);
   const [loading, setLoading] = useState(true);
 
@@ -23,11 +30,13 @@ export function AuthProvider({ children }) {
         return res.json();
       })
       .then(data => {
-        setUser(data.user);
+        if (data.user) {
+          setUser(data.user);
+          localStorage.setItem('olaronke_user', JSON.stringify(data.user));
+        }
       })
       .catch(err => {
-        console.warn('Auth session check failed:', err);
-        logout();
+        console.warn('Auth session check notice:', err);
       })
       .finally(() => {
         setLoading(false);
@@ -47,6 +56,7 @@ export function AuthProvider({ children }) {
     }
 
     localStorage.setItem('olaronke_token', data.token);
+    localStorage.setItem('olaronke_user', JSON.stringify(data.user));
     setToken(data.token);
     setUser(data.user);
     return data.user;
@@ -65,6 +75,7 @@ export function AuthProvider({ children }) {
     }
 
     localStorage.setItem('olaronke_token', data.token);
+    localStorage.setItem('olaronke_user', JSON.stringify(data.user));
     setToken(data.token);
     setUser(data.user);
     return data.user;
@@ -72,6 +83,7 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     localStorage.removeItem('olaronke_token');
+    localStorage.removeItem('olaronke_user');
     setToken(null);
     setUser(null);
   };

@@ -101,8 +101,8 @@ export default function AuthModal({ isOpen, onClose }) {
             onClick={() => {
               setMode('admin-login');
               setError('');
-              setEmail('olaronkestaff@gmail.com');
-              setPassword('adminpassword123');
+              setEmail('');
+              setPassword('');
             }}
             className={`py-3 text-center transition-colors border-b-2 ${
               mode === 'admin-login' ? 'border-brand-lemon text-brand-lemon-glow bg-slate-900' : 'border-transparent hover:text-slate-200'
@@ -192,14 +192,6 @@ export default function AuthModal({ isOpen, onClose }) {
               />
             </div>
           </div>
-
-          {/* Quick Demo */}
-          {mode === 'admin-login' && (
-            <div className="p-3 bg-slate-950 rounded-2xl border border-slate-800 text-[11px] text-slate-400 space-y-1">
-              <p className="font-bold text-slate-200">⚡ Pre-filled Staff Gmail Account:</p>
-              <p className="text-amber-300 font-mono">olaronkestaff@gmail.com</p>
-            </div>
-          )}
 
           <button
             type="submit"

@@ -152,9 +152,11 @@ export function SocketProvider({ children }) {
     }
   };
 
-  // Initial fetch for dishes catalog with robust fallback
+  // Initial fetch and 5-second polling for real-time catalog & stock sync across all devices
   useEffect(() => {
     refreshDishes();
+    const interval = setInterval(refreshDishes, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const addNotification = (toast) => {

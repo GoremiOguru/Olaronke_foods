@@ -363,46 +363,7 @@
       "image": "/images/toasted_sandwich.png"
     }
   ],
-  "orders": [
-    {
-      "id": "ORD-582",
-      "pickupCode": "582",
-      "studentId": "usr-student-1",
-      "studentName": "Emeka Okafor",
-      "studentEmail": "emeka.okafor@topfaith.edu.ng",
-      "items": [
-        {
-          "dishId": "dish-1",
-          "dishName": "B'feastas Special Smoky Jollof Rice",
-          "scoops": 2,
-          "price": 500,
-          "unitType": "scoop"
-        },
-        {
-          "dishId": "dish-4",
-          "dishName": "Medium Fried Chicken Thigh",
-          "scoops": 1,
-          "price": 1500,
-          "unitType": "portion"
-        },
-        {
-          "dishId": "dish-10",
-          "dishName": "Viju Milk Fruit Drink (50cl)",
-          "scoops": 1,
-          "price": 500,
-          "unitType": "bottle"
-        }
-      ],
-      "includeTakeoutPack": true,
-      "takeoutFee": 300,
-      "isHostelDelivery": true,
-      "hostelAddress": "Boys Hostel Block C, Room 12",
-      "totalPrice": 3300,
-      "status": "Preparing",
-      "confirmedByAdmin": "Isaac (Vendor Staff)",
-      "createdAt": "2026-07-25T11:30:00.000Z"
-    }
-  ],
+  "orders": [],
   "settings": {
     "accountName": "OLARONKE OGIDAN",
     "bankName": "MONIEPOINT",

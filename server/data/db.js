@@ -375,28 +375,7 @@ function getInitialDatabase() {
       }
     ],
     dishes: defaultDishes,
-    orders: [
-      {
-        id: 'ORD-582',
-        pickupCode: '582', // Guaranteed 3-digit code
-        studentId: 'usr-student-1',
-        studentName: 'Emeka Okafor',
-        studentEmail: 'emeka.okafor@topfaith.edu.ng',
-        items: [
-          { dishId: 'dish-1', dishName: "B'feastas Special Smoky Jollof Rice", scoops: 2, price: 500, unitType: 'scoop' },
-          { dishId: 'dish-4', dishName: 'Medium Fried Chicken Thigh', scoops: 1, price: 1500, unitType: 'portion' },
-          { dishId: 'dish-10', dishName: 'Viju Milk Fruit Drink (50cl)', scoops: 1, price: 500, unitType: 'bottle' }
-        ],
-        includeTakeoutPack: true,
-        takeoutFee: 300,
-        isHostelDelivery: true,
-        hostelAddress: 'Hall 3, Block B, Room 14',
-        totalPrice: 3300,
-        status: 'Preparing',
-        confirmedByAdmin: 'Isaac (Vendor Staff)',
-        createdAt: new Date(Date.now() - 1000 * 60 * 25).toISOString()
-      }
-    ],
+    orders: [],
     settings: {
       accountName: 'OLARONKE OGIDAN',
       bankName: 'MONIEPOINT',
@@ -454,22 +433,18 @@ export function loadDB() {
 export function saveDB(data) {
   cachedDB = data;
 
-  let localSaved = false;
-  // Try local file write (works on local server runs)
+  // 1. Try writing to local file (works during local dev)
   try {
     fs.writeFileSync(LOCAL_DB_FILE, JSON.stringify(data, null, 2));
-    localSaved = true;
   } catch (err) {
-    // Expected to fail on read-only file systems like Vercel
+    // Expected on Vercel read-only filesystem
   }
 
-  // If local file write failed (e.g. Vercel read-only filesystem), write to /tmp
-  if (!localSaved) {
-    try {
-      fs.writeFileSync(TMP_DB_FILE, JSON.stringify(data, null, 2));
-    } catch (err) {
-      console.warn('Unable to persist DB to tmp:', err.message);
-    }
+  // 2. Always write to /tmp file (persists across warm serverless functions on Vercel)
+  try {
+    fs.writeFileSync(TMP_DB_FILE, JSON.stringify(data, null, 2));
+  } catch (err) {
+    console.warn('Unable to persist DB to tmp:', err.message);
   }
 }
 
