@@ -127,11 +127,11 @@
     },
     {
       "id": "dish-9",
-      "name": "Sweet Fried Plantain (Dodo)",
-      "description": "Ripened golden fried plantain slices.",
+      "name": "Sweet Fried Plantain Dodo (5 Fingers per Scoop)",
+      "description": "Golden fried plantain fingers served at ₦500 for 5 fingers. Order 1 scoop (5 fingers - ₦500), 2 scoops (10 fingers - ₦1k), 3 scoops (15 fingers - ₦1.5k), etc.",
       "price": 500,
       "scoopsLeft": 35,
-      "unitType": "scoop",
+      "unitType": "portion",
       "isAvailable": true,
       "category": "Sides & Extras",
       "image": "/images/fried_plantain.png"
@@ -237,8 +237,8 @@
     },
     {
       "id": "dish-19",
-      "name": "Campus Special Indomie Noodles",
-      "description": "Hot cooked campus Indomie noodles with chili peppers & spices. Prepared fresh on demand.",
+      "name": "Campus Special Indomie Noodles (Single Pack)",
+      "description": "Hot cooked campus Indomie noodles with chili peppers & spices (40 mins - 1 hr prep time). Note: You can also order 2 packs in 1 plate below to save takeout pack fees!",
       "price": 1000,
       "scoopsLeft": 30,
       "unitType": "plate",
@@ -246,6 +246,73 @@
       "category": "Made-to-Order & On-Demand",
       "prepTime": "40 mins - 1 hr",
       "image": "/images/indomie_noodles.png"
+    },
+    {
+      "id": "dish-24",
+      "name": "Campus Double Mega Indomie Noodles (2 Packs in 1 Plate)",
+      "description": "2 full packs of cooked Indomie served in 1 single takeout plate to save packaging costs! (40 mins - 1 hr prep time).",
+      "price": 2000,
+      "scoopsLeft": 25,
+      "unitType": "plate",
+      "isAvailable": true,
+      "category": "Made-to-Order & On-Demand",
+      "prepTime": "40 mins - 1 hr",
+      "image": "/images/indomie_noodles.png"
+    },
+    {
+      "id": "dish-25",
+      "name": "Rich Campus Peppered Egg Sauce (1 Scoop)",
+      "description": "Delicious savory tomato, onion & peppered egg sauce. Great with Yam, Plantain, or Rice. ₦1,000 per scoop (Order multiple scoops).",
+      "price": 1000,
+      "scoopsLeft": 30,
+      "unitType": "scoop",
+      "isAvailable": true,
+      "category": "Swallow & Soups",
+      "image": "/images/egg_sauce.png"
+    },
+    {
+      "id": "dish-26",
+      "name": "Fresh Campus Bread Loaf (Sliced)",
+      "description": "Freshly baked soft campus loaf of bread, neatly sliced.",
+      "price": 2200,
+      "scoopsLeft": 20,
+      "unitType": "loaf",
+      "isAvailable": true,
+      "category": "Sides & Extras",
+      "image": "/images/bread_loaf.png"
+    },
+    {
+      "id": "dish-27",
+      "name": "Fresh Campus Bread Loaf (Unsliced)",
+      "description": "Freshly baked soft campus whole unsliced loaf of bread.",
+      "price": 2200,
+      "scoopsLeft": 20,
+      "unitType": "loaf",
+      "isAvailable": true,
+      "category": "Sides & Extras",
+      "image": "/images/bread_loaf.png"
+    },
+    {
+      "id": "dish-28",
+      "name": "Fresh Half Loaf Bread (Sliced)",
+      "description": "Freshly baked half loaf of soft campus bread, neatly sliced.",
+      "price": 1100,
+      "scoopsLeft": 20,
+      "unitType": "half loaf",
+      "isAvailable": true,
+      "category": "Sides & Extras",
+      "image": "/images/bread_loaf.png"
+    },
+    {
+      "id": "dish-29",
+      "name": "Fresh Half Loaf Bread (Unsliced)",
+      "description": "Freshly baked half loaf of soft campus bread, whole unsliced.",
+      "price": 1100,
+      "scoopsLeft": 20,
+      "unitType": "half loaf",
+      "isAvailable": true,
+      "category": "Sides & Extras",
+      "image": "/images/bread_loaf.png"
     },
     {
       "id": "dish-20",

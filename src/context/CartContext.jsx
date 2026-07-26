@@ -19,7 +19,7 @@ export function CartProvider({ children }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { token, user } = useAuth();
-  const { addNotification } = useSocket();
+  const { addNotification, refreshDishes } = useSocket();
 
   useEffect(() => {
     localStorage.setItem('olaronke_cart', JSON.stringify(cart));
@@ -158,6 +158,10 @@ export function CartProvider({ children }) {
       clearCart();
       setIsCartOpen(false);
       setActiveReceiptModal(data); // Opens modal with 3-digit pickup code & Isaac WhatsApp button
+
+      if (typeof refreshDishes === 'function') {
+        refreshDishes();
+      }
 
       addNotification({
         id: Date.now(),

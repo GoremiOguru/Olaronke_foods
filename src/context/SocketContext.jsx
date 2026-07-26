@@ -138,22 +138,23 @@ export function SocketProvider({ children }) {
     }
   }, [user, socket, isConnected]);
 
-  // Initial fetch for dishes catalog with robust fallback
-  useEffect(() => {
-    fetch('/api/dishes')
-      .then(res => {
-        if (!res.ok) throw new Error('API dishes endpoint unavailable');
-        return res.json();
-      })
-      .then(data => {
+  const refreshDishes = async () => {
+    try {
+      const res = await fetch('/api/dishes');
+      if (res.ok) {
+        const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
           setDishes(data);
         }
-      })
-      .catch(err => {
-        console.warn('Using default fallback dishes catalog for Vercel deployment:', err);
-        setDishes(defaultDishes);
-      });
+      }
+    } catch (err) {
+      console.warn('Refresh dishes failed:', err);
+    }
+  };
+
+  // Initial fetch for dishes catalog with robust fallback
+  useEffect(() => {
+    refreshDishes();
   }, []);
 
   const addNotification = (toast) => {
@@ -170,6 +171,7 @@ export function SocketProvider({ children }) {
       isConnected,
       dishes,
       setDishes,
+      refreshDishes,
       notifications,
       addNotification,
       removeNotification,
