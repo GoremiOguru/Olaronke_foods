@@ -388,8 +388,18 @@ function getInitialDatabase() {
   };
 }
 
+if (!globalThis.__VERCEL_DB__) {
+  globalThis.__VERCEL_DB__ = null;
+}
+
 export function loadDB() {
+  if (globalThis.__VERCEL_DB__) {
+    cachedDB = globalThis.__VERCEL_DB__;
+    return cachedDB;
+  }
+
   if (cachedDB) {
+    globalThis.__VERCEL_DB__ = cachedDB;
     return cachedDB;
   }
 
@@ -400,6 +410,7 @@ export function loadDB() {
       const parsed = JSON.parse(data);
       if (parsed && Array.isArray(parsed.users) && Array.isArray(parsed.dishes)) {
         cachedDB = parsed;
+        globalThis.__VERCEL_DB__ = parsed;
         return cachedDB;
       }
     }
@@ -414,6 +425,7 @@ export function loadDB() {
       const parsed = JSON.parse(data);
       if (parsed && Array.isArray(parsed.users) && Array.isArray(parsed.dishes)) {
         cachedDB = parsed;
+        globalThis.__VERCEL_DB__ = parsed;
         return cachedDB;
       }
     }
@@ -423,6 +435,7 @@ export function loadDB() {
 
   // 3. Fallback to default in-memory database
   cachedDB = getInitialDatabase();
+  globalThis.__VERCEL_DB__ = cachedDB;
 
   // Try persisting to /tmp or local
   saveDB(cachedDB);
@@ -432,6 +445,7 @@ export function loadDB() {
 
 export function saveDB(data) {
   cachedDB = data;
+  globalThis.__VERCEL_DB__ = data;
 
   // 1. Try writing to local file (works during local dev)
   try {

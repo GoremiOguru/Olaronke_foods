@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { ShoppingBag, User, LogOut, ShieldCheck, Flame, Bell, ChevronDown, Menu, X, UtensilsCrossed } from 'lucide-react';
+import { ShoppingBag, User, LogOut, ShieldCheck, Flame, Bell, ChevronDown, Menu, X, UtensilsCrossed, KeyRound } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useSocket } from '../context/SocketContext';
 
-export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdminView, onOpenMyOrders }) {
+export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdminView, onOpenMyOrders, onOpenChangePassword }) {
   const { user, logout, isAdmin } = useAuth();
   const { totalQuantityCount, setIsCartOpen } = useCart();
   const { isConnected, notifications } = useSocket();
@@ -147,6 +147,17 @@ export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdmi
                         >
                           <ShoppingBag className="w-4 h-4 text-brand-orange" />
                           <span>My Orders & Receipts</span>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            if (onOpenChangePassword) onOpenChangePassword();
+                            setShowUserDropdown(false);
+                          }}
+                          className="w-full mt-1 flex items-center space-x-2 px-3 py-2 text-xs font-bold text-sky-300 hover:bg-slate-800 rounded-xl transition-colors text-left"
+                        >
+                          <KeyRound className="w-4 h-4 text-sky-400" />
+                          <span>Change Password</span>
                         </button>
 
                         <button

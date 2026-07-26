@@ -4,12 +4,13 @@ import { useAuth } from '../context/AuthContext';
 
 export default function AuthModal({ isOpen, onClose }) {
   const { login, register } = useAuth();
-  const [mode, setMode] = useState('login'); // 'login' | 'register' | 'admin-login' | 'admin-register'
+  const [mode, setMode] = useState('login'); // 'login' | 'register' | 'admin-login' | 'admin-register' | 'reset-password'
   
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
   const [loading, setLoading] = useState(false);
 
   if (!isOpen) return null;
@@ -17,6 +18,39 @@ export default function AuthModal({ isOpen, onClose }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccessMsg('');
+
+    if (mode === 'reset-password') {
+      if (!email || !password) {
+        setError('Please enter your account email and new password.');
+        return;
+      }
+      if (password.length < 6) {
+        setError('Password must be at least 6 characters long.');
+        return;
+      }
+      setLoading(true);
+      try {
+        const res = await fetch('/api/auth/reset-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, newPassword: password })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Password reset failed');
+        setSuccessMsg(data.message);
+        setTimeout(() => {
+          setMode('login');
+          setSuccessMsg('');
+          setPassword('');
+        }, 2500);
+      } catch (err) {
+        setError(err.message || 'Reset failed');
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
 
     const isStudentRegister = mode === 'register';
     const isAdminRegister = mode === 'admin-register';
@@ -68,9 +102,12 @@ export default function AuthModal({ isOpen, onClose }) {
             {mode === 'register' && "B'feastas Student Registration"}
             {mode === 'admin-login' && "Vendor Staff Sign In"}
             {mode === 'admin-register' && "New Admin Staff Signup"}
+            {mode === 'reset-password' && "Reset Account Password"}
           </h3>
           <p className="text-xs text-orange-100 mt-1">
-            {mode.startsWith('admin')
+            {mode === 'reset-password'
+              ? 'Enter registered email & new password'
+              : mode.startsWith('admin')
               ? 'Gmail address permitted for Vendor Staff'
               : 'Domain Requirement: @topfaith.edu.ng'}
           </p>
@@ -80,7 +117,7 @@ export default function AuthModal({ isOpen, onClose }) {
         <div className="grid grid-cols-4 bg-slate-950 border-b border-slate-800 text-[11px] font-bold text-slate-400">
           <button
             type="button"
-            onClick={() => { setMode('login'); setError(''); }}
+            onClick={() => { setMode('login'); setError(''); setSuccessMsg(''); setEmail(''); setPassword(''); }}
             className={`py-3 text-center transition-colors border-b-2 ${
               mode === 'login' ? 'border-brand-orange text-white bg-slate-900' : 'border-transparent hover:text-slate-200'
             }`}
@@ -89,7 +126,7 @@ export default function AuthModal({ isOpen, onClose }) {
           </button>
           <button
             type="button"
-            onClick={() => { setMode('register'); setError(''); }}
+            onClick={() => { setMode('register'); setError(''); setSuccessMsg(''); setEmail(''); setPassword(''); }}
             className={`py-3 text-center transition-colors border-b-2 ${
               mode === 'register' ? 'border-brand-orange text-white bg-slate-900' : 'border-transparent hover:text-slate-200'
             }`}
@@ -101,6 +138,7 @@ export default function AuthModal({ isOpen, onClose }) {
             onClick={() => {
               setMode('admin-login');
               setError('');
+              setSuccessMsg('');
               setEmail('');
               setPassword('');
             }}
@@ -115,6 +153,7 @@ export default function AuthModal({ isOpen, onClose }) {
             onClick={() => {
               setMode('admin-register');
               setError('');
+              setSuccessMsg('');
               setEmail('');
               setPassword('');
             }}
@@ -133,6 +172,13 @@ export default function AuthModal({ isOpen, onClose }) {
             <div className="p-3 rounded-2xl bg-rose-500/20 border border-rose-500/50 text-rose-300 text-xs font-bold flex items-start gap-2">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{error}</span>
+            </div>
+          )}
+
+          {successMsg && (
+            <div className="p-3 rounded-2xl bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 text-xs font-bold flex items-start gap-2">
+              <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>{successMsg}</span>
             </div>
           )}
 
@@ -157,7 +203,7 @@ export default function AuthModal({ isOpen, onClose }) {
 
           <div>
             <label className="block text-xs font-extrabold text-slate-300 mb-1">
-              {mode.startsWith('admin') ? 'Admin Staff Email (Gmail permitted)' : 'Student Email (@topfaith.edu.ng)'}
+              {mode.startsWith('admin') ? 'Admin Staff Email (Gmail permitted)' : 'Account Email (@topfaith.edu.ng or Staff Gmail)'}
             </label>
             <div className="relative">
               <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -179,7 +225,20 @@ export default function AuthModal({ isOpen, onClose }) {
           </div>
 
           <div>
-            <label className="block text-xs font-extrabold text-slate-300 mb-1">Password</label>
+            <div className="flex justify-between items-center mb-1">
+              <label className="text-xs font-extrabold text-slate-300">
+                {mode === 'reset-password' ? 'New Password' : 'Password'}
+              </label>
+              {(mode === 'login' || mode === 'admin-login') && (
+                <button
+                  type="button"
+                  onClick={() => { setMode('reset-password'); setError(''); setSuccessMsg(''); setPassword(''); }}
+                  className="text-[11px] text-brand-orange hover:underline font-bold"
+                >
+                  Forgot Password?
+                </button>
+              )}
+            </div>
             <div className="relative">
               <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
@@ -203,6 +262,7 @@ export default function AuthModal({ isOpen, onClose }) {
             }`}
           >
             {loading ? 'Processing...' : (
+              mode === 'reset-password' ? 'Save New Password' :
               mode.includes('register') ? 'Create Account' : 'Log In'
             )}
           </button>

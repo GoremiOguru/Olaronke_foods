@@ -1,4 +1,4 @@
-// B'feastas Service Worker for Phone Push & Background Notifications
+// B'feastas Service Worker for Push Notifications
 self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
@@ -7,7 +7,6 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
-// Handle incoming background push & notification click
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   event.waitUntil(
