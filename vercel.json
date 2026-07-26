@@ -10,9 +10,10 @@
       "destination": "/api/index.js"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!assets|images|uploads|.*\\..*).*)",
       "destination": "/index.html"
     }
   ]
 }
+
 
