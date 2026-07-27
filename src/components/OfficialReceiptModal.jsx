@@ -115,9 +115,9 @@ export default function OfficialReceiptModal({ order, onClose }) {
 
               {order.includeTakeoutPack && (
                 <div className="pt-2 grid grid-cols-12 gap-2 items-center text-slate-600">
-                  <span className="col-span-6 font-semibold">Plastic Takeout Container</span>
-                  <span className="col-span-2 text-center font-mono">1 pack</span>
-                  <span className="col-span-4 text-right font-mono font-bold text-slate-900">₦300</span>
+                  <span className="col-span-6 font-semibold">Plastic Takeout Container Pack(s)</span>
+                  <span className="col-span-2 text-center font-mono">takeout fee</span>
+                  <span className="col-span-4 text-right font-mono font-bold text-slate-900">₦{(order.takeoutFee !== undefined ? order.takeoutFee : 300).toLocaleString()}</span>
                 </div>
               )}
 

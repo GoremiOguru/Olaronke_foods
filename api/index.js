@@ -459,12 +459,14 @@ app.delete(['/api/orders/:id', '/orders/:id'], authenticateToken, requireAdmin, 
 
 app.get(['/api/settings', '/settings'], (req, res) => {
   const db = loadDB();
-  return res.json(db.settings);
+  return res.json(db.settings || {});
 });
 
 app.patch(['/api/settings', '/settings'], authenticateToken, requireAdmin, (req, res) => {
-  const { accountName, bankName, accountNumber, whatsappName, whatsappNumber, takeoutPrice } = req.body;
+  const { accountName, bankName, accountNumber, whatsappName, whatsappNumber, takeoutPrice, heroTitle, heroSubtitle, announcementText } = req.body;
   const db = loadDB();
+
+  if (!db.settings) db.settings = {};
 
   if (accountName !== undefined) db.settings.accountName = accountName.trim();
   if (bankName !== undefined) db.settings.bankName = bankName.trim();
@@ -472,6 +474,9 @@ app.patch(['/api/settings', '/settings'], authenticateToken, requireAdmin, (req,
   if (whatsappName !== undefined) db.settings.whatsappName = whatsappName.trim();
   if (whatsappNumber !== undefined) db.settings.whatsappNumber = whatsappNumber.trim();
   if (takeoutPrice !== undefined) db.settings.takeoutPrice = Number(takeoutPrice);
+  if (heroTitle !== undefined) db.settings.heroTitle = heroTitle.trim();
+  if (heroSubtitle !== undefined) db.settings.heroSubtitle = heroSubtitle.trim();
+  if (announcementText !== undefined) db.settings.announcementText = announcementText.trim();
 
   saveDB(db);
   return res.json(db.settings);

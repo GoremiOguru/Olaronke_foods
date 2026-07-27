@@ -161,7 +161,7 @@ app.post('/api/auth/register', (req, res) => {
 });
 
 app.post('/api/auth/login', (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, userVault } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({ message: 'Please provide email and password.' });
@@ -169,7 +169,25 @@ app.post('/api/auth/login', (req, res) => {
 
   const cleanEmail = email.trim().toLowerCase();
   const db = loadDB();
-  const user = db.users.find(u => u.email.toLowerCase() === cleanEmail);
+  let user = db.users.find(u => u.email.toLowerCase() === cleanEmail);
+
+  if (!user && userVault && Array.isArray(userVault)) {
+    const vaultUser = userVault.find(u => u.email?.toLowerCase() === cleanEmail);
+    if (vaultUser) {
+      const salt = bcrypt.genSaltSync(10);
+      user = {
+        id: vaultUser.id || `usr-${Date.now()}`,
+        name: vaultUser.name || 'User',
+        email: cleanEmail,
+        passwordHash: bcrypt.hashSync(password, salt),
+        role: vaultUser.role || (cleanEmail.endsWith('@topfaith.edu.ng') ? 'student' : 'admin'),
+        lastLogin: new Date().toISOString(),
+        createdAt: new Date().toISOString()
+      };
+      db.users.push(user);
+      saveDB(db);
+    }
+  }
 
   if (!user || !bcrypt.compareSync(password, user.passwordHash)) {
     return res.status(401).json({ message: 'Invalid email or password credentials.' });
@@ -211,7 +229,7 @@ app.get('/api/auth/me', authenticateToken, (req, res) => {
 });
 
 app.post('/api/auth/reset-password', (req, res) => {
-  const { email, newPassword } = req.body;
+  const { email, newPassword, userVault } = req.body;
 
   if (!email || !newPassword) {
     return res.status(400).json({ message: 'Please provide email and new password.' });
@@ -223,7 +241,25 @@ app.post('/api/auth/reset-password', (req, res) => {
 
   const cleanEmail = email.trim().toLowerCase();
   const db = loadDB();
-  const user = db.users.find(u => u.email.toLowerCase() === cleanEmail);
+  let user = db.users.find(u => u.email.toLowerCase() === cleanEmail);
+
+  if (!user && userVault && Array.isArray(userVault)) {
+    const vaultUser = userVault.find(u => u.email?.toLowerCase() === cleanEmail);
+    if (vaultUser) {
+      const salt = bcrypt.genSaltSync(10);
+      user = {
+        id: vaultUser.id || `usr-${Date.now()}`,
+        name: vaultUser.name || 'User',
+        email: cleanEmail,
+        passwordHash: bcrypt.hashSync(newPassword, salt),
+        role: vaultUser.role || (cleanEmail.endsWith('@topfaith.edu.ng') ? 'student' : 'admin'),
+        lastLogin: new Date().toISOString(),
+        createdAt: new Date().toISOString()
+      };
+      db.users.push(user);
+      saveDB(db);
+    }
+  }
 
   if (!user) {
     return res.status(404).json({ message: 'No registered user found with this email address.' });
@@ -476,18 +512,21 @@ app.delete('/api/orders/:id', authenticateToken, requireAdmin, (req, res) => {
   db.orders.splice(index, 1);
   saveDB(db);
 
+  io.emit('orders:deleted', { orderId: id });
   io.emit('orders:update', db.orders);
   return res.json({ message: `Order #${id} deleted successfully.` });
 });
 
 app.get('/api/settings', (req, res) => {
   const db = loadDB();
-  return res.json(db.settings);
+  return res.json(db.settings || {});
 });
 
 app.patch('/api/settings', authenticateToken, requireAdmin, (req, res) => {
-  const { accountName, bankName, accountNumber, whatsappName, whatsappNumber, takeoutPrice } = req.body;
+  const { accountName, bankName, accountNumber, whatsappName, whatsappNumber, takeoutPrice, heroTitle, heroSubtitle, announcementText } = req.body;
   const db = loadDB();
+
+  if (!db.settings) db.settings = {};
 
   if (accountName !== undefined) db.settings.accountName = accountName.trim();
   if (bankName !== undefined) db.settings.bankName = bankName.trim();
@@ -495,8 +534,12 @@ app.patch('/api/settings', authenticateToken, requireAdmin, (req, res) => {
   if (whatsappName !== undefined) db.settings.whatsappName = whatsappName.trim();
   if (whatsappNumber !== undefined) db.settings.whatsappNumber = whatsappNumber.trim();
   if (takeoutPrice !== undefined) db.settings.takeoutPrice = Number(takeoutPrice);
+  if (heroTitle !== undefined) db.settings.heroTitle = heroTitle.trim();
+  if (heroSubtitle !== undefined) db.settings.heroSubtitle = heroSubtitle.trim();
+  if (announcementText !== undefined) db.settings.announcementText = announcementText.trim();
 
   saveDB(db);
+  io.emit('settings:update', db.settings);
   return res.json(db.settings);
 });
 

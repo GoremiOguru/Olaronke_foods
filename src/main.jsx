@@ -5,6 +5,7 @@ import './index.css';
 import { AuthProvider } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 import { CartProvider } from './context/CartContext';
+import { SettingsProvider } from './context/SettingsContext';
 
 // Register Service Worker for Home Screen Push Notifications
 if ('serviceWorker' in navigator) {
@@ -18,11 +19,13 @@ if ('serviceWorker' in navigator) {
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <AuthProvider>
-      <SocketProvider>
-        <CartProvider>
-          <App />
-        </CartProvider>
-      </SocketProvider>
+      <SettingsProvider>
+        <SocketProvider>
+          <CartProvider>
+            <App />
+          </CartProvider>
+        </SocketProvider>
+      </SettingsProvider>
     </AuthProvider>
   </React.StrictMode>
 );

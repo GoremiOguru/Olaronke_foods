@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight, ShieldAlert, Package, Home, CheckSquare, Square, MapPin } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useSettings } from '../context/SettingsContext';
 
 export default function CartDrawer({ onOpenAuth }) {
   const {
@@ -15,6 +16,7 @@ export default function CartDrawer({ onOpenAuth }) {
     takeoutFee,
     grandTotal,
     totalQuantityCount,
+    totalTakeoutPacksCount,
     includeTakeoutPack,
     setIncludeTakeoutPack,
     isHostelDelivery,
@@ -26,9 +28,12 @@ export default function CartDrawer({ onOpenAuth }) {
   } = useCart();
 
   const { user } = useAuth();
+  const { settings } = useSettings();
   const [errorMsg, setErrorMsg] = useState('');
 
   if (!isCartOpen) return null;
+
+  const perPackFee = Number(settings.takeoutPrice) || 300;
 
   const handleCheckout = async () => {
     setErrorMsg('');
@@ -123,56 +128,64 @@ export default function CartDrawer({ onOpenAuth }) {
                 {/* Item List */}
                 <div className="space-y-3">
                   <h4 className="text-xs uppercase font-extrabold text-slate-400 tracking-wider">Ordered Items</h4>
-                  {cart.map((item) => (
-                    <div
-                      key={item.dishId}
-                      className="glass-card p-4 rounded-2xl border border-slate-800 flex items-center space-x-3"
-                    >
-                      <img
-                        src={item.image}
-                        alt={item.dishName}
-                        className="w-14 h-14 rounded-xl object-cover border border-slate-700"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-extrabold text-white text-sm truncate">{item.dishName}</h4>
-                        <p className="text-xs text-brand-orange font-bold mt-0.5">
-                          ₦{item.price.toLocaleString()} / {item.unitType || 'portion'}
-                        </p>
+                  {cart.map((item, idx) => {
+                    const itemKey = item.cartItemId || item.dishId || idx;
+                    return (
+                      <div
+                        key={itemKey}
+                        className="glass-card p-4 rounded-2xl border border-slate-800 flex items-center space-x-3"
+                      >
+                        <img
+                          src={item.image}
+                          alt={item.dishName}
+                          className="w-14 h-14 rounded-xl object-cover border border-slate-700"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-extrabold text-white text-sm truncate">{item.dishName}</h4>
+                          {item.packLabel && (
+                            <span className="inline-block bg-brand-orange/20 text-brand-orange-glow border border-brand-orange/40 text-[10px] font-bold px-2 py-0.5 rounded mt-0.5">
+                              📦 {item.packLabel}
+                            </span>
+                          )}
+                          <p className="text-xs text-brand-orange font-bold mt-0.5">
+                            ₦{item.price.toLocaleString()} / {item.unitType || 'portion'}
+                          </p>
 
-                        {/* Quantity controls */}
-                        <div className="flex items-center space-x-2 mt-1.5">
+                          {/* Quantity controls */}
+                          <div className="flex items-center space-x-2 mt-1.5">
+                            <button
+                              onClick={() => updateScoops(itemKey, item.scoops - 1, 99)}
+                              className="w-5 h-5 rounded bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center text-xs"
+                            >
+                              <Minus className="w-3 h-3" />
+                            </button>
+                            <span className="text-xs font-bold text-brand-lemon-glow">
+                              {item.scoops} {item.unitType || 'portion'}{item.scoops > 1 ? 's' : ''}
+                            </span>
+                            <button
+                              onClick={() => updateScoops(itemKey, item.scoops + 1, 99)}
+                              className="w-5 h-5 rounded bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center text-xs"
+                            >
+                              <Plus className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="text-right">
+                          <p className="text-sm font-black text-white">
+                            ₦{(item.price * item.scoops).toLocaleString()}
+                          </p>
                           <button
-                            onClick={() => updateScoops(item.dishId, item.scoops - 1, 99)}
-                            className="w-5 h-5 rounded bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center text-xs"
+                            onClick={() => removeFromCart(itemKey)}
+                            className="text-slate-500 hover:text-rose-400 p-1 mt-1 inline-block"
+                            title="Remove item"
                           >
-                            <Minus className="w-3 h-3" />
-                          </button>
-                          <span className="text-xs font-bold text-brand-lemon-glow">
-                            {item.scoops} {item.unitType || 'portion'}{item.scoops > 1 ? 's' : ''}
-                          </span>
-                          <button
-                            onClick={() => updateScoops(item.dishId, item.scoops + 1, 99)}
-                            className="w-5 h-5 rounded bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center text-xs"
-                          >
-                            <Plus className="w-3 h-3" />
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </div>
-
-                      <div className="text-right">
-                        <p className="text-sm font-black text-white">
-                          ₦{(item.price * item.scoops).toLocaleString()}
-                        </p>
-                        <button
-                          onClick={() => removeFromCart(item.dishId)}
-                          className="text-slate-500 hover:text-rose-400 p-1 mt-1 inline-block"
-                          title="Remove item"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 {/* Takeout Option */}
@@ -184,12 +197,14 @@ export default function CartDrawer({ onOpenAuth }) {
                     <div className="flex items-center space-x-2.5">
                       <Package className="w-5 h-5 text-brand-lemon-glow" />
                       <div>
-                        <p className="text-xs font-extrabold text-white">Plastic Takeout Container</p>
-                        <p className="text-[11px] text-slate-400">Leak-proof plastic food pack</p>
+                        <p className="text-xs font-extrabold text-white">Plastic Takeout Containers</p>
+                        <p className="text-[11px] text-slate-400">
+                          {totalTakeoutPacksCount} container pack{totalTakeoutPacksCount === 1 ? '' : 's'} required
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <span className="text-xs font-bold text-brand-orange">+₦300</span>
+                      <span className="text-xs font-bold text-brand-orange">+₦{takeoutFee.toLocaleString()}</span>
                       {includeTakeoutPack ? (
                         <CheckSquare className="w-5 h-5 text-brand-orange" />
                       ) : (
@@ -262,10 +277,10 @@ export default function CartDrawer({ onOpenAuth }) {
                   Itemized Price Breakdown:
                 </p>
 
-                {cart.map(item => (
-                  <div key={item.dishId} className="flex justify-between items-center text-slate-400 gap-2">
+                {cart.map((item, idx) => (
+                  <div key={item.cartItemId || idx} className="flex justify-between items-center text-slate-400 gap-2">
                     <span className="truncate max-w-[200px] sm:max-w-[260px]">
-                      {item.dishName} ({item.scoops} × ₦{item.price.toLocaleString()})
+                      {item.packLabel ? `${item.dishName} (${item.packLabel})` : item.dishName} ({item.scoops} × ₦{item.price.toLocaleString()})
                     </span>
                     <span className="font-mono font-bold text-slate-200 shrink-0">
                       ₦{(item.price * item.scoops).toLocaleString()}
@@ -273,10 +288,10 @@ export default function CartDrawer({ onOpenAuth }) {
                   </div>
                 ))}
 
-                {includeTakeoutPack && (
+                {takeoutFee > 0 && (
                   <div className="flex justify-between items-center text-brand-orange">
-                    <span>Plastic Takeout Container</span>
-                    <span className="font-mono font-bold shrink-0">₦300</span>
+                    <span>Plastic Takeout Containers ({totalTakeoutPacksCount} pack{totalTakeoutPacksCount === 1 ? '' : 's'})</span>
+                    <span className="font-mono font-bold shrink-0">₦{takeoutFee.toLocaleString()}</span>
                   </div>
                 )}
 
@@ -302,7 +317,7 @@ export default function CartDrawer({ onOpenAuth }) {
                   <span>Creating Order...</span>
                 ) : (
                   <>
-                    <span>Confirm & Send Receipt to Isaac</span>
+                    <span>Confirm & Send Receipt to {settings.whatsappName || 'Isaac'}</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}

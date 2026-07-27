@@ -1,7 +1,17 @@
 import React from 'react';
 import { UtensilsCrossed, MessageCircle, MapPin, Clock, ShieldCheck } from 'lucide-react';
+import { useSettings } from '../context/SettingsContext';
 
 export default function Footer() {
+  const { settings } = useSettings();
+
+  const phone = settings.whatsappNumber || '08133314798';
+  const cleanPhone = phone.startsWith('0') ? `234${phone.slice(1)}` : phone;
+  const staffName = settings.whatsappName || 'Isaac';
+  const accountName = settings.accountName || 'OLARONKE OGIDAN';
+  const bankName = settings.bankName || 'MONIEPOINT';
+  const accountNumber = settings.accountNumber || '8234786544';
+
   return (
     <footer className="bg-slate-950 border-t border-slate-800 pt-12 pb-8 text-slate-400 text-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -18,7 +28,7 @@ export default function Footer() {
               </span>
             </div>
             <p className="text-slate-400 text-xs leading-relaxed">
-              Topfaith University's official online gourmet food vendor. Real-time portion tracking, student email authentication, and instant WhatsApp receipt confirmation with Isaac.
+              Topfaith University's official online gourmet food vendor. Real-time portion tracking, student email authentication, and instant WhatsApp receipt confirmation with {staffName}.
             </p>
           </div>
 
@@ -34,15 +44,15 @@ export default function Footer() {
           <div className="space-y-2">
             <h4 className="font-bold text-white text-sm uppercase tracking-wider mb-2">Vendor Contact</h4>
             <a
-              href="https://wa.me/2348133314798"
+              href={`https://wa.me/${cleanPhone}`}
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-2 text-brand-lemon-glow hover:underline font-bold"
             >
-              <MessageCircle className="w-4 h-4" /> WhatsApp Isaac: 08133314798
+              <MessageCircle className="w-4 h-4" /> WhatsApp {staffName}: {phone}
             </a>
-            <p>Student Domain: <span className="font-mono text-slate-300">@topfaith.edu.ng</span></p>
-            <p>Moniepoint Transfer: <span className="font-bold text-white">OLARONKE OGIDAN (8234786544)</span></p>
+            <p>Student Domain: <span className="font-mono text-slate-300">{settings.studentDomain || '@topfaith.edu.ng'}</span></p>
+            <p>{bankName} Transfer: <span className="font-bold text-white">{accountName} ({accountNumber})</span></p>
           </div>
 
           {/* Security badge */}

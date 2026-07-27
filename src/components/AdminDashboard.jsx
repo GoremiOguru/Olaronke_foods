@@ -131,9 +131,23 @@ export default function AdminDashboard() {
       setOrders(prev => prev.map(o => o.id === updatedOrder.id ? updatedOrder : o));
     });
 
+    socket.on('orders:deleted', (data) => {
+      if (data?.orderId) {
+        setOrders(prev => prev.filter(o => o.id !== data.orderId));
+      }
+    });
+
+    socket.on('orders:update', (updatedOrders) => {
+      if (Array.isArray(updatedOrders)) {
+        setOrders(updatedOrders);
+      }
+    });
+
     return () => {
       socket.off('order:new');
       socket.off('order:status_updated');
+      socket.off('orders:deleted');
+      socket.off('orders:update');
     };
   }, [socket]);
 
@@ -322,17 +336,24 @@ export default function AdminDashboard() {
 
   const handleDeleteOrder = async (orderId) => {
     if (!window.confirm(`Permanently remove Order #${orderId} from history?`)) return;
-    setOrders(prev => prev.filter(o => o.id !== orderId));
 
     try {
-      await fetch(`/api/orders/${orderId}`, {
+      const res = await fetch(`/api/orders/${orderId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
+
+      if (res.ok) {
+        setOrders(prev => prev.filter(o => o.id !== orderId));
+      } else {
+        const data = await res.json();
+        alert(data.message || 'Failed to delete order from server database.');
+      }
     } catch (err) {
       console.error('Failed to delete order:', err);
+      alert('Error communicating with server while deleting order.');
     }
   };
 
@@ -1411,6 +1432,39 @@ export default function AdminDashboard() {
                   onChange={(e) => setVendorSettings({ ...vendorSettings, takeoutPrice: Number(e.target.value) })}
                   placeholder="300"
                   className="w-full bg-slate-950 border border-slate-700 text-white px-4 py-3 rounded-xl text-sm font-mono focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">Website Hero Title</label>
+                <input
+                  type="text"
+                  value={vendorSettings.heroTitle || ''}
+                  onChange={(e) => setVendorSettings({ ...vendorSettings, heroTitle: e.target.value })}
+                  placeholder="e.g. Welcome to B'feastas"
+                  className="w-full bg-slate-950 border border-slate-700 text-white px-4 py-3 rounded-xl text-sm focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">Website Hero Subtitle / Description</label>
+                <textarea
+                  rows={3}
+                  value={vendorSettings.heroSubtitle || ''}
+                  onChange={(e) => setVendorSettings({ ...vendorSettings, heroSubtitle: e.target.value })}
+                  placeholder="Enter homepage custom subtitle copy..."
+                  className="w-full bg-slate-950 border border-slate-700 text-white px-4 py-3 rounded-xl text-sm focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">Top Announcement Header</label>
+                <input
+                  type="text"
+                  value={vendorSettings.announcementText || ''}
+                  onChange={(e) => setVendorSettings({ ...vendorSettings, announcementText: e.target.value })}
+                  placeholder="e.g. Topfaith University Campus Gourmet Dining"
+                  className="w-full bg-slate-950 border border-slate-700 text-white px-4 py-3 rounded-xl text-sm focus:outline-none"
                 />
               </div>
 

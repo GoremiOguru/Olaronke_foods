@@ -1,39 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { X, CheckCircle, MessageCircle, Copy, ExternalLink, ShieldCheck, Key, MapPin, Printer } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useSettings } from '../context/SettingsContext';
 import OfficialReceiptModal from './OfficialReceiptModal';
 
 export default function WhatsAppModal() {
   const { activeReceiptModal, setActiveReceiptModal } = useCart();
+  const { settings } = useSettings();
   const [copied, setCopied] = useState(false);
   const [showOfficialReceipt, setShowOfficialReceipt] = useState(false);
   const [hasForwardedWhatsapp, setHasForwardedWhatsapp] = useState(false);
-
-  const [settings, setSettings] = useState({
-    accountName: 'OLARONKE OGIDAN',
-    bankName: 'MONIEPOINT',
-    accountNumber: '8234786544',
-    whatsappName: 'Isaac',
-    whatsappNumber: '08133314798',
-    takeoutPrice: 300
-  });
-
-  useEffect(() => {
-    fetch('/api/settings')
-      .then(res => res.ok ? res.json() : null)
-      .then(data => {
-        if (data) setSettings(data);
-      })
-      .catch(() => {});
-  }, []);
 
   if (!activeReceiptModal) return null;
 
   const order = activeReceiptModal;
   const whatsappPhone = settings.whatsappNumber || '08133314798';
   const cleanPhone = whatsappPhone.startsWith('0') ? `234${whatsappPhone.slice(1)}` : whatsappPhone;
+  const staffName = settings.whatsappName || 'Isaac';
+  const accountName = settings.accountName || 'OLARONKE OGIDAN';
+  const bankName = settings.bankName || 'MONIEPOINT';
+  const accountNumber = settings.accountNumber || '8234786544';
 
-  // Helper to guarantee 3-digit pickup code
   const getPickupCode = (ord) => {
     if (ord?.pickupCode) return String(ord.pickupCode);
     if (!ord?.id) return '582';
@@ -48,16 +35,16 @@ export default function WhatsAppModal() {
     .map(i => `• ${i.dishName} (${i.scoops} ${i.unitType || 'portion'}${i.scoops > 1 ? 's' : ''}) - ₦${(i.price * i.scoops).toLocaleString()}`)
     .join('\n');
 
-  const takeoutLine = order.includeTakeoutPack ? `• Plastic Takeout Container - ₦${settings.takeoutPrice || 300}\n` : '';
+  const takeoutLine = order.includeTakeoutPack ? `• Plastic Takeout Container Pack(s) - ₦${order.takeoutFee || settings.takeoutPrice || 300}\n` : '';
   const deliveryFeeLine = order.isHostelDelivery ? `• Hostel Doorstep Delivery Fee - ₦500\n` : '';
   const deliveryLine = order.isHostelDelivery ? `🚚 Hostel Delivery: ${order.hostelAddress}` : `📍 Cafeteria Pickup`;
 
-  const rawMessage = `Hello ${settings.whatsappName || 'Isaac'}! 👋\nI have placed an order on B'feastas website:\n\n🔑 Secret 3-Digit Pickup Code: #${pickupCodeDisplay}\n📌 Order Reference: #${order.id}\n👤 Student Name: ${order.studentName}\n📧 Student Email: ${order.studentEmail}\n${deliveryLine}\n\n🛒 Order Breakdown:\n${itemsFormatted}\n${takeoutLine}${deliveryFeeLine}💰 Total Amount Paid: ₦${order.totalPrice.toLocaleString()}\n\nAttached is my payment receipt to ${settings.accountName || 'OLARONKE OGIDAN'} (${settings.bankName || 'MONIEPOINT'}). Please verify and prepare my meal!`;
+  const rawMessage = `Hello ${staffName}! 👋\nI have placed an order on B'feastas website:\n\n🔑 Secret 3-Digit Pickup Code: #${pickupCodeDisplay}\n📌 Order Reference: #${order.id}\n👤 Student Name: ${order.studentName}\n📧 Student Email: ${order.studentEmail}\n${deliveryLine}\n\n🛒 Order Breakdown:\n${itemsFormatted}\n${takeoutLine}${deliveryFeeLine}💰 Total Amount Paid: ₦${order.totalPrice.toLocaleString()}\n\nAttached is my payment receipt to ${accountName} (${bankName}). Please verify and prepare my meal!`;
 
   const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(rawMessage)}`;
 
   const handleCopyAccount = () => {
-    navigator.clipboard.writeText(settings.accountNumber || '8234786544');
+    navigator.clipboard.writeText(accountNumber);
     setCopied(true);
     setTimeout(() => setCopied(false), 3000);
   };
@@ -127,19 +114,19 @@ export default function WhatsAppModal() {
             {/* Bank Transfer Details */}
             <div className="bg-slate-950 p-4 rounded-2xl border border-brand-orange/30 space-y-3">
               <div className="flex items-center justify-between text-xs font-bold text-brand-orange">
-                <span>💳 Transfer to {settings.bankName || 'MONIEPOINT'} Account</span>
+                <span>💳 Transfer to {bankName} Account</span>
                 <span className="text-[10px] bg-brand-orange/20 text-brand-orange-glow px-2.5 py-0.5 rounded font-black border border-brand-orange/30">
-                  {settings.bankName || 'MONIEPOINT'}
+                  {bankName}
                 </span>
               </div>
 
               <div className="bg-slate-900 p-3 rounded-xl border border-slate-800 flex items-center justify-between">
                 <div>
                   <p className="text-[11px] text-slate-400">
-                    Account Name: <strong className="text-white">{settings.accountName || 'OLARONKE OGIDAN'}</strong>
+                    Account Name: <strong className="text-white">{accountName}</strong>
                   </p>
                   <p className="text-lg font-black text-amber-300 font-mono tracking-wider">
-                    {settings.accountNumber || '8234786544'}
+                    {accountNumber}
                   </p>
                 </div>
                 <button
@@ -161,10 +148,10 @@ export default function WhatsAppModal() {
             <div className="space-y-2">
               <p className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
                 <MessageCircle className="w-4 h-4 text-brand-lemon-glow" />
-                Step 1: Forward Payment Proof on WhatsApp ({settings.whatsappNumber || '08133314798'})
+                Step 1: Forward Payment Proof on WhatsApp ({whatsappPhone})
               </p>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Click below to send {settings.whatsappName || 'Isaac'} your bank transfer receipt & secret code <strong>#{pickupCodeDisplay}</strong>.
+                Click below to send {staffName} your bank transfer receipt & secret code <strong>#{pickupCodeDisplay}</strong>.
               </p>
             </div>
 
@@ -176,11 +163,11 @@ export default function WhatsAppModal() {
               className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-brand-lemon to-emerald-600 hover:from-lime-400 hover:to-emerald-500 text-slate-950 font-black text-sm shadow-lemon-glow hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center space-x-2 border border-brand-lemon/30"
             >
               <MessageCircle className="w-5 h-5 fill-slate-950" />
-              <span>Forward Receipt to {settings.whatsappName || 'Isaac'} ({settings.whatsappNumber || '08133314798'})</span>
+              <span>Forward Receipt to {staffName} ({whatsappPhone})</span>
               <ExternalLink className="w-4 h-4 opacity-75" />
             </a>
 
-            {/* Step 2: Download / Print Official Receipt (Available after clicking WhatsApp / confirmed) */}
+            {/* Step 2: Download / Print Official Receipt */}
             <div className="pt-3 border-t border-slate-800 space-y-2">
               <p className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
                 <Printer className="w-4 h-4 text-amber-400" />

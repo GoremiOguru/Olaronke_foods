@@ -121,6 +121,14 @@ export function SocketProvider({ children }) {
       }
     });
 
+    // Listen for settings updates
+    newSocket.on('settings:update', (newSettings) => {
+      try {
+        localStorage.setItem('olaronke_settings', JSON.stringify(newSettings));
+        window.dispatchEvent(new Event('olaronke_settings_updated'));
+      } catch (e) {}
+    });
+
     setSocket(newSocket);
 
     return () => {
