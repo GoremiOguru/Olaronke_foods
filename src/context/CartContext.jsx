@@ -33,7 +33,7 @@ export function CartProvider({ children }) {
     } catch (e) {}
   }, [cart]);
 
-  const addToCart = (dish, scoops = 1, packConfig = null) => {
+  const addToCart = (dish, scoops = 1, targetPlate = 1) => {
     if (!dish.isAvailable || dish.scoopsLeft <= 0) {
       addNotification({
         id: Date.now(),
@@ -44,52 +44,12 @@ export function CartProvider({ children }) {
       return;
     }
 
-    if (packConfig && Array.isArray(packConfig) && packConfig.length > 0) {
-      // Multi-pack rice adding logic
-      const totalScoopsRequested = packConfig.reduce((sum, p) => sum + p.scoops, 0);
+    const isRice = dish.category === 'Rice Dishes' || dish.unitType === 'scoop' || dish.name.toLowerCase().includes('rice');
 
-      // Check current cart usage for this dish
-      const currentInCart = cart
-        .filter(item => item.dishId === dish.id)
-        .reduce((sum, item) => sum + item.scoops, 0);
-
-      if (currentInCart + totalScoopsRequested > dish.scoopsLeft) {
-        addNotification({
-          id: Date.now(),
-          title: 'Stock Limit Exceeded',
-          message: `Only ${dish.scoopsLeft - currentInCart} ${dish.unitType || 'portion'}(s) left for ${dish.name}!`,
-          type: 'warning'
-        });
-        return;
-      }
-
-      const newCartEntries = packConfig.map((pack, idx) => ({
-        cartItemId: `${dish.id}-pack-${Date.now()}-${idx}-${Math.random()}`,
-        dishId: dish.id,
-        dishName: dish.name,
-        price: dish.price,
-        scoops: pack.scoops,
-        unitType: dish.unitType || 'scoop',
-        image: dish.image,
-        category: dish.category,
-        packNumber: idx + 1,
-        packLabel: `Takeout Pack ${idx + 1} (${pack.scoops} scoops)`
-      }));
-
-      setCart(prev => [...prev, ...newCartEntries]);
-
-      addNotification({
-        id: Date.now(),
-        title: 'Rice Packs Added!',
-        message: `Added ${packConfig.length} takeout pack(s) of ${dish.name} (${totalScoopsRequested} scoops total) to tray.`,
-        type: 'success'
-      });
-      return;
-    }
-
-    // Default single item add
     setCart(prev => {
-      const existingIndex = prev.findIndex(item => item.dishId === dish.id && !item.packLabel);
+      // Find existing item for this dish in the SAME target plate
+      const existingIndex = prev.findIndex(item => item.dishId === dish.id && (item.plateNumber || 1) === targetPlate);
+      
       if (existingIndex > -1) {
         const existingItem = prev[existingIndex];
         const newScoops = existingItem.scoops + scoops;
@@ -98,7 +58,7 @@ export function CartProvider({ children }) {
           addNotification({
             id: Date.now(),
             title: 'Stock Limit Reached',
-            message: `Only ${dish.scoopsLeft} ${dish.unitType || 'portions'} left for ${dish.name}!`,
+            message: `Only ${dish.scoopsLeft} available for ${dish.name}!`,
             type: 'warning'
           });
           return prev;
@@ -119,22 +79,24 @@ export function CartProvider({ children }) {
         }
 
         return [...prev, {
-          cartItemId: `${dish.id}-${Date.now()}`,
+          cartItemId: `${dish.id}-plate${targetPlate}-${Date.now()}`,
           dishId: dish.id,
           dishName: dish.name,
           price: dish.price,
           scoops: scoops,
-          unitType: dish.unitType || 'portion',
+          unitType: dish.unitType || (isRice ? 'scoop' : 'portion'),
           image: dish.image,
-          category: dish.category
+          category: dish.category,
+          isRice: isRice,
+          plateNumber: targetPlate
         }];
       }
     });
 
     addNotification({
       id: Date.now(),
-      title: 'Added to Order!',
-      message: `${scoops} ${dish.unitType || 'portion'}(s) of ${dish.name} added to tray.`,
+      title: 'Added to Takeout Tray!',
+      message: `${scoops} ${dish.unitType || 'portion'}(s) of ${dish.name} assigned to Plate #${targetPlate}.`,
       type: 'success'
     });
   };
@@ -155,29 +117,77 @@ export function CartProvider({ children }) {
       return;
     }
 
-    setCart(prev => prev.map(item => (item.cartItemId === cartItemId || item.dishId === cartItemId) ? { ...item, scoops: newScoops } : item));
+    setCart(prev => prev.map(item => item.cartItemId === cartItemId ? { ...item, scoops: newScoops } : item));
+  };
+
+  const assignItemToPlate = (cartItemId, targetPlateNumber) => {
+    setCart(prev => prev.map(item => {
+      if (item.cartItemId === cartItemId) {
+        return { ...item, plateNumber: Math.max(1, Number(targetPlateNumber)) };
+      }
+      return item;
+    }));
   };
 
   const removeFromCart = (cartItemId) => {
-    setCart(prev => prev.filter(item => item.cartItemId !== cartItemId && item.dishId !== cartItemId));
+    setCart(prev => prev.filter(item => item.cartItemId !== cartItemId));
   };
 
   const clearCart = () => {
     setCart([]);
   };
 
-  // Calculate distinct takeout pack count
-  const distinctRicePacks = cart.filter(item => item.packLabel).length;
-  const nonPackItems = cart.filter(item => !item.packLabel);
-  const generalTakeoutPacksCount = (includeTakeoutPack && nonPackItems.length > 0) ? 1 : 0;
-  const totalTakeoutPacksCount = distinctRicePacks + generalTakeoutPacksCount;
+  // Rice 5-scoop plate capacity auto-split helper
+  const autoSplitRicePlates = () => {
+    setCart(prev => {
+      const updatedCart = [];
+
+      prev.forEach(item => {
+        if (item.isRice && item.scoops > 5) {
+          // Split into multiple entries of max 5 scoops per plate
+          let remaining = item.scoops;
+          let currentPlate = item.plateNumber || 1;
+
+          while (remaining > 0) {
+            const scoopsInThisPlate = Math.min(5, remaining);
+            updatedCart.push({
+              ...item,
+              cartItemId: `${item.dishId}-plate${currentPlate}-${Date.now()}-${Math.random()}`,
+              scoops: scoopsInThisPlate,
+              plateNumber: currentPlate
+            });
+            remaining -= scoopsInThisPlate;
+            currentPlate += 1;
+          }
+        } else {
+          updatedCart.push(item);
+        }
+      });
+
+      return updatedCart;
+    });
+
+    addNotification({
+      id: Date.now(),
+      title: '🍱 Takeout Plates Organized!',
+      message: 'Rice portions automatically split into Takeout Plates with max 5 scoops each.',
+      type: 'success'
+    });
+  };
+
+  // Get active plate numbers in cart
+  const activePlatesSet = new Set(cart.map(item => item.plateNumber || 1));
+  const activePlatesCount = Math.max(1, activePlatesSet.size);
 
   const perPackPrice = Number(settings.takeoutPrice) || 300;
   const mealsTotal = cart.reduce((sum, item) => sum + (item.price * item.scoops), 0);
-  const takeoutFee = totalTakeoutPacksCount * perPackPrice;
+  const takeoutFee = includeTakeoutPack ? (activePlatesCount * perPackPrice) : 0;
   const deliveryFee = isHostelDelivery ? 500 : 0;
   const grandTotal = mealsTotal + takeoutFee + deliveryFee;
   const totalQuantityCount = cart.reduce((sum, item) => sum + item.scoops, 0);
+
+  // Check if any single plate has more than 5 scoops of rice
+  const riceExceedsCapacity = cart.some(item => item.isRice && item.scoops > 5);
 
   const checkout = async () => {
     if (!token || !user) {
@@ -195,16 +205,16 @@ export function CartProvider({ children }) {
     setIsSubmitting(true);
 
     try {
-      // Map items for server API format while preserving pack breakdown details in dishName if configured
+      // Map items for server API format while tagging plate number in dishName
       const formattedItems = cart.map(item => ({
         dishId: item.dishId,
-        dishName: item.packLabel ? `${item.dishName} [${item.packLabel}]` : item.dishName,
+        dishName: `[Plate #${item.plateNumber || 1}] ${item.dishName}`,
         price: item.price,
         scoops: item.scoops,
         unitType: item.unitType,
         category: item.category,
         image: item.image,
-        packLabel: item.packLabel
+        plateNumber: item.plateNumber || 1
       }));
 
       const res = await fetch('/api/orders', {
@@ -215,7 +225,7 @@ export function CartProvider({ children }) {
         },
         body: JSON.stringify({
           items: formattedItems,
-          includeTakeoutPack: totalTakeoutPacksCount > 0,
+          includeTakeoutPack,
           takeoutFee,
           isHostelDelivery,
           hostelAddress: hostelAddress.trim()
@@ -254,14 +264,17 @@ export function CartProvider({ children }) {
       cart,
       addToCart,
       updateScoops,
+      assignItemToPlate,
       removeFromCart,
       clearCart,
+      autoSplitRicePlates,
+      riceExceedsCapacity,
+      activePlatesCount,
       mealsTotal,
       takeoutFee,
       deliveryFee,
       grandTotal,
       totalQuantityCount,
-      totalTakeoutPacksCount,
       includeTakeoutPack,
       setIncludeTakeoutPack,
       isHostelDelivery,
