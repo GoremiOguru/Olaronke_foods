@@ -16,13 +16,15 @@ export default function Footer() {
     <footer className="bg-slate-950 border-t border-slate-800 pt-12 pb-8 text-slate-400 text-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-          
+
           {/* Brand Col */}
           <div className="space-y-3 md:col-span-1">
             <div className="flex items-center space-x-2">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-orange to-brand-lemon flex items-center justify-center text-slate-950">
-                <UtensilsCrossed className="w-5 h-5 stroke-[2.5]" />
-              </div>
+              <img
+                src="/images/compay logo.jpeg"
+                alt="B'feastas Logo"
+                className="w-9 h-9 rounded-xl object-cover border border-slate-700 shadow-md"
+              />
               <span className="font-black text-xl text-white">
                 B'<span className="text-brand-orange">fea</span><span className="text-brand-lemon">stas</span>
               </span>
@@ -68,7 +70,7 @@ export default function Footer() {
         </div>
 
         <div className="pt-6 border-t border-slate-800 text-center text-slate-500 text-[11px]">
-          © {new Date().getFullYear()} B'feastas. All rights reserved. Topfaith University Gourmet Campus Vendor.
+          © {new Date().getFullYear()} B'feastas. All rights reserved. Topfaith University Gourmet Campus Vendor. Made by Goremi Oguru
         </div>
       </div>
     </footer>

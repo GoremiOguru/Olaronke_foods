@@ -89,11 +89,11 @@ export const defaultDishes = [
   },
   {
     id: 'dish-9',
-    name: "Sweet Fried Plantain Dodo (5 Fingers per Scoop)",
-    description: "Golden fried plantain fingers served at ₦500 for 5 fingers. Order 1 scoop (5 fingers - ₦500), 2 scoops (10 fingers - ₦1k), 3 scoops (15 fingers - ₦1.5k), etc.",
-    price: 500,
-    scoopsLeft: 35,
-    unitType: "portion",
+    name: "Sweet Fried Plantain Dodo",
+    description: "Golden fried sweet plantain dodo. ₦100 per piece (Select exact number of pieces desired).",
+    price: 100,
+    scoopsLeft: 60,
+    unitType: "piece",
     isAvailable: true,
     category: "Sides & Extras",
     image: "/images/fried_plantain.png"

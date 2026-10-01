@@ -1018,6 +1018,20 @@ export default function AdminDashboard() {
 
                           <p className="text-xs text-slate-400 font-mono">{ord.studentEmail}</p>
 
+                          {ord.studentPhone && (
+                            <div className="pt-0.5">
+                              <a
+                                href={`https://wa.me/${ord.studentPhone.startsWith('0') ? '234' + ord.studentPhone.slice(1) : ord.studentPhone}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-emerald-400 hover:underline bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-500/40"
+                              >
+                                <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
+                                <span>WhatsApp Student: {ord.studentPhone}</span>
+                              </a>
+                            </div>
+                          )}
+
                           <p className="text-xs font-bold pt-1 text-sky-300 flex items-center gap-1">
                             {ord.isHostelDelivery ? (
                               <>
@@ -1050,7 +1064,7 @@ export default function AdminDashboard() {
                             ))}
                             {ord.includeTakeoutPack && (
                               <span className="bg-brand-orange/10 text-brand-orange-glow text-xs font-semibold px-2 py-1 rounded-xl border border-brand-orange/30">
-                                Plastic Takeout Container (+₦300)
+                                Plastic Takeout Container ({ord.plateSizeName || (ord.plateSize ? `₦${ord.plateSize} plate` : 'Takeout pack')}) (+₦{(ord.takeoutFee !== undefined ? ord.takeoutFee : 300).toLocaleString()})
                               </span>
                             )}
                           </div>

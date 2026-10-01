@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight, ShieldAlert, Package, Home, CheckSquare, Square, MapPin, AlertTriangle, Layers, Sparkles } from 'lucide-react';
+import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight, ShieldAlert, Package, Home, CheckSquare, Square, MapPin, AlertTriangle, Layers, Sparkles, Phone } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
@@ -23,6 +23,10 @@ export default function CartDrawer({ onOpenAuth }) {
     totalQuantityCount,
     includeTakeoutPack,
     setIncludeTakeoutPack,
+    plateSize,
+    setPlateSize,
+    studentPhone,
+    setStudentPhone,
     isHostelDelivery,
     setIsHostelDelivery,
     hostelAddress,
@@ -290,30 +294,77 @@ export default function CartDrawer({ onOpenAuth }) {
                   })}
                 </div>
 
-                {/* Takeout Options Toggle */}
-                <div className="glass-card p-4 rounded-2xl border border-slate-800 space-y-2">
+                {/* Takeout Options & Plate Size Selector */}
+                <div className="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
                   <div
                     onClick={() => setIncludeTakeoutPack(!includeTakeoutPack)}
                     className="flex items-center justify-between cursor-pointer select-none"
                   >
                     <div className="flex items-center space-x-2.5">
-                      <Package className="w-5 h-5 text-brand-lemon-glow" />
+                      <Package className="w-4 h-4 text-brand-lemon-glow" />
                       <div>
                         <p className="text-xs font-extrabold text-white">Plastic Takeout Containers</p>
                         <p className="text-[11px] text-slate-400">
-                          {activePlatesCount} container plate{activePlatesCount === 1 ? '' : 's'} (₦{perPackFee} each)
+                          {activePlatesCount} container plate{activePlatesCount === 1 ? '' : 's'}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
                       <span className="text-xs font-bold text-brand-orange">+₦{takeoutFee.toLocaleString()}</span>
                       {includeTakeoutPack ? (
-                        <CheckSquare className="w-5 h-5 text-brand-orange" />
+                        <CheckSquare className="w-4 h-4 text-brand-orange" />
                       ) : (
-                        <Square className="w-5 h-5 text-slate-600" />
+                        <Square className="w-4 h-4 text-slate-600" />
                       )}
                     </div>
                   </div>
+
+                  {includeTakeoutPack && (
+                    <div className="pt-2 border-t border-slate-800/80 space-y-1.5 animate-in fade-in">
+                      <span className="text-[11px] font-bold text-slate-300 block">
+                        Select Takeout Plate Size:
+                      </span>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          { price: 100, label: 'Small', fee: '₦100' },
+                          { price: 200, label: 'Medium', fee: '₦200' },
+                          { price: 300, label: 'Large', fee: '₦300' }
+                        ].map((plate) => (
+                          <button
+                            key={plate.price}
+                            type="button"
+                            onClick={() => setPlateSize(plate.price)}
+                            className={`py-2 px-1 rounded-xl text-xs font-extrabold border transition-all text-center ${
+                              plateSize === plate.price
+                                ? 'bg-brand-orange text-white border-brand-orange shadow-orange-glow'
+                                : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                            }`}
+                          >
+                            <span className="block text-[11px]">{plate.label}</span>
+                            <span className="block text-[10px] font-mono text-amber-300">{plate.fee}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Student Phone / WhatsApp Number */}
+                <div className="glass-card p-4 rounded-2xl border border-slate-800 space-y-2">
+                  <label className="block text-xs font-extrabold text-white flex items-center gap-1.5">
+                    <Phone className="w-3.5 h-3.5 text-brand-orange" /> Phone / WhatsApp Number:
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    value={studentPhone}
+                    onChange={(e) => setStudentPhone(e.target.value)}
+                    placeholder="e.g. 08123456789"
+                    className="w-full bg-slate-950 border border-slate-700 focus:border-brand-orange text-white px-3.5 py-2.5 rounded-xl text-xs font-mono focus:outline-none"
+                  />
+                  <p className="text-[10px] text-slate-400">
+                    Vendor staff will contact you on WhatsApp using this number.
+                  </p>
                 </div>
 
                 {/* Delivery Option */}

@@ -356,7 +356,7 @@ app.get(['/api/orders', '/orders'], authenticateToken, (req, res) => {
 });
 
 app.post(['/api/orders', '/orders'], authenticateToken, (req, res) => {
-  const { items, includeTakeoutPack, isHostelDelivery, hostelAddress } = req.body;
+  const { items, includeTakeoutPack, plateSize, plateSizeName, takeoutFee: reqTakeoutFee, isHostelDelivery, hostelAddress, studentPhone } = req.body;
 
   if (!items || !Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ message: 'Order items cannot be empty.' });
@@ -394,7 +394,9 @@ app.post(['/api/orders', '/orders'], authenticateToken, (req, res) => {
   });
 
   const mealsTotal = items.reduce((sum, i) => sum + (i.price * i.scoops), 0);
-  const takeoutFee = includeTakeoutPack !== false ? (db.settings.takeoutPrice || 300) : 0;
+  const activePlatesCount = Math.max(1, new Set(items.map(i => i.plateNumber || 1)).size);
+  const perPackPrice = Number(plateSize) || db.settings.takeoutPrice || 200;
+  const takeoutFee = includeTakeoutPack !== false ? (reqTakeoutFee !== undefined ? reqTakeoutFee : (activePlatesCount * perPackPrice)) : 0;
   const deliveryFee = isHostelDelivery ? 500 : 0;
   const totalPrice = mealsTotal + takeoutFee + deliveryFee;
 
@@ -407,14 +409,18 @@ app.post(['/api/orders', '/orders'], authenticateToken, (req, res) => {
     studentId: req.user.id,
     studentName: req.user.name,
     studentEmail: req.user.email,
+    studentPhone: (studentPhone || req.user.phone || '').trim(),
     items,
     includeTakeoutPack: includeTakeoutPack !== false,
+    plateSize: perPackPrice,
+    plateSizeName: plateSizeName || `₦${perPackPrice} plate`,
     takeoutFee,
     deliveryFee,
     isHostelDelivery: Boolean(isHostelDelivery),
     hostelAddress: isHostelDelivery ? hostelAddress.trim() : '',
     totalPrice,
     status: 'Pending Payment Verification',
+    paymentConfirmed: false,
     createdAt: new Date().toISOString()
   };
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, User, Lock, Mail, ShieldCheck, AlertCircle, CheckCircle2, UtensilsCrossed } from 'lucide-react';
+import { X, User, Lock, Mail, ShieldCheck, AlertCircle, CheckCircle2, Phone } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function AuthModal({ isOpen, onClose }) {
@@ -9,6 +9,7 @@ export default function AuthModal({ isOpen, onClose }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [loading, setLoading] = useState(false);
@@ -74,7 +75,7 @@ export default function AuthModal({ isOpen, onClose }) {
 
     try {
       if (isRegisterMode) {
-        await register(name, email, password, isAdminRegister ? 'admin' : 'student');
+        await register(name, email, password, isAdminRegister ? 'admin' : 'student', phone);
       } else {
         await login(email, password);
       }
@@ -99,8 +100,12 @@ export default function AuthModal({ isOpen, onClose }) {
             <X className="w-5 h-5" />
           </button>
           
-          <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mx-auto mb-2 border border-white/30">
-            {mode.startsWith('admin') ? <ShieldCheck className="w-6 h-6 text-brand-lemon-glow" /> : <UtensilsCrossed className="w-6 h-6 text-white" />}
+          <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mx-auto mb-2 border border-white/30 overflow-hidden">
+            {mode.startsWith('admin') ? (
+              <ShieldCheck className="w-6 h-6 text-brand-lemon-glow" />
+            ) : (
+              <img src="/images/compay logo.jpeg" alt="B'feastas Logo" className="w-full h-full object-cover" />
+            )}
           </div>
 
           <h3 className="text-xl font-black">
@@ -202,6 +207,25 @@ export default function AuthModal({ isOpen, onClose }) {
                   onChange={(e) => setName(e.target.value)}
                   placeholder={mode === 'admin-register' ? 'e.g. Isaac Bfeastas Staff' : 'e.g. Chisom Okafor'}
                   className="w-full bg-slate-950 border border-slate-700 focus:border-brand-orange text-white pl-10 pr-4 py-3 rounded-xl text-sm focus:outline-none"
+                />
+              </div>
+            </div>
+          )}
+
+          {(mode === 'register' || mode === 'admin-register') && (
+            <div>
+              <label className="block text-xs font-extrabold text-slate-300 mb-1">
+                WhatsApp / Phone Number
+              </label>
+              <div className="relative">
+                <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="tel"
+                  required
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="e.g. 08123456789"
+                  className="w-full bg-slate-950 border border-slate-700 focus:border-brand-orange text-white pl-10 pr-4 py-3 rounded-xl text-sm focus:outline-none font-mono"
                 />
               </div>
             </div>

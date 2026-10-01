@@ -103,6 +103,12 @@ export default function WhatsAppModal() {
                 <span className="text-slate-400">Campus Email:</span>
                 <span className="font-mono text-brand-lemon-glow font-bold">{order.studentEmail}</span>
               </div>
+              {order.studentPhone && (
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Phone / WhatsApp:</span>
+                  <span className="font-mono text-amber-300 font-bold">{order.studentPhone}</span>
+                </div>
+              )}
               <div className="flex justify-between pt-1 border-t border-slate-800">
                 <span className="text-slate-400">Fulfilment:</span>
                 <span className="font-bold text-sky-300">

@@ -46,3 +46,36 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #ea580c;
 }
+
+/* Printable Receipt Isolation (iOS Safari & Browser Fix) */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Hide everything outside the receipt container */
+  #root > *:not(.print-active-receipt) {
+    display: none !important;
+  }
+
+  .print-receipt-card {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .print\:hidden {
+    display: none !important;
+  }
+}

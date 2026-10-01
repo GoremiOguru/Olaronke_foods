@@ -16,14 +16,22 @@ export function CartProvider({ children }) {
   });
 
   const [includeTakeoutPack, setIncludeTakeoutPack] = useState(true);
+  const [plateSize, setPlateSize] = useState(200); // 100 | 200 | 300
   const [isHostelDelivery, setIsHostelDelivery] = useState(false);
   const [hostelAddress, setHostelAddress] = useState('');
+  const [studentPhone, setStudentPhone] = useState('');
 
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [activeReceiptModal, setActiveReceiptModal] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { token, user } = useAuth();
+
+  useEffect(() => {
+    if (user?.phone && !studentPhone) {
+      setStudentPhone(user.phone);
+    }
+  }, [user]);
   const { addNotification, refreshDishes } = useSocket();
   const { settings } = useSettings();
 
@@ -179,7 +187,7 @@ export function CartProvider({ children }) {
   const activePlatesSet = new Set(cart.map(item => item.plateNumber || 1));
   const activePlatesCount = Math.max(1, activePlatesSet.size);
 
-  const perPackPrice = Number(settings.takeoutPrice) || 300;
+  const perPackPrice = Number(plateSize) || 200;
   const mealsTotal = cart.reduce((sum, item) => sum + (item.price * item.scoops), 0);
   const takeoutFee = includeTakeoutPack ? (activePlatesCount * perPackPrice) : 0;
   const deliveryFee = isHostelDelivery ? 500 : 0;
@@ -189,13 +197,18 @@ export function CartProvider({ children }) {
   // Check if any single plate has more than 5 scoops of rice
   const riceExceedsCapacity = cart.some(item => item.isRice && item.scoops > 5);
 
-  const checkout = async () => {
+  const checkout = async (overridePhone) => {
     if (!token || !user) {
       throw new Error('Please log in with your Topfaith student email to place an order.');
     }
 
     if (cart.length === 0) {
       throw new Error('Your cart is empty.');
+    }
+
+    const finalPhone = overridePhone || studentPhone || user?.phone || '';
+    if (!finalPhone || !finalPhone.trim()) {
+      throw new Error('Please enter your Phone / WhatsApp number so kitchen staff can contact you.');
     }
 
     if (isHostelDelivery && (!hostelAddress || !hostelAddress.trim())) {
@@ -205,6 +218,8 @@ export function CartProvider({ children }) {
     setIsSubmitting(true);
 
     try {
+      const plateSizeName = perPackPrice === 100 ? 'Small Plate (₦100)' : perPackPrice === 200 ? 'Medium Plate (₦200)' : 'Large Plate (₦300)';
+
       // Map items for server API format while tagging plate number in dishName
       const formattedItems = cart.map(item => ({
         dishId: item.dishId,
@@ -226,9 +241,12 @@ export function CartProvider({ children }) {
         body: JSON.stringify({
           items: formattedItems,
           includeTakeoutPack,
+          plateSize: perPackPrice,
+          plateSizeName,
           takeoutFee,
           isHostelDelivery,
-          hostelAddress: hostelAddress.trim()
+          hostelAddress: hostelAddress.trim(),
+          studentPhone: finalPhone.trim()
         })
       });
 
@@ -277,6 +295,10 @@ export function CartProvider({ children }) {
       totalQuantityCount,
       includeTakeoutPack,
       setIncludeTakeoutPack,
+      plateSize,
+      setPlateSize,
+      studentPhone,
+      setStudentPhone,
       isHostelDelivery,
       setIsHostelDelivery,
       hostelAddress,

@@ -18,10 +18,12 @@ export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdmi
         <div className="flex items-center justify-between h-20">
           
           {/* Brand Logo: B'feastas */}
-          <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setIsAdminView(false)}>
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-orange to-brand-lemon flex items-center justify-center shadow-orange-glow transition-transform hover:scale-105">
-              <UtensilsCrossed className="w-7 h-7 text-slate-950 stroke-[2.5]" />
-            </div>
+          <div className="flex items-center space-x-2.5 cursor-pointer" onClick={() => setIsAdminView(false)}>
+            <img
+              src="/images/compay logo.jpeg"
+              alt="B'feastas Logo"
+              className="w-10 h-10 rounded-xl object-cover shadow-orange-glow border border-brand-orange/30 transition-transform hover:scale-105"
+            />
             <div>
               <div className="flex items-center space-x-2">
                 <span className="font-black text-2xl tracking-tight text-white font-sans">
