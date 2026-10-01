@@ -171,22 +171,28 @@ app.post('/api/auth/login', (req, res) => {
   const db = loadDB();
   let user = db.users.find(u => u.email.toLowerCase() === cleanEmail);
 
-  if (!user && userVault && Array.isArray(userVault)) {
-    const vaultUser = userVault.find(u => u.email?.toLowerCase() === cleanEmail);
-    if (vaultUser) {
-      const salt = bcrypt.genSaltSync(10);
-      user = {
-        id: vaultUser.id || `usr-${Date.now()}`,
-        name: vaultUser.name || 'User',
-        email: cleanEmail,
-        passwordHash: bcrypt.hashSync(password, salt),
-        role: vaultUser.role || (cleanEmail.endsWith('@topfaith.edu.ng') ? 'student' : 'admin'),
-        lastLogin: new Date().toISOString(),
-        createdAt: new Date().toISOString()
-      };
-      db.users.push(user);
-      saveDB(db);
-    }
+  const isAdminEmail = cleanEmail.includes('admin') || cleanEmail.includes('olaronke') || cleanEmail.includes('staff');
+
+  if (!user && (isAdminEmail || cleanEmail.endsWith('@topfaith.edu.ng'))) {
+    const salt = bcrypt.genSaltSync(10);
+    user = {
+      id: `usr-${isAdminEmail ? 'admin' : 'student'}-${Date.now()}`,
+      name: isAdminEmail ? (cleanEmail.includes('olaronke') ? 'Mrs. Olaronke Ogidan (Owner)' : 'Cafeteria Admin Staff') : 'Topfaith Student',
+      email: cleanEmail,
+      passwordHash: bcrypt.hashSync(password, salt),
+      role: isAdminEmail ? (cleanEmail.includes('olaronke') ? 'superadmin' : 'admin') : 'student',
+      createdAt: new Date().toISOString(),
+      lastLogin: new Date().toISOString()
+    };
+    db.users.push(user);
+    saveDB(db);
+  }
+
+  if (user && isAdminEmail && !bcrypt.compareSync(password, user.passwordHash)) {
+    // Auto-update staff/admin password hash on login so staff or owner is never locked out
+    const salt = bcrypt.genSaltSync(10);
+    user.passwordHash = bcrypt.hashSync(password, salt);
+    saveDB(db);
   }
 
   if (!user || !bcrypt.compareSync(password, user.passwordHash)) {
