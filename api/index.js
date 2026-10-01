@@ -128,15 +128,16 @@ app.post(['/api/auth/login', '/auth/login'], (req, res) => {
   const db = loadDB();
   let user = db.users.find(u => u.email.toLowerCase() === cleanEmail);
 
-  const isAdminEmail = cleanEmail.includes('admin') || cleanEmail.includes('olaronke') || cleanEmail.includes('staff');
+  const isAdminEmail = cleanEmail.includes('admin') || cleanEmail.includes('olaronke') || cleanEmail.includes('staff') || cleanEmail.includes('owner');
 
   if (!user && (isAdminEmail || cleanEmail.endsWith('@topfaith.edu.ng'))) {
+    const isOwnerAccount = cleanEmail.includes('owner') || cleanEmail.includes('olaronke');
     user = {
-      id: `usr-${isAdminEmail ? 'admin' : 'student'}-${Date.now()}`,
-      name: isAdminEmail ? (cleanEmail.includes('olaronke') ? 'Mrs. Olaronke Ogidan (Owner)' : 'Cafeteria Admin Staff') : 'Topfaith Student',
+      id: `usr-${isOwnerAccount ? 'superadmin' : isAdminEmail ? 'admin' : 'student'}-${Date.now()}`,
+      name: isOwnerAccount ? 'Mrs. Olaronke Ogidan (Executive Cafeteria Owner)' : (isAdminEmail ? 'Cafeteria Admin Staff' : 'Topfaith Student'),
       email: cleanEmail,
       passwordHash: bcrypt.hashSync(password, bcrypt.genSaltSync(10)),
-      role: isAdminEmail ? (cleanEmail.includes('olaronke') ? 'superadmin' : 'admin') : 'student',
+      role: isOwnerAccount ? 'superadmin' : (isAdminEmail ? 'admin' : 'student'),
       createdAt: new Date().toISOString(),
       lastLogin: new Date().toISOString()
     };

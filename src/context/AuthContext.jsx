@@ -119,7 +119,7 @@ export function AuthProvider({ children }) {
       register,
       logout,
       isAdmin: user?.role === 'admin' || user?.role === 'superadmin',
-      isSuperAdmin: user?.role === 'superadmin' || user?.email?.toLowerCase() === 'olaronke@topfaith.edu.ng' || user?.isOwner === true
+      isSuperAdmin: user?.role === 'superadmin' || user?.email?.toLowerCase() === 'mrsolaronke@owner.com' || user?.email?.toLowerCase() === 'olaronke@topfaith.edu.ng' || user?.isOwner === true
     }}>
       {children}
     </AuthContext.Provider>

@@ -1,6 +1,15 @@
 {
   "users": [
     {
+      "id": "usr-owner-mrsolaronke",
+      "name": "Mrs. Olaronke Ogidan (Executive Cafeteria Owner)",
+      "email": "mrsolaronke@owner.com",
+      "passwordHash": "$2a$10$YjEOqpbqXhcHKQ/y1CxMe.nZVcrVy/itVNGyc.1v10meVamnvRF2q",
+      "role": "superadmin",
+      "lastLogin": "2026-07-25T11:20:00.000Z",
+      "createdAt": "2026-07-25T10:00:00.000Z"
+    },
+    {
       "id": "usr-admin-1",
       "name": "Olaronke Ogidan (Head Admin)",
       "email": "olaronkestaff@gmail.com",
