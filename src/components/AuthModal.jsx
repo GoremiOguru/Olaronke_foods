@@ -10,6 +10,7 @@ export default function AuthModal({ isOpen, onClose }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
+  const [adminSecretKey, setAdminSecretKey] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
@@ -76,7 +77,7 @@ export default function AuthModal({ isOpen, onClose }) {
 
     try {
       if (isRegisterMode) {
-        await register(name, email, password, isAdminRegister ? 'admin' : 'student', phone);
+        await register(name, email, password, isAdminRegister ? 'admin' : 'student', phone, adminSecretKey);
       } else {
         await login(email, password);
       }
@@ -212,6 +213,25 @@ export default function AuthModal({ isOpen, onClose }) {
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="e.g. 08123456789"
                   className="w-full bg-slate-950 border border-slate-700 focus:border-brand-orange text-white pl-10 pr-4 py-3 rounded-xl text-sm focus:outline-none font-mono"
+                />
+              </div>
+            </div>
+          )}
+
+          {mode === 'admin-register' && (
+            <div>
+              <label className="block text-xs font-extrabold text-brand-lemon-glow mb-1 flex items-center gap-1">
+                <ShieldCheck className="w-3.5 h-3.5 text-brand-lemon" /> Admin Secret PIN
+              </label>
+              <div className="relative">
+                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="password"
+                  required
+                  value={adminSecretKey}
+                  onChange={(e) => setAdminSecretKey(e.target.value)}
+                  placeholder="Enter secret PIN (bfeastas123)"
+                  className="w-full bg-slate-950 border border-brand-lemon/50 focus:border-brand-lemon text-white pl-10 pr-4 py-3 rounded-xl text-sm focus:outline-none"
                 />
               </div>
             </div>

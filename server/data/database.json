@@ -1,36 +1,9 @@
 {
   "users": [
     {
-      "id": "usr-owner-mrsolaronke",
-      "name": "Mrs. Olaronke Ogidan (Executive Cafeteria Owner)",
-      "email": "mrsolaronke@owner.com",
-      "passwordHash": "$2a$10$YjEOqpbqXhcHKQ/y1CxMe.nZVcrVy/itVNGyc.1v10meVamnvRF2q",
-      "role": "superadmin",
-      "lastLogin": "2026-07-25T11:20:00.000Z",
-      "createdAt": "2026-07-25T10:00:00.000Z"
-    },
-    {
       "id": "usr-admin-1",
       "name": "Olaronke Ogidan (Head Admin)",
       "email": "olaronkestaff@gmail.com",
-      "passwordHash": "$2a$10$YjEOqpbqXhcHKQ/y1CxMe.nZVcrVy/itVNGyc.1v10meVamnvRF2q",
-      "role": "admin",
-      "lastLogin": "2026-07-25T11:20:00.000Z",
-      "createdAt": "2026-07-25T10:00:00.000Z"
-    },
-    {
-      "id": "usr-admin-owner",
-      "name": "Mrs. Olaronke Ogidan (Cafeteria Owner)",
-      "email": "olaronke@topfaith.edu.ng",
-      "passwordHash": "$2a$10$YjEOqpbqXhcHKQ/y1CxMe.nZVcrVy/itVNGyc.1v10meVamnvRF2q",
-      "role": "superadmin",
-      "lastLogin": "2026-07-25T11:20:00.000Z",
-      "createdAt": "2026-07-25T10:00:00.000Z"
-    },
-    {
-      "id": "usr-admin-custom-1",
-      "name": "Cafeteria Admin",
-      "email": "admin@olaronke.com",
       "passwordHash": "$2a$10$YjEOqpbqXhcHKQ/y1CxMe.nZVcrVy/itVNGyc.1v10meVamnvRF2q",
       "role": "admin",
       "lastLogin": "2026-07-25T11:20:00.000Z",
@@ -70,6 +43,69 @@
       "role": "student",
       "lastLogin": "2026-10-01T17:52:21.452Z",
       "createdAt": "2026-10-01T17:50:58.341Z"
+    },
+    {
+      "id": "usr-student-1790888435632",
+      "name": "Attacker Test",
+      "email": "teststudent@topfaith.edu.ng",
+      "passwordHash": "$2a$10$HT/f1qQJFmF2fPkFH7BGGOfZbsbdcwheDkCmWs8TBbWQOIL3qv9OO",
+      "role": "student",
+      "lastLogin": "2026-10-01T21:00:35.632Z",
+      "createdAt": "2026-10-01T21:00:35.632Z"
+    },
+    {
+      "id": "usr-admin-1790892230779",
+      "name": "Sneaky Admin",
+      "email": "hacker@topfaith.edu.ng",
+      "passwordHash": "$2a$10$nolJ8xaPb0pE5fK5zQLMUua1/vLiGVGGeD74koWnZjPWIdkxLmQO2",
+      "role": "admin",
+      "lastLogin": "2026-10-01T22:03:50.779Z",
+      "createdAt": "2026-10-01T22:03:50.779Z"
+    },
+    {
+      "id": "usr-student-1790892230894",
+      "name": "Genuine Student",
+      "email": "student_1790892230785@topfaith.edu.ng",
+      "passwordHash": "$2a$10$ZSKE56IwwI0ms93TmL8DUeydCI2FnD2plEuepXNbEXqhmh4rNg6z6",
+      "role": "student",
+      "lastLogin": "2026-10-01T22:03:50.894Z",
+      "createdAt": "2026-10-01T22:03:50.894Z"
+    },
+    {
+      "id": "usr-student-1790893811626",
+      "name": "Genuine Student",
+      "email": "student_1790893811221@topfaith.edu.ng",
+      "passwordHash": "$2a$10$Nos3FIwcV0sMQb9qa2nf2Oidlng.z5d9jw5uLGEnVFz/47xmfqWbe",
+      "role": "student",
+      "lastLogin": "2026-10-01T22:30:11.626Z",
+      "createdAt": "2026-10-01T22:30:11.626Z"
+    },
+    {
+      "id": "usr-student-1790893877218",
+      "name": "Genuine Student",
+      "email": "student_1790893876835@topfaith.edu.ng",
+      "passwordHash": "$2a$10$za16ljVk30B/9sSp7PwL..ol6REqMx149Hqaz27bRdfhFyXrFqCTC",
+      "role": "student",
+      "lastLogin": "2026-10-01T22:31:17.218Z",
+      "createdAt": "2026-10-01T22:31:17.218Z"
+    },
+    {
+      "id": "usr-admin-1790893918222",
+      "name": "Legit Staff",
+      "email": "legitstaff@gmail.com",
+      "passwordHash": "$2a$10$QNWAKQGLsq3ExWg5II5uC.TaE.y92DRqExM6TZ7aG6Ijou0VhR2V2",
+      "role": "admin",
+      "lastLogin": "2026-10-01T22:31:58.222Z",
+      "createdAt": "2026-10-01T22:31:58.223Z"
+    },
+    {
+      "id": "usr-student-1790893923887",
+      "name": "Genuine Student",
+      "email": "student_1790893918895@topfaith.edu.ng",
+      "passwordHash": "$2a$10$gSyVAmSX2NybzNJnwRHqueAc.hNrgY3L5pLCoeEUI.0ee8YwU0yii",
+      "role": "student",
+      "lastLogin": "2026-10-01T22:32:03.887Z",
+      "createdAt": "2026-10-01T22:32:03.887Z"
     }
   ],
   "dishes": [
@@ -78,7 +114,7 @@
       "name": "B'feastas Special Smoky Jollof Rice",
       "description": "Classic firewood-smoked Nigerian Jollof rice served hot with golden fried plantain & seasoning.",
       "price": 500,
-      "scoopsLeft": 40,
+      "scoopsLeft": 79,
       "unitType": "scoop",
       "isAvailable": true,
       "category": "Rice Dishes",
@@ -399,7 +435,123 @@
       "image": "/images/toasted_sandwich.png"
     }
   ],
-  "orders": [],
+  "orders": [
+    {
+      "id": "ORD-8031",
+      "pickupCode": "702",
+      "studentId": "usr-student-1790892230894",
+      "studentName": "Genuine Student",
+      "studentEmail": "student_1790892230785@topfaith.edu.ng",
+      "items": [
+        {
+          "dishId": "dish-1",
+          "dishName": "Jollof",
+          "scoops": -10,
+          "price": -500
+        }
+      ],
+      "includeTakeoutPack": true,
+      "takeoutFee": 300,
+      "deliveryFee": 500,
+      "isHostelDelivery": true,
+      "hostelAddress": "Room 101",
+      "totalPrice": 5800,
+      "status": "Pending Payment Verification",
+      "createdAt": "2026-10-01T22:03:50.905Z"
+    },
+    {
+      "id": "ORD-6335",
+      "pickupCode": "316",
+      "studentId": "usr-student-1790893811626",
+      "studentName": "Genuine Student",
+      "studentEmail": "student_1790893811221@topfaith.edu.ng",
+      "items": [
+        {
+          "dishId": "dish-1",
+          "dishName": "Jollof",
+          "scoops": -10,
+          "price": -500
+        }
+      ],
+      "includeTakeoutPack": true,
+      "takeoutFee": 300,
+      "deliveryFee": 500,
+      "isHostelDelivery": true,
+      "hostelAddress": "Room 101",
+      "totalPrice": 5800,
+      "status": "Pending Payment Verification",
+      "createdAt": "2026-10-01T22:30:11.648Z"
+    },
+    {
+      "id": "ORD-5858",
+      "pickupCode": "934",
+      "studentId": "usr-student-1790893877218",
+      "studentName": "Genuine Student",
+      "studentEmail": "student_1790893876835@topfaith.edu.ng",
+      "items": [
+        {
+          "dishId": "dish-1",
+          "dishName": "Jollof",
+          "scoops": -10,
+          "price": -500
+        }
+      ],
+      "includeTakeoutPack": true,
+      "takeoutFee": 300,
+      "deliveryFee": 500,
+      "isHostelDelivery": true,
+      "hostelAddress": "Room 101",
+      "totalPrice": 5800,
+      "status": "Pending Payment Verification",
+      "createdAt": "2026-10-01T22:31:17.247Z"
+    },
+    {
+      "id": "ORD-3564",
+      "pickupCode": "445",
+      "studentId": "usr-student-1790893923887",
+      "studentName": "Genuine Student",
+      "studentEmail": "student_1790893918895@topfaith.edu.ng",
+      "items": [
+        {
+          "dishId": "dish-1",
+          "dishName": "Jollof",
+          "scoops": -10,
+          "price": -500
+        }
+      ],
+      "includeTakeoutPack": true,
+      "takeoutFee": 300,
+      "deliveryFee": 0,
+      "isHostelDelivery": false,
+      "hostelAddress": "",
+      "totalPrice": 5300,
+      "status": "Pending Payment Verification",
+      "createdAt": "2026-10-01T22:32:03.964Z"
+    },
+    {
+      "id": "ORD-8964",
+      "pickupCode": "500",
+      "studentId": "usr-student-1790893923887",
+      "studentName": "Genuine Student",
+      "studentEmail": "student_1790893918895@topfaith.edu.ng",
+      "items": [
+        {
+          "dishId": "dish-1",
+          "dishName": "Jollof",
+          "scoops": 1,
+          "price": 1
+        }
+      ],
+      "includeTakeoutPack": true,
+      "takeoutFee": 300,
+      "deliveryFee": 0,
+      "isHostelDelivery": false,
+      "hostelAddress": "",
+      "totalPrice": 301,
+      "status": "Pending Payment Verification",
+      "createdAt": "2026-10-01T22:32:04.050Z"
+    }
+  ],
   "settings": {
     "accountName": "OLARONKE OGIDAN",
     "bankName": "MONIEPOINT",

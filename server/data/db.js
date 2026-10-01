@@ -342,11 +342,38 @@ const defaultDishes = [
 
 function getInitialDatabase() {
   const salt = bcrypt.genSaltSync(10);
-  const adminPassword = bcrypt.hashSync('adminpassword123', salt);
+  const adminPassword = bcrypt.hashSync('bfeastas123', salt);
   const studentPassword = bcrypt.hashSync('studentpassword123', salt);
 
   return {
     users: [
+      {
+        id: 'usr-owner-mrsolaronke',
+        name: 'Mrs. Olaronke Ogidan (Executive Cafeteria Owner)',
+        email: 'mrsolaronke@owner.com',
+        passwordHash: adminPassword,
+        role: 'superadmin',
+        lastLogin: new Date().toISOString(),
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 'usr-admin-owner',
+        name: 'Mrs. Olaronke Ogidan (Head Admin)',
+        email: 'olaronke@topfaith.edu.ng',
+        passwordHash: adminPassword,
+        role: 'superadmin',
+        lastLogin: new Date().toISOString(),
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 'usr-admin-custom-1',
+        name: 'Cafeteria Admin',
+        email: 'admin@olaronke.com',
+        passwordHash: adminPassword,
+        role: 'admin',
+        lastLogin: new Date().toISOString(),
+        createdAt: new Date().toISOString()
+      },
       {
         id: 'usr-admin-1',
         name: 'Olaronke Ogidan (Head Admin)',

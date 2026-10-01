@@ -100,16 +100,23 @@ app.post('/api/upload', authenticateToken, requireAdmin, (req, res) => {
 // AUTHENTICATION ROUTES
 // -------------------------------------------------------------
 app.post('/api/auth/register', (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password, role, adminSecretKey } = req.body;
 
   if (!name || !email || !password) {
     return res.status(400).json({ message: 'Name, email, and password are required.' });
   }
 
   const cleanEmail = email.trim().toLowerCase();
-  const userRole = role === 'admin' ? 'admin' : 'student';
+  let userRole = role === 'admin' ? 'admin' : 'student';
 
-  if (userRole === 'student') {
+  if (userRole === 'admin') {
+    const validSecret = process.env.ADMIN_REGISTRATION_SECRET || 'bfeastas123';
+    if (!adminSecretKey || adminSecretKey.trim() !== validSecret) {
+      return res.status(403).json({
+        message: 'Unauthorized: Valid Admin Secret PIN is required to register an admin staff account.'
+      });
+    }
+  } else {
     const domainRequirement = '@topfaith.edu.ng';
     if (!cleanEmail.endsWith(domainRequirement)) {
       return res.status(400).json({
@@ -425,7 +432,15 @@ app.post('/api/orders', authenticateToken, (req, res) => {
 
   const db = loadDB();
 
+  const sanitizedItems = [];
+  let mealsTotal = 0;
+
   for (const item of items) {
+    const scoops = Math.floor(Number(item.scoops));
+    if (!Number.isInteger(scoops) || scoops < 1) {
+      return res.status(400).json({ message: `Invalid portion/scoop quantity for "${item.dishName || item.dishId}". Must be at least 1.` });
+    }
+
     const dish = db.dishes.find(d => d.id === item.dishId);
     if (!dish) {
       return res.status(400).json({ message: `Dish "${item.dishName || item.dishId}" is no longer on the menu.` });
@@ -433,14 +448,27 @@ app.post('/api/orders', authenticateToken, (req, res) => {
     if (!dish.isAvailable) {
       return res.status(400).json({ message: `Sorry, "${dish.name}" is currently unavailable.` });
     }
-    if (dish.scoopsLeft < item.scoops) {
+    if (dish.scoopsLeft < scoops) {
       return res.status(400).json({
         message: `Insufficient quantity for "${dish.name}". Only ${dish.scoopsLeft} ${dish.unitType || 'portions'} remaining!`
       });
     }
+
+    const authoritativePrice = Number(dish.price);
+    const itemSubtotal = authoritativePrice * scoops;
+    mealsTotal += itemSubtotal;
+
+    sanitizedItems.push({
+      ...item,
+      dishId: dish.id,
+      dishName: dish.name,
+      price: authoritativePrice,
+      scoops,
+      subtotal: itemSubtotal
+    });
   }
 
-  items.forEach(item => {
+  sanitizedItems.forEach(item => {
     const dish = db.dishes.find(d => d.id === item.dishId);
     if (dish) {
       dish.scoopsLeft = Math.max(0, dish.scoopsLeft - item.scoops);
@@ -450,9 +478,8 @@ app.post('/api/orders', authenticateToken, (req, res) => {
     }
   });
 
-  const mealsTotal = items.reduce((sum, i) => sum + (i.price * i.scoops), 0);
-  const activePlatesCount = Math.max(1, new Set(items.map(i => i.plateNumber || 1)).size);
-  const perPackPrice = Number(plateSize) || db.settings.takeoutPrice || 200;
+  const activePlatesCount = Math.max(1, new Set(sanitizedItems.map(i => i.plateNumber || 1)).size);
+  const perPackPrice = Number(plateSize) || db.settings.takeoutPrice || 300;
   const takeoutFee = includeTakeoutPack !== false ? (reqTakeoutFee !== undefined ? reqTakeoutFee : (activePlatesCount * perPackPrice)) : 0;
   const deliveryFee = isHostelDelivery ? 500 : 0;
   const totalPrice = mealsTotal + takeoutFee + deliveryFee;
@@ -468,7 +495,7 @@ app.post('/api/orders', authenticateToken, (req, res) => {
     studentName: req.user.name,
     studentEmail: req.user.email,
     studentPhone: (studentPhone || req.user.phone || '').trim(),
-    items,
+    items: sanitizedItems,
     includeTakeoutPack: includeTakeoutPack !== false,
     plateSize: perPackPrice,
     plateSizeName: plateSizeName || `₦${perPackPrice} plate`,
