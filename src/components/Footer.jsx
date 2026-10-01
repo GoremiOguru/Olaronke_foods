@@ -1,5 +1,5 @@
 import React from 'react';
-import { UtensilsCrossed, MessageCircle, MapPin, Clock, ShieldCheck, HelpCircle } from 'lucide-react';
+import { UtensilsCrossed, MessageCircle, MapPin, Clock, ShieldCheck, HelpCircle, Bug } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
 
 export default function Footer({ onOpenHowToUse }) {
@@ -11,6 +11,10 @@ export default function Footer({ onOpenHowToUse }) {
   const accountName = settings.accountName || 'OLARONKE OGIDAN';
   const bankName = settings.bankName || 'MONIEPOINT';
   const accountNumber = settings.accountNumber || '8234786544';
+
+  const techSupportPhone = '08057357728';
+  const cleanTechPhone = '2348057357728';
+  const techSupportUrl = `https://wa.me/${cleanTechPhone}?text=${encodeURIComponent("Hello Tech Support, I'm experiencing an issue/bug on the B'feastas website:")}`;
 
   return (
     <footer className="bg-slate-950 border-t border-slate-800 pt-12 pb-8 text-slate-400 text-xs">
@@ -45,18 +49,30 @@ export default function Footer({ onOpenHowToUse }) {
           {/* WhatsApp & Support */}
           <div className="space-y-2">
             <h4 className="font-bold text-white text-sm uppercase tracking-wider mb-2">Vendor Contact</h4>
-            <a
-              href={`https://wa.me/${cleanPhone}`}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2 text-brand-lemon-glow hover:underline font-bold"
-            >
-              <MessageCircle className="w-4 h-4" /> WhatsApp {staffName}: {phone}
-            </a>
             <div>
+              <a
+                href={`https://wa.me/${cleanPhone}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 text-brand-lemon-glow hover:underline font-bold"
+              >
+                <MessageCircle className="w-4 h-4" /> Cafeteria WhatsApp ({staffName}): {phone}
+              </a>
+            </div>
+            <div>
+              <a
+                href={techSupportUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 text-rose-400 hover:text-rose-300 font-extrabold hover:underline"
+              >
+                <Bug className="w-4 h-4 text-rose-500 animate-pulse" /> Report Bug / Tech Support: {techSupportPhone}
+              </a>
+            </div>
+            <div className="pt-1">
               <button
                 onClick={onOpenHowToUse}
-                className="mt-1 inline-flex items-center gap-1.5 text-xs text-amber-300 hover:text-white font-extrabold bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-xl transition-all"
+                className="inline-flex items-center gap-1.5 text-xs text-amber-300 hover:text-white font-extrabold bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-xl transition-all"
               >
                 <HelpCircle className="w-3.5 h-3.5 text-amber-400" />
                 <span>📖 Interactive App Guide</span>

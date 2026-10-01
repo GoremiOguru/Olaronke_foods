@@ -10,6 +10,7 @@ import ChangePasswordModal from './components/ChangePasswordModal';
 import AdminDashboard from './components/AdminDashboard';
 import HowToUseModal from './components/HowToUseModal';
 import NotificationToast from './components/NotificationToast';
+import TechSupportFloatingWidget from './components/TechSupportFloatingWidget';
 import Footer from './components/Footer';
 import { useAuth } from './context/AuthContext';
 
@@ -81,6 +82,7 @@ export default function App() {
       <ChangePasswordModal isOpen={isChangePasswordOpen} onClose={() => setIsChangePasswordOpen(false)} />
       <HowToUseModal isOpen={isHowToUseOpen} onClose={() => setIsHowToUseOpen(false)} mode={howToUseMode} />
       <NotificationToast />
+      <TechSupportFloatingWidget />
 
       {/* Footer */}
       <Footer onOpenHowToUse={() => openHowToUse(isAdminView ? 'admin' : 'student')} />

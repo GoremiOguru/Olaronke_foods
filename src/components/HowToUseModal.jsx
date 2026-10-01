@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, ChevronLeft, ChevronRight, HelpCircle, Sparkles, UtensilsCrossed, ShieldCheck, Flame, Package, MapPin, Key, Printer, Phone, CheckCircle2, Play, Pause, Eye, ArrowRight, Zap, MousePointer } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, HelpCircle, Sparkles, UtensilsCrossed, ShieldCheck, Flame, Package, MapPin, Key, Printer, Phone, CheckCircle2, Play, Pause, Eye, ArrowRight, Zap, MousePointer, Bug } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
 export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
@@ -330,6 +330,24 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
                 </button>
               </div>
             )}
+
+            {/* Tech Support / Bug Report Banner */}
+            <div className="pt-2">
+              <a
+                href="https://wa.me/2348057357728?text=Hello%20Tech%20Support,%20I'm%20experiencing%20an%20issue/bug%20on%20the%20B'feastas%20website:"
+                target="_blank"
+                rel="noreferrer"
+                className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-900/90 border border-rose-500/30 hover:border-rose-400 text-xs transition-all hover:bg-slate-800 group"
+              >
+                <div className="flex items-center space-x-2">
+                  <Bug className="w-4 h-4 text-rose-400 group-hover:scale-110 transition-transform" />
+                  <span className="text-slate-300 font-medium">Noticed a bug or website issue?</span>
+                </div>
+                <span className="font-extrabold text-rose-400 group-hover:underline flex items-center gap-1">
+                  Message Tech Support <ArrowRight className="w-3.5 h-3.5" />
+                </span>
+              </a>
+            </div>
           </div>
 
         </div>

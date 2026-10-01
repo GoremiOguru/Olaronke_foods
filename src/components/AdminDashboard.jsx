@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Flame, Plus, Minus, ToggleLeft, ToggleRight, DollarSign, CheckCircle2, Clock, PackageCheck, AlertTriangle, RefreshCw, Search, ShieldCheck, User, MessageCircle, Trash2, Key, Users, MapPin, Package, UtensilsCrossed, Upload, Image as ImageIcon, Check, Edit3, X, Bell, BellRing, Smartphone, Printer, Calendar, Filter, HelpCircle } from 'lucide-react';
+import { Flame, Plus, Minus, ToggleLeft, ToggleRight, DollarSign, CheckCircle2, Clock, PackageCheck, AlertTriangle, RefreshCw, Search, ShieldCheck, User, MessageCircle, Trash2, Key, Users, MapPin, Package, UtensilsCrossed, Upload, Image as ImageIcon, Check, Edit3, X, Bell, BellRing, Smartphone, Printer, Calendar, Filter, HelpCircle, Bug } from 'lucide-react';
 import { useSocket } from '../context/SocketContext';
 import { useAuth } from '../context/AuthContext';
 import OfficialReceiptModal from './OfficialReceiptModal';
@@ -477,6 +477,18 @@ export default function AdminDashboard({ onOpenHowToUse }) {
                 <span>📖 Staff Guide</span>
               </button>
             )}
+
+            {/* Tech Support / Bug Report Button */}
+            <a
+              href="https://wa.me/2348057357728?text=Hello%20Tech%20Support,%20I'm%20a%20B'feastas%20staff/admin%20reporting%20an%20issue:"
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center space-x-1.5 px-4 py-2.5 rounded-xl text-xs font-extrabold bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800/80 transition-all shadow-md"
+              title="Message Technical Support on WhatsApp (08057357728)"
+            >
+              <Bug className="w-4 h-4 text-rose-400 animate-pulse" />
+              <span>Report System Bug</span>
+            </a>
 
             {/* Phone Home Screen Notification Button */}
             <button
