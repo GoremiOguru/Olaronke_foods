@@ -10,6 +10,24 @@
       "createdAt": "2026-07-25T10:00:00.000Z"
     },
     {
+      "id": "usr-admin-owner",
+      "name": "Mrs. Olaronke Ogidan (Cafeteria Owner)",
+      "email": "olaronke@topfaith.edu.ng",
+      "passwordHash": "$2a$10$YjEOqpbqXhcHKQ/y1CxMe.nZVcrVy/itVNGyc.1v10meVamnvRF2q",
+      "role": "superadmin",
+      "lastLogin": "2026-07-25T11:20:00.000Z",
+      "createdAt": "2026-07-25T10:00:00.000Z"
+    },
+    {
+      "id": "usr-admin-custom-1",
+      "name": "Cafeteria Admin",
+      "email": "admin@olaronke.com",
+      "passwordHash": "$2a$10$YjEOqpbqXhcHKQ/y1CxMe.nZVcrVy/itVNGyc.1v10meVamnvRF2q",
+      "role": "admin",
+      "lastLogin": "2026-07-25T11:20:00.000Z",
+      "createdAt": "2026-07-25T10:00:00.000Z"
+    },
+    {
       "id": "usr-admin-2",
       "name": "Isaac (Vendor Staff)",
       "email": "isaac.vendor@gmail.com",

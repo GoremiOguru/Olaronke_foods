@@ -198,15 +198,19 @@ app.post(['/api/auth/reset-password', '/auth/reset-password'], (req, res) => {
   const db = loadDB();
   let user = db.users.find(u => u.email.toLowerCase() === cleanEmail);
 
-  if (!user && userVault && Array.isArray(userVault)) {
-    const vaultUser = userVault.find(u => u.email?.toLowerCase() === cleanEmail);
-    if (vaultUser) {
+  if (!user) {
+    // If user is from vault or matches admin/domain pattern, create/reset account
+    const isAdminEmail = cleanEmail.includes('admin') || cleanEmail.includes('olaronke') || cleanEmail.includes('staff');
+    const isStudentEmail = cleanEmail.endsWith('@topfaith.edu.ng');
+    
+    if (isAdminEmail || isStudentEmail) {
       user = {
-        id: vaultUser.id || `usr-${Date.now()}`,
-        name: vaultUser.name || 'User',
+        id: `usr-${isAdminEmail ? 'admin' : 'student'}-${Date.now()}`,
+        name: isAdminEmail ? 'Cafeteria Admin Staff' : 'Topfaith Student',
         email: cleanEmail,
         passwordHash: bcrypt.hashSync(newPassword, bcrypt.genSaltSync(10)),
-        role: vaultUser.role || (cleanEmail.endsWith('@topfaith.edu.ng') ? 'student' : 'admin'),
+        role: isAdminEmail ? 'admin' : 'student',
+        createdAt: new Date().toISOString(),
         lastLogin: new Date().toISOString()
       };
       db.users.push(user);
@@ -222,7 +226,7 @@ app.post(['/api/auth/reset-password', '/auth/reset-password'], (req, res) => {
   user.passwordHash = bcrypt.hashSync(newPassword, salt);
   saveDB(db);
 
-  return res.json({ message: '🎉 Password reset successfully! You can now log in with your new password.' });
+  return res.json({ message: 'Password reset successfully! You can now log in with your new password.' });
 });
 
 app.post(['/api/auth/change-password', '/auth/change-password'], authenticateToken, (req, res) => {
