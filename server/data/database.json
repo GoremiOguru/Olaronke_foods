@@ -1,21 +1,48 @@
 {
   "users": [
     {
+      "id": "usr-admin-custom-1",
+      "name": "Cafeteria Admin",
+      "email": "admin@olaronke.com",
+      "role": "admin",
+      "passwordHash": "$2a$10$QxDCvGHFgfGbWTBiffcpIeLlvY9wOxkhrzGCStNIah6z19FLTrvPe",
+      "lastLogin": "2026-10-01T23:23:02.457Z",
+      "createdAt": "2026-10-01T23:22:20.962Z"
+    },
+    {
+      "id": "usr-admin-owner",
+      "name": "Mrs. Olaronke Ogidan (Head Admin)",
+      "email": "olaronke@topfaith.edu.ng",
+      "role": "superadmin",
+      "passwordHash": "$2a$10$QxDCvGHFgfGbWTBiffcpIeLlvY9wOxkhrzGCStNIah6z19FLTrvPe",
+      "lastLogin": "2026-10-01T23:22:22.092Z",
+      "createdAt": "2026-10-01T23:22:20.962Z"
+    },
+    {
+      "id": "usr-owner-mrsolaronke",
+      "name": "Mrs. Olaronke Ogidan (Executive Cafeteria Owner)",
+      "email": "mrsolaronke@owner.com",
+      "role": "superadmin",
+      "passwordHash": "$2a$10$QxDCvGHFgfGbWTBiffcpIeLlvY9wOxkhrzGCStNIah6z19FLTrvPe",
+      "lastLogin": "2026-10-01T23:23:02.941Z",
+      "createdAt": "2026-10-01T23:22:20.962Z"
+    },
+    {
       "id": "usr-admin-1",
       "name": "Olaronke Ogidan (Head Admin)",
       "email": "olaronkestaff@gmail.com",
-      "passwordHash": "$2a$10$YjEOqpbqXhcHKQ/y1CxMe.nZVcrVy/itVNGyc.1v10meVamnvRF2q",
+      "passwordHash": "$2a$10$QxDCvGHFgfGbWTBiffcpIeLlvY9wOxkhrzGCStNIah6z19FLTrvPe",
       "role": "admin",
-      "lastLogin": "2026-07-25T11:20:00.000Z",
+      "lastLogin": "2026-10-01T23:22:23.124Z",
       "createdAt": "2026-07-25T10:00:00.000Z"
     },
     {
       "id": "usr-admin-2",
       "name": "Isaac (Vendor Staff)",
       "email": "isaac.vendor@gmail.com",
-      "passwordHash": "$2a$10$YjEOqpbqXhcHKQ/y1CxMe.nZVcrVy/itVNGyc.1v10meVamnvRF2q",
+      "passwordHash": "$2a$10$QxDCvGHFgfGbWTBiffcpIeLlvY9wOxkhrzGCStNIah6z19FLTrvPe",
       "role": "admin",
-      "lastLogin": "2026-07-25T11:45:00.000Z",
+      "lastLogin": "2026-10-01T23:22:23.340Z",
       "createdAt": "2026-07-25T10:00:00.000Z"
     },
     {
@@ -106,6 +133,105 @@
       "role": "student",
       "lastLogin": "2026-10-01T22:32:03.887Z",
       "createdAt": "2026-10-01T22:32:03.887Z"
+    },
+    {
+      "id": "usr-student-1790895845819",
+      "name": "Chisom Student",
+      "email": "student_1790895845287@topfaith.edu.ng",
+      "passwordHash": "$2a$10$46QygirgZ4yF5gKPl71XIOUY2LIyEr45D1SbN.kMnsznKWcTjIWMu",
+      "role": "student",
+      "lastLogin": "2026-10-01T23:04:05.819Z",
+      "createdAt": "2026-10-01T23:04:05.819Z"
+    },
+    {
+      "id": "usr-student-1790896021734",
+      "name": "Chisom Student",
+      "email": "student_1790896021291@topfaith.edu.ng",
+      "passwordHash": "$2a$10$ZESYeT8U6QTPJ3qFLNCPpe6nJ437o8gw8Qv1ZuCCQTnzW8KirOcE.",
+      "role": "student",
+      "lastLogin": "2026-10-01T23:07:01.734Z",
+      "createdAt": "2026-10-01T23:07:01.734Z"
+    },
+    {
+      "id": "usr-student-1790896082596",
+      "name": "Chisom Student",
+      "email": "student_1790896082122@topfaith.edu.ng",
+      "passwordHash": "$2a$10$XaPjwPbAu12J71ChVlZXJOeq.D7ex32fDt260avWvdtpVSrCfmur2",
+      "role": "student",
+      "lastLogin": "2026-10-01T23:08:02.596Z",
+      "createdAt": "2026-10-01T23:08:02.596Z"
+    },
+    {
+      "id": "usr-student-1790896163129",
+      "name": "Chisom Student",
+      "email": "student_1790896162562@topfaith.edu.ng",
+      "passwordHash": "$2a$10$ZLLYsxpBmkgOocR24kCJ9uyfJSD2Y.g/0XmQBN6h0lhpSSgVZ8bqe",
+      "role": "student",
+      "lastLogin": "2026-10-01T23:09:23.129Z",
+      "createdAt": "2026-10-01T23:09:23.129Z"
+    },
+    {
+      "id": "usr-student-1790896304487",
+      "name": "Chisom Student",
+      "email": "student_1790896304015@topfaith.edu.ng",
+      "passwordHash": "$2a$10$mVhKF7t6B5L5uEaSy6kU/uSQW6Xrky5J/SOMoBYp91/naRd29frKq",
+      "role": "student",
+      "lastLogin": "2026-10-01T23:11:44.487Z",
+      "createdAt": "2026-10-01T23:11:44.487Z"
+    },
+    {
+      "id": "usr-student-1790896358484",
+      "name": "Chisom Student",
+      "email": "student_1790896357929@topfaith.edu.ng",
+      "passwordHash": "$2a$10$CE5QItgEIZ.ZU4OP7W2louY0Whp8JZYs05N2NZIsww1CbGBHbFUUa",
+      "role": "student",
+      "lastLogin": "2026-10-01T23:12:38.484Z",
+      "createdAt": "2026-10-01T23:12:38.484Z"
+    },
+    {
+      "id": "usr-student-1790896482156",
+      "name": "Chisom Student",
+      "email": "student_1790896481139@topfaith.edu.ng",
+      "passwordHash": "$2a$10$QErQoegReoTw5eB.czXgYOjDmvif9NSZzvnRgVvcbfs9A40ymbXoq",
+      "role": "student",
+      "lastLogin": "2026-10-01T23:14:42.156Z",
+      "createdAt": "2026-10-01T23:14:42.156Z"
+    },
+    {
+      "id": "usr-student-1790896507007",
+      "name": "Chisom Student",
+      "email": "student_1790896506254@topfaith.edu.ng",
+      "passwordHash": "$2a$10$ymJI44SEao7MmIU/Mnn9WulNj7dpfo2EyzrQvaHXH1mvPoEVYCB0i",
+      "role": "student",
+      "lastLogin": "2026-10-01T23:15:07.007Z",
+      "createdAt": "2026-10-01T23:15:07.007Z"
+    },
+    {
+      "id": "usr-student-1790896668606",
+      "name": "Chisom Student",
+      "email": "student_1790896668024@topfaith.edu.ng",
+      "passwordHash": "$2a$10$KXKCjyMRTdGwuCuFCPiS1.rWGFK1ZYsrkqdYpNxlLhQM6OgC38L9C",
+      "role": "student",
+      "lastLogin": "2026-10-01T23:17:48.606Z",
+      "createdAt": "2026-10-01T23:17:48.606Z"
+    },
+    {
+      "id": "usr-student-1790896781055",
+      "name": "Chisom Student",
+      "email": "student_1790896780596@topfaith.edu.ng",
+      "passwordHash": "$2a$10$5XoPQe2BSG0e59Voo1gqVOc4SvLSdrASnSv49uQa3/ihRvdmcih2m",
+      "role": "student",
+      "lastLogin": "2026-10-01T23:19:41.055Z",
+      "createdAt": "2026-10-01T23:19:41.055Z"
+    },
+    {
+      "id": "usr-student-1790896982000",
+      "name": "Chisom Student",
+      "email": "student_1790896981642@topfaith.edu.ng",
+      "passwordHash": "$2a$10$K53pksyYdeOQxW3zJPv5Oe1JVLn/KyF.5SlRm5iUueuf3qzRmKa86",
+      "role": "student",
+      "lastLogin": "2026-10-01T23:23:02.000Z",
+      "createdAt": "2026-10-01T23:23:02.000Z"
     }
   ],
   "dishes": [
@@ -114,7 +240,7 @@
       "name": "B'feastas Special Smoky Jollof Rice",
       "description": "Classic firewood-smoked Nigerian Jollof rice served hot with golden fried plantain & seasoning.",
       "price": 500,
-      "scoopsLeft": 79,
+      "scoopsLeft": 57,
       "unitType": "scoop",
       "isAvailable": true,
       "category": "Rice Dishes",
@@ -136,7 +262,7 @@
       "name": "Big Fried Chicken Quarter (Large)",
       "description": "Crispy seasoned large Nigerian chicken quarter.",
       "price": 2000,
-      "scoopsLeft": 15,
+      "scoopsLeft": 4,
       "unitType": "portion",
       "isAvailable": true,
       "category": "Chicken & Proteins",
@@ -224,7 +350,7 @@
       "name": "Coca-Cola Soda Bottle (50cl)",
       "description": "Ice-cold Coca-Cola sparkling soda bottle.",
       "price": 600,
-      "scoopsLeft": 50,
+      "scoopsLeft": 42,
       "unitType": "bottle",
       "isAvailable": true,
       "category": "Drinks & Refreshments",
@@ -550,6 +676,405 @@
       "totalPrice": 301,
       "status": "Pending Payment Verification",
       "createdAt": "2026-10-01T22:32:04.050Z"
+    },
+    {
+      "id": "ORD-8434",
+      "pickupCode": "370",
+      "studentId": "usr-student-1790895845819",
+      "studentName": "Chisom Student",
+      "studentEmail": "student_1790895845287@topfaith.edu.ng",
+      "items": [
+        {
+          "dishId": "dish-1",
+          "dishName": "B'feastas Special Smoky Jollof Rice",
+          "scoops": 2,
+          "price": 500,
+          "plateNumber": 1
+        },
+        {
+          "dishId": "dish-3",
+          "dishName": "Big Fried Chicken Quarter (Large)",
+          "scoops": 1,
+          "price": 2000,
+          "plateNumber": 1
+        },
+        {
+          "dishId": "dish-11",
+          "dishName": "Coca-Cola Soda Bottle (50cl)",
+          "scoops": 1,
+          "price": 400,
+          "plateNumber": 1
+        }
+      ],
+      "includeTakeoutPack": true,
+      "takeoutFee": 300,
+      "deliveryFee": 500,
+      "isHostelDelivery": true,
+      "hostelAddress": "Grace Hostel Room 204",
+      "totalPrice": 4200,
+      "status": "Pending Payment Verification",
+      "createdAt": "2026-10-01T23:04:05.890Z"
+    },
+    {
+      "id": "ORD-1363",
+      "pickupCode": "903",
+      "studentId": "usr-student-1790896021734",
+      "studentName": "Chisom Student",
+      "studentEmail": "student_1790896021291@topfaith.edu.ng",
+      "items": [
+        {
+          "dishId": "dish-1",
+          "dishName": "B'feastas Special Smoky Jollof Rice",
+          "scoops": 2,
+          "price": 500,
+          "plateNumber": 1
+        },
+        {
+          "dishId": "dish-3",
+          "dishName": "Big Fried Chicken Quarter (Large)",
+          "scoops": 1,
+          "price": 2000,
+          "plateNumber": 1
+        },
+        {
+          "dishId": "dish-11",
+          "dishName": "Coca-Cola Soda Bottle (50cl)",
+          "scoops": 1,
+          "price": 400,
+          "plateNumber": 1
+        }
+      ],
+      "includeTakeoutPack": true,
+      "takeoutFee": 300,
+      "deliveryFee": 500,
+      "isHostelDelivery": true,
+      "hostelAddress": "Grace Hostel Room 204",
+      "totalPrice": 4200,
+      "status": "Pending Payment Verification",
+      "createdAt": "2026-10-01T23:07:01.784Z"
+    },
+    {
+      "id": "ORD-9072",
+      "pickupCode": "250",
+      "studentId": "usr-student-1790896082596",
+      "studentName": "Chisom Student",
+      "studentEmail": "student_1790896082122@topfaith.edu.ng",
+      "items": [
+        {
+          "dishId": "dish-1",
+          "dishName": "B'feastas Special Smoky Jollof Rice",
+          "scoops": 2,
+          "price": 500,
+          "plateNumber": 1
+        },
+        {
+          "dishId": "dish-3",
+          "dishName": "Big Fried Chicken Quarter (Large)",
+          "scoops": 1,
+          "price": 2000,
+          "plateNumber": 1
+        },
+        {
+          "dishId": "dish-11",
+          "dishName": "Coca-Cola Soda Bottle (50cl)",
+          "scoops": 1,
+          "price": 400,
+          "plateNumber": 1
+        }
+      ],
+      "includeTakeoutPack": true,
+      "takeoutFee": 300,
+      "deliveryFee": 500,
+      "isHostelDelivery": true,
+      "hostelAddress": "Grace Hostel Room 204",
+      "totalPrice": 4200,
+      "status": "Pending Payment Verification",
+      "createdAt": "2026-10-01T23:08:02.662Z"
+    },
+    {
+      "id": "ORD-6033",
+      "pickupCode": "548",
+      "studentId": "usr-student-1790896163129",
+      "studentName": "Chisom Student",
+      "studentEmail": "student_1790896162562@topfaith.edu.ng",
+      "items": [
+        {
+          "dishId": "dish-1",
+          "dishName": "Smoky Jollof",
+          "scoops": 2,
+          "price": 500
+        },
+        {
+          "dishId": "dish-3",
+          "dishName": "Fried Chicken",
+          "scoops": 1,
+          "price": 2000
+        }
+      ],
+      "includeTakeoutPack": true,
+      "takeoutFee": 300,
+      "deliveryFee": 500,
+      "isHostelDelivery": true,
+      "hostelAddress": "Hall 4 Room 12",
+      "totalPrice": 3800,
+      "status": "Pending Payment Verification",
+      "createdAt": "2026-10-01T23:09:23.186Z"
+    },
+    {
+      "id": "ORD-8327",
+      "pickupCode": "846",
+      "studentId": "usr-student-1790896304487",
+      "studentName": "Chisom Student",
+      "studentEmail": "student_1790896304015@topfaith.edu.ng",
+      "items": [
+        {
+          "dishId": "dish-1",
+          "dishName": "Smoky Jollof",
+          "scoops": 2,
+          "price": 500
+        },
+        {
+          "dishId": "dish-3",
+          "dishName": "Fried Chicken",
+          "scoops": 1,
+          "price": 2000
+        }
+      ],
+      "includeTakeoutPack": true,
+      "takeoutFee": 300,
+      "deliveryFee": 500,
+      "isHostelDelivery": true,
+      "hostelAddress": "Hall 4 Room 12",
+      "totalPrice": 3800,
+      "status": "Pending Payment Verification",
+      "createdAt": "2026-10-01T23:11:44.539Z"
+    },
+    {
+      "id": "ORD-7683",
+      "pickupCode": "232",
+      "studentId": "usr-student-1790896358484",
+      "studentName": "Chisom Student",
+      "studentEmail": "student_1790896357929@topfaith.edu.ng",
+      "items": [
+        {
+          "dishId": "dish-1",
+          "dishName": "B'feastas Special Smoky Jollof Rice",
+          "scoops": 2,
+          "price": 500,
+          "plateNumber": 1
+        },
+        {
+          "dishId": "dish-3",
+          "dishName": "Big Fried Chicken Quarter (Large)",
+          "scoops": 1,
+          "price": 2000,
+          "plateNumber": 1
+        },
+        {
+          "dishId": "dish-11",
+          "dishName": "Coca-Cola Soda Bottle (50cl)",
+          "scoops": 1,
+          "price": 400,
+          "plateNumber": 1
+        }
+      ],
+      "includeTakeoutPack": true,
+      "takeoutFee": 300,
+      "deliveryFee": 500,
+      "isHostelDelivery": true,
+      "hostelAddress": "Grace Hostel Room 204",
+      "totalPrice": 4200,
+      "status": "Pending Payment Verification",
+      "createdAt": "2026-10-01T23:12:38.573Z"
+    },
+    {
+      "id": "ORD-9186",
+      "pickupCode": "121",
+      "studentId": "usr-student-1790896482156",
+      "studentName": "Chisom Student",
+      "studentEmail": "student_1790896481139@topfaith.edu.ng",
+      "items": [
+        {
+          "dishId": "dish-1",
+          "dishName": "B'feastas Special Smoky Jollof Rice",
+          "scoops": 2,
+          "price": 500,
+          "plateNumber": 1
+        },
+        {
+          "dishId": "dish-3",
+          "dishName": "Big Fried Chicken Quarter (Large)",
+          "scoops": 1,
+          "price": 2000,
+          "plateNumber": 1
+        },
+        {
+          "dishId": "dish-11",
+          "dishName": "Coca-Cola Soda Bottle (50cl)",
+          "scoops": 1,
+          "price": 400,
+          "plateNumber": 1
+        }
+      ],
+      "includeTakeoutPack": true,
+      "takeoutFee": 300,
+      "deliveryFee": 500,
+      "isHostelDelivery": true,
+      "hostelAddress": "Grace Hostel Room 204",
+      "totalPrice": 4200,
+      "status": "Pending Payment Verification",
+      "createdAt": "2026-10-01T23:14:42.258Z"
+    },
+    {
+      "id": "ORD-5276",
+      "pickupCode": "586",
+      "studentId": "usr-student-1790896507007",
+      "studentName": "Chisom Student",
+      "studentEmail": "student_1790896506254@topfaith.edu.ng",
+      "items": [
+        {
+          "dishId": "dish-1",
+          "dishName": "Smoky Jollof",
+          "scoops": 2,
+          "price": 500
+        },
+        {
+          "dishId": "dish-3",
+          "dishName": "Fried Chicken",
+          "scoops": 1,
+          "price": 2000
+        }
+      ],
+      "includeTakeoutPack": true,
+      "takeoutFee": 300,
+      "deliveryFee": 500,
+      "isHostelDelivery": true,
+      "hostelAddress": "Hall 4 Room 12",
+      "totalPrice": 3800,
+      "status": "Pending Payment Verification",
+      "createdAt": "2026-10-01T23:15:07.073Z"
+    },
+    {
+      "id": "ORD-9212",
+      "pickupCode": "449",
+      "studentId": "usr-student-1790896668606",
+      "studentName": "Chisom Student",
+      "studentEmail": "student_1790896668024@topfaith.edu.ng",
+      "items": [
+        {
+          "dishId": "dish-1",
+          "dishName": "B'feastas Special Smoky Jollof Rice",
+          "scoops": 2,
+          "price": 500,
+          "plateNumber": 1
+        },
+        {
+          "dishId": "dish-3",
+          "dishName": "Big Fried Chicken Quarter (Large)",
+          "scoops": 1,
+          "price": 2000,
+          "plateNumber": 1
+        },
+        {
+          "dishId": "dish-11",
+          "dishName": "Coca-Cola Soda Bottle (50cl)",
+          "scoops": 1,
+          "price": 400,
+          "plateNumber": 1
+        }
+      ],
+      "includeTakeoutPack": true,
+      "takeoutFee": 300,
+      "deliveryFee": 500,
+      "isHostelDelivery": true,
+      "hostelAddress": "Grace Hostel Room 204",
+      "totalPrice": 4200,
+      "status": "Pending Payment Verification",
+      "createdAt": "2026-10-01T23:17:48.660Z"
+    },
+    {
+      "id": "ORD-3892",
+      "pickupCode": "360",
+      "studentId": "usr-student-1790896781055",
+      "studentName": "Chisom Student",
+      "studentEmail": "student_1790896780596@topfaith.edu.ng",
+      "items": [
+        {
+          "dishId": "dish-1",
+          "dishName": "B'feastas Special Smoky Jollof Rice",
+          "scoops": 2,
+          "price": 500,
+          "plateNumber": 1
+        },
+        {
+          "dishId": "dish-3",
+          "dishName": "Big Fried Chicken Quarter (Large)",
+          "scoops": 1,
+          "price": 2000,
+          "plateNumber": 1
+        },
+        {
+          "dishId": "dish-11",
+          "dishName": "Coca-Cola Soda Bottle (50cl)",
+          "scoops": 1,
+          "price": 400,
+          "plateNumber": 1
+        }
+      ],
+      "includeTakeoutPack": true,
+      "takeoutFee": 300,
+      "deliveryFee": 500,
+      "isHostelDelivery": true,
+      "hostelAddress": "Grace Hostel Room 204",
+      "totalPrice": 4200,
+      "status": "Pending Payment Verification",
+      "createdAt": "2026-10-01T23:19:41.107Z"
+    },
+    {
+      "id": "ORD-7007",
+      "pickupCode": "941",
+      "studentId": "usr-student-1790896982000",
+      "studentName": "Chisom Student",
+      "studentEmail": "student_1790896981642@topfaith.edu.ng",
+      "studentPhone": "08012345678",
+      "items": [
+        {
+          "dishId": "dish-1",
+          "dishName": "B'feastas Special Smoky Jollof Rice",
+          "scoops": 2,
+          "price": 500,
+          "plateNumber": 1,
+          "subtotal": 1000
+        },
+        {
+          "dishId": "dish-3",
+          "dishName": "Big Fried Chicken Quarter (Large)",
+          "scoops": 1,
+          "price": 2000,
+          "plateNumber": 1,
+          "subtotal": 2000
+        },
+        {
+          "dishId": "dish-11",
+          "dishName": "Coca-Cola Soda Bottle (50cl)",
+          "scoops": 1,
+          "price": 600,
+          "plateNumber": 1,
+          "subtotal": 600
+        }
+      ],
+      "includeTakeoutPack": true,
+      "plateSize": 300,
+      "plateSizeName": "₦300 plate",
+      "takeoutFee": 300,
+      "deliveryFee": 500,
+      "isHostelDelivery": true,
+      "hostelAddress": "Grace Hostel Room 204",
+      "totalPrice": 4400,
+      "status": "Payment Confirmed - Preparing Meal",
+      "paymentConfirmed": false,
+      "createdAt": "2026-10-01T23:23:02.051Z",
+      "confirmedByAdmin": "Cafeteria Admin"
     }
   ],
   "settings": {

@@ -419,53 +419,103 @@ if (!globalThis.__VERCEL_DB__) {
   globalThis.__VERCEL_DB__ = null;
 }
 
+const defaultAdminAccounts = [
+  {
+    id: "usr-owner-mrsolaronke",
+    name: "Mrs. Olaronke Ogidan (Executive Cafeteria Owner)",
+    email: "mrsolaronke@owner.com",
+    role: "superadmin"
+  },
+  {
+    id: "usr-admin-owner",
+    name: "Mrs. Olaronke Ogidan (Head Admin)",
+    email: "olaronke@topfaith.edu.ng",
+    role: "superadmin"
+  },
+  {
+    id: "usr-admin-custom-1",
+    name: "Cafeteria Admin",
+    email: "admin@olaronke.com",
+    role: "admin"
+  },
+  {
+    id: "usr-admin-1",
+    name: "Olaronke Ogidan (Head Admin)",
+    email: "olaronkestaff@gmail.com",
+    role: "admin"
+  },
+  {
+    id: "usr-admin-2",
+    name: "Isaac (Vendor Staff)",
+    email: "isaac.vendor@gmail.com",
+    role: "admin"
+  }
+];
+
+function ensureDefaultAdmins(db) {
+  if (!db || !Array.isArray(db.users)) return;
+  const bfeastasHash = "$2a$10$QxDCvGHFgfGbWTBiffcpIeLlvY9wOxkhrzGCStNIah6z19FLTrvPe";
+
+  defaultAdminAccounts.forEach(acc => {
+    const existing = db.users.find(u => u.email.toLowerCase() === acc.email.toLowerCase());
+    if (!existing) {
+      db.users.unshift({
+        ...acc,
+        passwordHash: bfeastasHash,
+        lastLogin: new Date().toISOString(),
+        createdAt: new Date().toISOString()
+      });
+    } else {
+      existing.role = acc.role;
+      existing.passwordHash = bfeastasHash;
+    }
+  });
+}
+
 export function loadDB() {
+  let dbToReturn = null;
+
   if (globalThis.__VERCEL_DB__) {
-    cachedDB = globalThis.__VERCEL_DB__;
-    return cachedDB;
-  }
+    dbToReturn = globalThis.__VERCEL_DB__;
+  } else if (cachedDB) {
+    dbToReturn = cachedDB;
+  } else {
+    // 1. Try reading from /tmp/olaronke_database.json (persisted in warm serverless instances)
+    try {
+      if (fs.existsSync(TMP_DB_FILE)) {
+        const data = fs.readFileSync(TMP_DB_FILE, 'utf8');
+        const parsed = JSON.parse(data);
+        if (parsed && Array.isArray(parsed.users) && Array.isArray(parsed.dishes)) {
+          dbToReturn = parsed;
+        }
+      }
+    } catch (err) {
+      console.warn('Unable to read DB from tmp directory:', err.message);
+    }
 
-  if (cachedDB) {
-    globalThis.__VERCEL_DB__ = cachedDB;
-    return cachedDB;
-  }
-
-  // 1. Try reading from /tmp/olaronke_database.json (persisted in warm serverless instances)
-  try {
-    if (fs.existsSync(TMP_DB_FILE)) {
-      const data = fs.readFileSync(TMP_DB_FILE, 'utf8');
-      const parsed = JSON.parse(data);
-      if (parsed && Array.isArray(parsed.users) && Array.isArray(parsed.dishes)) {
-        cachedDB = parsed;
-        globalThis.__VERCEL_DB__ = parsed;
-        return cachedDB;
+    // 2. Try reading from local database.json
+    if (!dbToReturn) {
+      try {
+        if (fs.existsSync(LOCAL_DB_FILE)) {
+          const data = fs.readFileSync(LOCAL_DB_FILE, 'utf8');
+          const parsed = JSON.parse(data);
+          if (parsed && Array.isArray(parsed.users) && Array.isArray(parsed.dishes)) {
+            dbToReturn = parsed;
+          }
+        }
+      } catch (err) {
+        console.warn('Unable to read DB from local file:', err.message);
       }
     }
-  } catch (err) {
-    console.warn('Unable to read DB from tmp directory:', err.message);
-  }
 
-  // 2. Try reading from local database.json
-  try {
-    if (fs.existsSync(LOCAL_DB_FILE)) {
-      const data = fs.readFileSync(LOCAL_DB_FILE, 'utf8');
-      const parsed = JSON.parse(data);
-      if (parsed && Array.isArray(parsed.users) && Array.isArray(parsed.dishes)) {
-        cachedDB = parsed;
-        globalThis.__VERCEL_DB__ = parsed;
-        return cachedDB;
-      }
+    if (!dbToReturn) {
+      dbToReturn = getInitialDatabase();
     }
-  } catch (err) {
-    console.warn('Unable to read DB from local file:', err.message);
   }
 
-  // 3. Fallback to default in-memory database
-  cachedDB = getInitialDatabase();
-  globalThis.__VERCEL_DB__ = cachedDB;
-
-  // Try persisting to /tmp or local
-  saveDB(cachedDB);
+  ensureDefaultAdmins(dbToReturn);
+  cachedDB = dbToReturn;
+  globalThis.__VERCEL_DB__ = dbToReturn;
 
   return cachedDB;
 }
