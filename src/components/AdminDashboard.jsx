@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Flame, Plus, Minus, ToggleLeft, ToggleRight, DollarSign, CheckCircle2, Clock, PackageCheck, AlertTriangle, RefreshCw, Search, ShieldCheck, User, MessageCircle, Trash2, Key, Users, MapPin, Package, UtensilsCrossed, Upload, Image as ImageIcon, Check, Edit3, X, Bell, BellRing, Smartphone, Printer, Calendar, Filter } from 'lucide-react';
+import { Flame, Plus, Minus, ToggleLeft, ToggleRight, DollarSign, CheckCircle2, Clock, PackageCheck, AlertTriangle, RefreshCw, Search, ShieldCheck, User, MessageCircle, Trash2, Key, Users, MapPin, Package, UtensilsCrossed, Upload, Image as ImageIcon, Check, Edit3, X, Bell, BellRing, Smartphone, Printer, Calendar, Filter, HelpCircle } from 'lucide-react';
 import { useSocket } from '../context/SocketContext';
 import { useAuth } from '../context/AuthContext';
 import OfficialReceiptModal from './OfficialReceiptModal';
 
-export default function AdminDashboard() {
+export default function AdminDashboard({ onOpenHowToUse }) {
   const { dishes, setDishes, socket, pushPermission, requestPushPermission } = useSocket();
   const { token, user: currentUser } = useAuth();
 
@@ -467,6 +467,17 @@ export default function AdminDashboard() {
           </div>
 
           <div className="flex items-center space-x-3">
+            {/* How to Use Staff Guide Button */}
+            {typeof onOpenHowToUse === 'function' && (
+              <button
+                onClick={onOpenHowToUse}
+                className="flex items-center space-x-1.5 px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 transition-all shadow-md"
+              >
+                <HelpCircle className="w-4 h-4 text-brand-lemon-glow" />
+                <span>📖 Staff Guide</span>
+              </button>
+            )}
+
             {/* Phone Home Screen Notification Button */}
             <button
               onClick={requestPushPermission}

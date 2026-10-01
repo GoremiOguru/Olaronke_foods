@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { ShoppingBag, User, LogOut, ShieldCheck, Flame, Bell, ChevronDown, Menu, X, UtensilsCrossed, KeyRound } from 'lucide-react';
+import { ShoppingBag, User, LogOut, ShieldCheck, Flame, Bell, ChevronDown, Menu, X, UtensilsCrossed, KeyRound, HelpCircle, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useSocket } from '../context/SocketContext';
 
-export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdminView, onOpenMyOrders, onOpenChangePassword }) {
+export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdminView, onOpenMyOrders, onOpenChangePassword, onOpenHowToUse }) {
   const { user, logout, isAdmin } = useAuth();
   const { totalQuantityCount, setIsCartOpen } = useCart();
   const { isConnected, notifications } = useSocket();
@@ -43,6 +43,15 @@ export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdmi
           {/* Desktop Controls */}
           <div className="hidden md:flex items-center space-x-4">
             
+            {/* How to Use / App Guide */}
+            <button
+              onClick={onOpenHowToUse}
+              className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl font-bold text-xs bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700/80 transition-all hover:scale-105 shadow-sm"
+            >
+              <HelpCircle className="w-4 h-4 text-brand-lemon-glow" />
+              <span>How to Use</span>
+            </button>
+
             {/* Admin Switcher */}
             {isAdmin && (
               <button
@@ -214,6 +223,17 @@ export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdmi
       {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-slate-950 border-b border-slate-800 px-4 py-4 space-y-3">
+          <button
+            onClick={() => {
+              onOpenHowToUse();
+              setMobileMenuOpen(false);
+            }}
+            className="w-full flex items-center justify-center space-x-2 bg-slate-900 border border-slate-700 text-white font-extrabold py-2.5 rounded-xl text-sm shadow"
+          >
+            <HelpCircle className="w-4 h-4 text-brand-lemon-glow" />
+            <span>📖 How to Use (App Guide)</span>
+          </button>
+
           {isAdmin && (
             <button
               onClick={() => {

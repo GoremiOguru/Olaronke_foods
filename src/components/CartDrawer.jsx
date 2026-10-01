@@ -401,18 +401,57 @@ export default function CartDrawer({ onOpenAuth }) {
                   </div>
 
                   {isHostelDelivery && (
-                    <div className="space-y-1.5 pt-1 animate-in fade-in">
-                      <label className="block text-[11px] font-bold text-slate-300 flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5 text-sky-400" />
-                        Enter Hostel Name & Room Number:
-                      </label>
-                      <input
-                        type="text"
-                        value={hostelAddress}
-                        onChange={(e) => setHostelAddress(e.target.value)}
-                        placeholder="e.g. Boys Hostel Block B, Room 204"
-                        className="w-full bg-slate-950 border border-slate-700 text-white px-3 py-2 rounded-xl text-xs focus:outline-none focus:border-sky-400"
-                      />
+                    <div className="space-y-2.5 pt-2 border-t border-slate-800 animate-in fade-in">
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-300 flex items-center gap-1 mb-1.5">
+                          <MapPin className="w-3.5 h-3.5 text-sky-400" />
+                          Select Topfaith University Hostel:
+                        </label>
+                        <div className="grid grid-cols-2 gap-1.5">
+                          {[
+                            'Clock Hall',
+                            'Thomas Abraham Hall',
+                            'Psalm One Hall',
+                            'Maryam Abraham Hall'
+                          ].map((hostel) => {
+                            const isSelected = hostelAddress.startsWith(hostel);
+                            return (
+                              <button
+                                key={hostel}
+                                type="button"
+                                onClick={() => {
+                                  const currentRoom = hostelAddress.includes(',') ? hostelAddress.split(',')[1].trim() : '';
+                                  setHostelAddress(currentRoom ? `${hostel}, ${currentRoom}` : hostel);
+                                }}
+                                className={`p-2 rounded-xl text-[11px] font-extrabold border transition-all text-left line-clamp-1 ${
+                                  isSelected
+                                    ? 'bg-sky-500/20 border-sky-400 text-sky-300 shadow-sm'
+                                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                                }`}
+                              >
+                                🏫 {hostel}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-300 mb-1">
+                          Room / Door Number:
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={hostelAddress.includes(',') ? hostelAddress.split(',')[1].trim() : (['Clock Hall', 'Thomas Abraham Hall', 'Psalm One Hall', 'Maryam Abraham Hall'].some(h => hostelAddress.startsWith(h)) ? '' : hostelAddress)}
+                          onChange={(e) => {
+                            const selectedHostel = ['Clock Hall', 'Thomas Abraham Hall', 'Psalm One Hall', 'Maryam Abraham Hall'].find(h => hostelAddress.startsWith(h)) || 'Clock Hall';
+                            setHostelAddress(`${selectedHostel}, ${e.target.value}`);
+                          }}
+                          placeholder="e.g. Room 204 or Block A Room 12"
+                          className="w-full bg-slate-950 border border-slate-700 text-white px-3 py-2 rounded-xl text-xs focus:outline-none focus:border-sky-400 font-medium"
+                        />
+                      </div>
                     </div>
                   )}
                 </div>

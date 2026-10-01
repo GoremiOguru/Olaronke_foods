@@ -1,9 +1,9 @@
 import React from 'react';
-import { UtensilsCrossed, Zap, Clock, ShieldAlert, Sparkles, MessageCircle, CreditCard } from 'lucide-react';
+import { UtensilsCrossed, Zap, Clock, ShieldAlert, Sparkles, MessageCircle, CreditCard, HelpCircle } from 'lucide-react';
 import { useSocket } from '../context/SocketContext';
 import { useSettings } from '../context/SettingsContext';
 
-export default function Hero({ onExploreClick }) {
+export default function Hero({ onExploreClick, onOpenHowToUse }) {
   const { dishes } = useSocket();
   const { settings } = useSettings();
 
@@ -64,23 +64,31 @@ export default function Hero({ onExploreClick }) {
             </div>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-4">
+            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 pt-4">
               <button
                 onClick={onExploreClick}
-                className="w-full sm:w-auto flex items-center justify-center space-x-3 bg-gradient-to-r from-brand-orange to-amber-600 hover:from-orange-500 hover:to-amber-700 text-white font-black px-8 py-4 rounded-2xl shadow-orange-glow hover:scale-105 transition-all text-base"
+                className="w-full sm:w-auto flex items-center justify-center space-x-2.5 bg-gradient-to-r from-brand-orange to-amber-600 hover:from-orange-500 hover:to-amber-700 text-white font-black px-7 py-3.5 rounded-2xl shadow-orange-glow hover:scale-105 transition-all text-sm"
               >
-                <UtensilsCrossed className="w-5 h-5" />
+                <UtensilsCrossed className="w-4 h-4" />
                 <span>View B'feastas Menu</span>
+              </button>
+
+              <button
+                onClick={onOpenHowToUse}
+                className="w-full sm:w-auto flex items-center justify-center space-x-2 bg-slate-900 hover:bg-slate-800 text-white font-black px-6 py-3.5 rounded-2xl border border-slate-700 hover:border-slate-500 transition-all text-sm shadow-md"
+              >
+                <HelpCircle className="w-4 h-4 text-brand-lemon-glow" />
+                <span>📖 How to Use (Guide)</span>
               </button>
 
               <a
                 href={`https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Hello ${staffName}! I'm a Topfaith student inquiring about today's B'feastas menu.`)}`}
                 target="_blank"
                 rel="noreferrer"
-                className="w-full sm:w-auto flex items-center justify-center space-x-2 bg-brand-lemon hover:bg-lime-400 text-slate-950 font-black px-6 py-4 rounded-2xl shadow-lemon-glow transition-all text-base border border-brand-lemon/30"
+                className="w-full sm:w-auto flex items-center justify-center space-x-2 bg-brand-lemon hover:bg-lime-400 text-slate-950 font-black px-5 py-3.5 rounded-2xl shadow-lemon-glow transition-all text-sm border border-brand-lemon/30"
               >
-                <MessageCircle className="w-5 h-5 fill-slate-950" />
-                <span>WhatsApp {staffName} ({phone})</span>
+                <MessageCircle className="w-4 h-4 fill-slate-950" />
+                <span>WhatsApp {staffName}</span>
               </a>
             </div>
 

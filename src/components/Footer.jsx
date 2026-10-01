@@ -1,8 +1,8 @@
 import React from 'react';
-import { UtensilsCrossed, MessageCircle, MapPin, Clock, ShieldCheck } from 'lucide-react';
+import { UtensilsCrossed, MessageCircle, MapPin, Clock, ShieldCheck, HelpCircle } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
 
-export default function Footer() {
+export default function Footer({ onOpenHowToUse }) {
   const { settings } = useSettings();
 
   const phone = settings.whatsappNumber || '08133314798';
@@ -53,6 +53,15 @@ export default function Footer() {
             >
               <MessageCircle className="w-4 h-4" /> WhatsApp {staffName}: {phone}
             </a>
+            <div>
+              <button
+                onClick={onOpenHowToUse}
+                className="mt-1 inline-flex items-center gap-1.5 text-xs text-amber-300 hover:text-white font-extrabold bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-xl transition-all"
+              >
+                <HelpCircle className="w-3.5 h-3.5 text-amber-400" />
+                <span>📖 Interactive App Guide</span>
+              </button>
+            </div>
             <p>Student Domain: <span className="font-mono text-slate-300">{settings.studentDomain || '@topfaith.edu.ng'}</span></p>
             <p>{bankName} Transfer: <span className="font-bold text-white">{accountName} ({accountNumber})</span></p>
           </div>

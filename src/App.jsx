@@ -8,6 +8,7 @@ import WhatsAppModal from './components/WhatsAppModal';
 import MyOrdersModal from './components/MyOrdersModal';
 import ChangePasswordModal from './components/ChangePasswordModal';
 import AdminDashboard from './components/AdminDashboard';
+import HowToUseModal from './components/HowToUseModal';
 import NotificationToast from './components/NotificationToast';
 import Footer from './components/Footer';
 import { useAuth } from './context/AuthContext';
@@ -24,6 +25,7 @@ export default function App() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isMyOrdersOpen, setIsMyOrdersOpen] = useState(false);
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+  const [isHowToUseOpen, setIsHowToUseOpen] = useState(false);
 
   const handleSetAdminView = (val) => {
     setIsAdminView(val);
@@ -50,15 +52,16 @@ export default function App() {
         setIsAdminView={handleSetAdminView}
         onOpenMyOrders={() => setIsMyOrdersOpen(true)}
         onOpenChangePassword={() => setIsChangePasswordOpen(true)}
+        onOpenHowToUse={() => setIsHowToUseOpen(true)}
       />
 
       {/* Main Content Area: Switch between Admin Dashboard and Student View */}
       <main className="flex-1">
         {isAdminView && isAdmin ? (
-          <AdminDashboard />
+          <AdminDashboard onOpenHowToUse={() => setIsHowToUseOpen(true)} />
         ) : (
           <>
-            <Hero onExploreClick={scrollToCatalog} />
+            <Hero onExploreClick={scrollToCatalog} onOpenHowToUse={() => setIsHowToUseOpen(true)} />
             <DishCatalog />
           </>
         )}
@@ -70,10 +73,11 @@ export default function App() {
       <WhatsAppModal />
       <MyOrdersModal isOpen={isMyOrdersOpen} onClose={() => setIsMyOrdersOpen(false)} />
       <ChangePasswordModal isOpen={isChangePasswordOpen} onClose={() => setIsChangePasswordOpen(false)} />
+      <HowToUseModal isOpen={isHowToUseOpen} onClose={() => setIsHowToUseOpen(false)} onOpenAdmin={() => handleSetAdminView(true)} />
       <NotificationToast />
 
       {/* Footer */}
-      <Footer />
+      <Footer onOpenHowToUse={() => setIsHowToUseOpen(true)} />
 
     </div>
   );
