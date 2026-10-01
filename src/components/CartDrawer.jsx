@@ -140,7 +140,7 @@ export default function CartDrawer({ onOpenAuth }) {
                 <div className="flex items-start gap-2">
                   <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-extrabold text-white text-xs">⚠️ Rice Packaging Capacity Notice</p>
+                    <p className="font-extrabold text-white text-xs">Rice Packaging Notice</p>
                     <p className="text-[11px] text-amber-200/90 leading-relaxed mt-0.5">
                       One Takeout Plate can hold a maximum of <strong>5 scoops of rice</strong>. Anything more than 5 scoops requires another Takeout Plate (e.g. ₦600 for 2 plates, ₦900 for 3 plates).
                     </p>
@@ -152,7 +152,7 @@ export default function CartDrawer({ onOpenAuth }) {
                   className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition-all flex items-center justify-center space-x-1.5 shadow-md"
                 >
                   <Sparkles className="w-4 h-4" />
-                  <span>Auto-Organize Rice into Max 5-Scoop Plates</span>
+                  <span>Organize into 5-Scoop Plates</span>
                 </button>
               </div>
             )}
@@ -509,7 +509,7 @@ export default function CartDrawer({ onOpenAuth }) {
                   <span>Creating Order...</span>
                 ) : (
                   <>
-                    <span>Confirm & Send Receipt to {settings.whatsappName || 'Isaac'}</span>
+                    <span>Place Order & WhatsApp Receipt</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}

@@ -34,7 +34,7 @@ export default function Footer({ onOpenHowToUse }) {
               </span>
             </div>
             <p className="text-slate-400 text-xs leading-relaxed">
-              Topfaith University's official online gourmet food vendor. Real-time portion tracking, student email authentication, and instant WhatsApp receipt confirmation with {staffName}.
+              Topfaith University's official campus cafeteria. Real-time portion tracking, student email authentication, and instant WhatsApp receipt confirmation with {staffName}.
             </p>
           </div>
 
@@ -66,7 +66,7 @@ export default function Footer({ onOpenHowToUse }) {
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 text-rose-400 hover:text-rose-300 font-extrabold hover:underline"
               >
-                <Bug className="w-4 h-4 text-rose-500 animate-pulse" /> Report Bug / Tech Support: {techSupportPhone}
+                <Bug className="w-4 h-4 text-rose-500 animate-pulse" /> Technical Support: {techSupportPhone}
               </a>
             </div>
             <div className="pt-1">
@@ -75,7 +75,7 @@ export default function Footer({ onOpenHowToUse }) {
                 className="inline-flex items-center gap-1.5 text-xs text-amber-300 hover:text-white font-extrabold bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-xl transition-all"
               >
                 <HelpCircle className="w-3.5 h-3.5 text-amber-400" />
-                <span>📖 Interactive App Guide</span>
+                <span>How to Order</span>
               </button>
             </div>
             <p>Student Domain: <span className="font-mono text-slate-300">{settings.studentDomain || '@topfaith.edu.ng'}</span></p>
@@ -85,7 +85,7 @@ export default function Footer({ onOpenHowToUse }) {
           {/* Security badge */}
           <div className="space-y-2 bg-slate-900 p-4 rounded-2xl border border-slate-800">
             <h4 className="font-bold text-white text-xs flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-brand-lemon-glow" /> Real-Time Kitchen Sync
+              <ShieldCheck className="w-4 h-4 text-brand-lemon-glow" /> Live Kitchen Counter
             </h4>
             <p className="text-[11px] text-slate-400">
               Stock portion counters auto-deduct live across all connected student and staff screens.
@@ -95,7 +95,7 @@ export default function Footer({ onOpenHowToUse }) {
         </div>
 
         <div className="pt-6 border-t border-slate-800 text-center text-slate-500 text-[11px]">
-          © {new Date().getFullYear()} B'feastas. All rights reserved. Topfaith University Gourmet Campus Vendor. Made by Goremi Oguru
+          © {new Date().getFullYear()} B'feastas. All rights reserved. Topfaith University Campus Cafeteria. Made by Goremi Oguru
         </div>
       </div>
     </footer>

@@ -30,12 +30,12 @@ export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdmi
                   B'<span className="text-brand-orange">fea</span><span className="text-brand-lemon">stas</span>
                 </span>
                 <span className="hidden sm:inline-block px-2.5 py-0.5 text-[10px] uppercase tracking-wider font-extrabold bg-brand-lemon/20 text-brand-lemon-glow rounded-full border border-brand-lemon/40">
-                  Campus Gourmet
+                  Topfaith Cafeteria
                 </span>
               </div>
               <p className="text-xs text-slate-400 font-medium flex items-center gap-1.5">
                 <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-brand-lemon-glow animate-ping' : 'bg-amber-400'}`}></span>
-                {isConnected ? 'Kitchen Live Sync Active' : 'Connecting to Kitchen...'}
+                {isConnected ? 'Kitchen Live Sync' : 'Connecting to Kitchen...'}
               </p>
             </div>
           </div>
@@ -49,7 +49,7 @@ export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdmi
               className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl font-bold text-xs bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700/80 transition-all hover:scale-105 shadow-sm"
             >
               <HelpCircle className="w-4 h-4 text-brand-lemon-glow" />
-              <span>How to Use</span>
+              <span>How to Order</span>
             </button>
 
             {/* Admin Switcher */}
@@ -63,7 +63,7 @@ export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdmi
                 }`}
               >
                 <ShieldCheck className="w-4 h-4" />
-                <span>{isAdminView ? 'Switch to Student View' : 'Admin Control Panel'}</span>
+                <span>{isAdminView ? 'Student Menu' : 'Staff Portal'}</span>
               </button>
             )}
 
@@ -145,7 +145,7 @@ export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdmi
                           <p className="text-xs font-bold text-white">{user.name}</p>
                           <p className="text-[11px] text-slate-400 font-mono truncate">{user.email}</p>
                           <span className="inline-block mt-1.5 px-2 py-0.5 text-[10px] font-semibold bg-brand-lemon/20 text-brand-lemon-glow rounded border border-brand-lemon/30">
-                            {user.role === 'admin' ? 'Vendor Admin Staff' : 'Topfaith Student Verified'}
+                            {user.role === 'admin' ? 'Cafeteria Staff' : 'Verified Student'}
                           </span>
                         </div>
 
@@ -190,7 +190,7 @@ export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdmi
                 className="flex items-center space-x-2 border border-slate-700 bg-slate-900 hover:bg-slate-800 text-slate-100 hover:text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all hover:border-brand-lemon/60"
               >
                 <User className="w-4 h-4 text-brand-lemon" />
-                <span>Student Login</span>
+                <span>Sign In</span>
               </button>
             )}
 
@@ -231,7 +231,7 @@ export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdmi
             className="w-full flex items-center justify-center space-x-2 bg-slate-900 border border-slate-700 text-white font-extrabold py-2.5 rounded-xl text-sm shadow"
           >
             <HelpCircle className="w-4 h-4 text-brand-lemon-glow" />
-            <span>📖 How to Use (App Guide)</span>
+            <span>How to Order</span>
           </button>
 
           {isAdmin && (
@@ -243,7 +243,7 @@ export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdmi
               className="w-full flex items-center justify-center space-x-2 bg-brand-lemon text-slate-950 font-black py-2.5 rounded-xl text-sm"
             >
               <ShieldCheck className="w-4 h-4" />
-              <span>{isAdminView ? 'Switch to Catalog' : 'Admin Control Panel'}</span>
+              <span>{isAdminView ? 'Student Menu' : 'Staff Portal'}</span>
             </button>
           )}
 
@@ -269,7 +269,7 @@ export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdmi
               }}
               className="w-full bg-brand-orange text-white py-2.5 rounded-xl font-extrabold text-sm"
             >
-              Student Login / Register
+              Sign In / Register
             </button>
           )}
         </div>

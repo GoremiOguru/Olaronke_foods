@@ -17,7 +17,7 @@ export default function TechSupportFloatingWidget() {
                 <Bug className="w-4 h-4" />
               </div>
               <div>
-                <h4 className="font-bold text-xs text-white">Report a Bug / Issue</h4>
+                <h4 className="font-bold text-xs text-white">Help & Support</h4>
                 <p className="text-[10px] text-slate-400">Technical Support</p>
               </div>
             </div>
@@ -31,7 +31,7 @@ export default function TechSupportFloatingWidget() {
 
           <div className="mt-3 space-y-2">
             <p className="text-xs text-slate-300 leading-relaxed">
-              Encountered a bug, display glitch, or payment system issue? Message Technical Support on WhatsApp.
+              Facing an issue or need assistance on the site? Contact technical support directly on WhatsApp.
             </p>
 
             <a
@@ -41,26 +41,26 @@ export default function TechSupportFloatingWidget() {
               className="w-full flex items-center justify-center space-x-2 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-2.5 px-3 rounded-xl text-xs shadow-md transition-transform hover:scale-105 active:scale-95 mt-2"
             >
               <MessageSquare className="w-4 h-4" />
-              <span>Chat Tech Support on WhatsApp</span>
+              <span>Contact Support on WhatsApp</span>
             </a>
 
             <p className="text-[10px] text-slate-500 text-center pt-1 font-mono">
-              WhatsApp Support: {techSupportPhone}
+              Support Line: {techSupportPhone}
             </p>
           </div>
         </div>
       ) : (
         <button
           onClick={() => setIsOpen(true)}
-          className="flex items-center space-x-2 bg-slate-900/90 backdrop-blur-md hover:bg-slate-800 border border-rose-500/40 hover:border-rose-400 text-slate-200 hover:text-white px-3.5 py-2 rounded-full shadow-2xl transition-all hover:scale-105 group"
-          title="Report a Bug / Contact Tech Support"
+          className="flex items-center space-x-2 bg-slate-900/90 backdrop-blur-md hover:bg-slate-800 border border-slate-700 hover:border-slate-500 text-slate-200 hover:text-white px-3.5 py-2 rounded-full shadow-2xl transition-all hover:scale-105 group"
+          title="Contact Technical Support"
         >
           <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
           </span>
-          <Bug className="w-4 h-4 text-rose-400 group-hover:rotate-12 transition-transform" />
-          <span className="text-xs font-bold hidden sm:inline-block">Report Bug / Support</span>
+          <MessageSquare className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
+          <span className="text-xs font-bold hidden sm:inline-block">Help & Support</span>
         </button>
       )}
     </div>

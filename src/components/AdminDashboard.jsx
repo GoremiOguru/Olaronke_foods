@@ -455,9 +455,9 @@ export default function AdminDashboard({ onOpenHowToUse }) {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-black text-white">B'feastas Vendor Staff Control Panel</h1>
+                <h1 className="text-2xl font-black text-white">Cafeteria Management</h1>
                 <span className="px-2.5 py-0.5 text-[10px] font-black uppercase bg-brand-lemon/20 text-brand-lemon-glow rounded-full border border-brand-lemon/40">
-                  REAL-TIME SYNC ACTIVE
+                  KITCHEN ONLINE
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-0.5">
@@ -474,7 +474,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
                 className="flex items-center space-x-1.5 px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 transition-all shadow-md"
               >
                 <HelpCircle className="w-4 h-4 text-brand-lemon-glow" />
-                <span>📖 Staff Guide</span>
+                <span>Staff Manual</span>
               </button>
             )}
 
@@ -483,11 +483,11 @@ export default function AdminDashboard({ onOpenHowToUse }) {
               href="https://wa.me/2348057357728?text=Hello%20Tech%20Support,%20I'm%20a%20B'feastas%20staff/admin%20reporting%20an%20issue:"
               target="_blank"
               rel="noreferrer"
-              className="flex items-center space-x-1.5 px-4 py-2.5 rounded-xl text-xs font-extrabold bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800/80 transition-all shadow-md"
-              title="Message Technical Support on WhatsApp (08057357728)"
+              className="flex items-center space-x-1.5 px-4 py-2.5 rounded-xl text-xs font-extrabold bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 transition-all shadow-md"
+              title="Message Technical Support on WhatsApp"
             >
-              <Bug className="w-4 h-4 text-rose-400 animate-pulse" />
-              <span>Report System Bug</span>
+              <Bug className="w-4 h-4 text-rose-400" />
+              <span>Technical Support</span>
             </a>
 
             {/* Phone Home Screen Notification Button */}
@@ -498,14 +498,14 @@ export default function AdminDashboard({ onOpenHowToUse }) {
                   ? 'bg-brand-lemon/20 text-brand-lemon-glow border border-brand-lemon/40'
                   : 'bg-brand-orange text-white hover:bg-orange-600 shadow-orange-glow'
               }`}
-              title="Get phone home screen alerts when new orders arrive"
+              title="Get notifications when new orders arrive"
             >
               <Smartphone className="w-4 h-4" />
               <BellRing className="w-4 h-4" />
               <span>
                 {pushPermission === 'granted'
-                  ? 'Phone Home Screen Alerts Active'
-                  : 'Enable Phone Home Screen Alerts'}
+                  ? 'Order Alerts On'
+                  : 'Enable Order Alerts'}
               </span>
             </button>
 
@@ -965,11 +965,11 @@ export default function AdminDashboard({ onOpenHowToUse }) {
               </span>
               {[
                 { key: 'all', label: `All (${filteredOrders.length})` },
-                { key: 'Pending Payment Verification', label: `⏳ Pending (${pendingCount})` },
-                { key: 'Preparing', label: `🍳 Cooking (${preparingCount})` },
-                { key: 'Ready for Pickup', label: `🚚 Ready (${readyCount})` },
-                { key: 'Completed', label: `✅ Completed (${completedCount})` },
-                { key: 'Cancelled', label: `❌ Cancelled (${cancelledCount})` }
+                { key: 'Pending Payment Verification', label: `Pending (${pendingCount})` },
+                { key: 'Preparing', label: `Cooking (${preparingCount})` },
+                { key: 'Ready for Pickup', label: `Ready (${readyCount})` },
+                { key: 'Completed', label: `Completed (${completedCount})` },
+                { key: 'Cancelled', label: `Cancelled (${cancelledCount})` }
               ].map(sf => (
                 <button
                   key={sf.key}
@@ -1113,7 +1113,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
                                   : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
                               }`}
                             >
-                              ✅ Confirm Payment & Cook
+                              Confirm Payment & Cook
                             </button>
 
                             <button
@@ -1124,7 +1124,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
                                   : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
                               }`}
                             >
-                              🚚 Ready / Delivery
+                              Ready / Delivery
                             </button>
 
                             <button
@@ -1135,7 +1135,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
                                   : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
                               }`}
                             >
-                              🎉 Completed
+                              Completed
                             </button>
 
                             <button
@@ -1146,7 +1146,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
                                   : 'bg-slate-950 text-rose-400 hover:bg-rose-500/20 border border-slate-800'
                               }`}
                             >
-                              ❌ Cancel Order
+                              Cancel Order
                             </button>
 
                             <button

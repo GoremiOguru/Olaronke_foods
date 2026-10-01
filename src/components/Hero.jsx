@@ -70,7 +70,7 @@ export default function Hero({ onExploreClick, onOpenHowToUse }) {
                 className="w-full sm:w-auto flex items-center justify-center space-x-2.5 bg-gradient-to-r from-brand-orange to-amber-600 hover:from-orange-500 hover:to-amber-700 text-white font-black px-7 py-3.5 rounded-2xl shadow-orange-glow hover:scale-105 transition-all text-sm"
               >
                 <UtensilsCrossed className="w-4 h-4" />
-                <span>View B'feastas Menu</span>
+                <span>Explore Menu</span>
               </button>
 
               <button
@@ -78,7 +78,7 @@ export default function Hero({ onExploreClick, onOpenHowToUse }) {
                 className="w-full sm:w-auto flex items-center justify-center space-x-2 bg-slate-900 hover:bg-slate-800 text-white font-black px-6 py-3.5 rounded-2xl border border-slate-700 hover:border-slate-500 transition-all text-sm shadow-md"
               >
                 <HelpCircle className="w-4 h-4 text-brand-lemon-glow" />
-                <span>📖 How to Use (Guide)</span>
+                <span>How to Order</span>
               </button>
 
               <a

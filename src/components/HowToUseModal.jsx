@@ -21,11 +21,11 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
       color: "from-brand-orange to-amber-500",
       description: "Browse authentic Nigerian meals updated live from cafeteria pots. Scoop counters auto-deduct in real-time across student screens. Smoky Jollof starts at ₦500/scoop, and Sweet Fried Plantain Dodo is ₦100 per piece!",
       image: "/images/student_guide.jpg",
-      actionText: "🔍 Scroll & Highlight Menu Catalog",
+      actionText: "Explore Menu Catalog",
       bullets: [
-        "🔥 Portion counters deduct live in real-time as meals are ordered",
-        "🍌 Sweet Fried Plantain Dodo available at ₦100 per piece",
-        "🥤 Chilled bottle drinks (Coke 50cl ₦600, Viju Milk ₦500, Zobo ₦500)"
+        "Portion counters deduct live in real-time as meals are ordered",
+        "Sweet Fried Plantain Dodo available at ₦100 per piece",
+        "Chilled bottle drinks (Coke 50cl ₦600, Viju Milk ₦500, Zobo ₦500)"
       ],
       action: () => {
         onClose();
@@ -36,16 +36,16 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
     {
       id: 'step-plate',
       targetId: 'catalog-section',
-      title: "2. Takeout Plates & 5-Scoop Rule",
+      title: "2. Takeout Packs & Portion Capacity",
       badge: "Smart Packaging",
       color: "from-brand-lemon to-lime-500",
-      description: "To keep food organized, 1 Takeout Plate holds a maximum of 5 scoops of rice. Select your desired container size: Small (₦100), Medium (₦200), or Large (₦300).",
+      description: "To keep food organized, 1 Takeout Pack holds up to 5 scoops of rice. Select your desired container size: Small (₦100), Medium (₦200), or Large (₦300).",
       image: "/images/jollof_rice.png",
-      actionText: "🍱 Open Takeout Tray & Plates",
+      actionText: "Open Order Tray",
       bullets: [
-        "🍱 Automatic multi-plate organizer splits rice into 5-scoop plates",
-        "💰 Choose Small (₦100), Medium (₦200), or Large (₦300) takeout packs",
-        "🛒 Easily adjust item quantities per plate"
+        "Automatic multi-pack organizer splits rice into 5-scoop portions",
+        "Choose Small (₦100), Medium (₦200), or Large (₦300) takeout packs",
+        "Adjust item quantities per portion easily"
       ],
       action: () => {
         onClose();
@@ -55,16 +55,16 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
     {
       id: 'step-fulfillment',
       targetId: 'catalog-section',
-      title: "3. Cafeteria Pickup or Topfaith Hostel Delivery",
+      title: "3. Cafeteria Pickup or Hostel Delivery",
       badge: "Topfaith Hostels",
       color: "from-sky-400 to-blue-600",
       description: "Choose between quick Cafeteria Pickup or doorstep delivery to any of the 4 Topfaith University hostels (+₦500 delivery fee).",
       image: "/images/amala_ewedu.png",
-      actionText: "🏫 Select Topfaith Hostels",
+      actionText: "Select Delivery Location",
       bullets: [
-        "🏫 4 Hostels: Clock Hall, Thomas Abraham Hall, Psalm One Hall & Maryam Abraham Hall",
-        "🚪 Specify your room number for direct room delivery",
-        "📱 Enter your WhatsApp number so delivery staff can reach you"
+        "4 Hostels: Clock Hall, Thomas Abraham Hall, Psalm One Hall & Maryam Abraham Hall",
+        "Specify your room number for direct room delivery",
+        "Provide your WhatsApp number so delivery staff can reach you"
       ],
       action: () => {
         onClose();
@@ -74,16 +74,16 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
     {
       id: 'step-pickup-code',
       targetId: 'hero-section',
-      title: "4. Secret 3-Digit Pickup Code & WhatsApp Confirmation",
+      title: "4. Secret Pickup Code & WhatsApp Confirmation",
       badge: "Secure Verification",
       color: "from-amber-400 to-orange-500",
-      description: "Every order generates a unique, secret 3-digit code (e.g. #582). Forward your bank transfer payment proof to vendor staff via WhatsApp with 1 tap!",
+      description: "Every order generates a unique secret pickup code. Forward your bank transfer payment proof to cafeteria staff via WhatsApp with one tap.",
       image: "/images/student_guide.jpg",
-      actionText: "💬 View WhatsApp Confirmation Demo",
+      actionText: "View WhatsApp Confirmation",
       bullets: [
-        "🔑 Secret 3-digit code prevents anyone else from claiming your meal",
-        "💬 Direct 1-tap WhatsApp forwarding to vendor staff (Isaac)",
-        "💳 Copy Moniepoint/OPay account details with 1 tap"
+        "Secret pickup code prevents unauthorized collection of your meal",
+        "Direct one-tap WhatsApp forwarding to cafeteria staff",
+        "Copy bank account details with one tap"
       ],
       action: () => {
         onClose();
@@ -94,16 +94,16 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
     {
       id: 'step-receipt',
       targetId: 'catalog-section',
-      title: "5. Payment Confirmation & Official E-Receipt",
-      badge: "Receipt Safeguards",
+      title: "5. Payment Confirmation & E-Receipt",
+      badge: "Receipt Verification",
       color: "from-emerald-400 to-green-600",
-      description: "New receipts display 'UNVERIFIED PAYMENT' until staff verifies bank transfer. Once approved, your receipt upgrades to 'PAID & VERIFIED' for instant meal pickup or print out.",
+      description: "New receipts display UNVERIFIED PAYMENT until staff verifies the bank transfer. Once approved, your receipt updates to PAID & VERIFIED for meal pickup.",
       image: "/images/compay logo.jpeg",
-      actionText: "🖨️ View Official E-Receipt Sample",
+      actionText: "View Sample Receipt",
       bullets: [
-        "⚠️ Unverified watermark prevents fake payment claims",
-        "✅ Real-time badge upgrade when staff approves bank transfer",
-        "🖨️ Download or print official receipt anytime from 'My Orders'"
+        "Unverified watermark protects against unconfirmed payments",
+        "Real-time status updates when staff confirms bank transfer",
+        "Download or print receipt anytime from My Orders"
       ],
       action: () => {
         onClose();
@@ -115,16 +115,16 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
     {
       id: 'admin-stock',
       targetId: 'admin-panel',
-      title: "1. Staff Portion & Stock Inventory Control",
-      badge: "Staff Kitchen Control",
+      title: "1. Portion & Stock Inventory Management",
+      badge: "Kitchen Control",
       color: "from-brand-lemon to-emerald-500",
-      description: "Kitchen staff can adjust remaining scoops or toggle items 'Out of Stock' with 1 tap during busy cafeteria hours. Stock updates instantly across all student screens.",
+      description: "Kitchen staff can adjust remaining scoops or toggle items Out of Stock instantly during cafeteria hours. Stock updates live across all connected screens.",
       image: "/images/admin_guide.jpg",
-      actionText: "⚡ Focus Live Stock Toggles",
+      actionText: "View Inventory Controls",
       bullets: [
-        "⚡ 1-Tap Available / Out of Stock toggle switches",
-        "🍲 Edit portion quantities live as new batches are cooked",
-        "🖼️ Upload actual dish & bottle photos permanently"
+        "One-tap Available / Out of Stock toggle switches",
+        "Edit portion quantities live as new batches are prepared",
+        "Upload custom dish and beverage photos"
       ],
       action: () => {
         onClose();
@@ -133,16 +133,16 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
     {
       id: 'admin-verification',
       targetId: 'admin-panel',
-      title: "2. Bank Transfer Verification & Order Queue",
+      title: "2. Transfer Verification & Order Queue",
       badge: "Payment Verification",
       color: "from-amber-500 to-orange-600",
-      description: "View incoming student orders in real time. Verify bank transfer receipts sent via WhatsApp and tap 'Confirm Payment & Cook' to validate order receipts.",
+      description: "View incoming student orders in real time. Verify bank transfer receipts sent via WhatsApp and click Confirm Payment & Cook to validate orders.",
       image: "/images/admin_guide.jpg",
-      actionText: "✅ Focus Order Queue",
+      actionText: "View Order Queue",
       bullets: [
-        "✅ Tap 'Confirm Payment' to convert student receipt from Draft to PAID",
-        "📱 Direct 'WhatsApp Student' button to contact student instantly",
-        "🚚 Clear hostel room badges for doorstep delivery orders"
+        "Click Confirm Payment to convert student receipts from Draft to PAID",
+        "Direct WhatsApp Student button to reach students instantly",
+        "Clear hostel room indicators for doorstep delivery orders"
       ],
       action: () => {
         onClose();
@@ -151,16 +151,16 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
     {
       id: 'admin-settings',
       targetId: 'admin-panel',
-      title: "3. Vendor Bank Account & Receipt Printing",
+      title: "3. Cafeteria Account & Receipt Printing",
       badge: "Store Settings",
       color: "from-purple-500 to-indigo-600",
-      description: "Update vendor bank account details (Moniepoint/OPay), WhatsApp staff name/number, and print hardcopy receipts for cafeteria accounting.",
+      description: "Update vendor bank account details, WhatsApp staff contact information, and print paper receipts for cafeteria accounting.",
       image: "/images/admin_guide.jpg",
-      actionText: "💳 Focus Vendor Settings",
+      actionText: "View Cafeteria Settings",
       bullets: [
-        "💳 Set active bank account name and account number",
-        "🖨️ Print official e-receipts for cafeteria record-keeping",
-        "🔒 Secure staff PIN authentication"
+        "Set active bank account name and account number",
+        "Print official receipts for cafeteria record-keeping",
+        "Secure staff account management"
       ],
       action: () => {
         onClose();

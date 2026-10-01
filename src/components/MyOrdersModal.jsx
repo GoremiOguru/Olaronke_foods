@@ -43,17 +43,17 @@ export default function MyOrdersModal({ isOpen, onClose }) {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'Completed':
-        return <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">✅ Completed</span>;
+        return <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">Completed</span>;
       case 'Cancelled':
-        return <span className="bg-rose-500/20 text-rose-300 border border-rose-500/40 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">❌ Cancelled</span>;
+        return <span className="bg-rose-500/20 text-rose-300 border border-rose-500/40 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">Cancelled</span>;
       case 'Ready for Pickup':
       case 'Ready for Pickup / Out for Delivery':
-        return <span className="bg-sky-500/20 text-sky-300 border border-sky-500/40 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 animate-pulse">🚚 Ready for Pickup / Delivery</span>;
+        return <span className="bg-sky-500/20 text-sky-300 border border-sky-500/40 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 animate-pulse">Ready for Pickup / Delivery</span>;
       case 'Preparing':
       case 'Payment Confirmed & Preparing':
-        return <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">🍳 Payment Confirmed & Cooking</span>;
+        return <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">Payment Confirmed & Cooking</span>;
       default:
-        return <span className="bg-orange-500/20 text-orange-300 border border-orange-500/40 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">⏳ Verification Pending</span>;
+        return <span className="bg-orange-500/20 text-orange-300 border border-orange-500/40 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">Verification Pending</span>;
     }
   };
 
@@ -120,7 +120,7 @@ export default function MyOrdersModal({ isOpen, onClose }) {
                         </p>
                       ) : (
                         <p className="flex items-center gap-1.5 text-slate-300">
-                          📍 Cafeteria Pickup
+                          <MapPin className="w-3.5 h-3.5 text-brand-lemon" /> Cafeteria Pickup
                         </p>
                       )}
                     </div>
@@ -151,7 +151,7 @@ export default function MyOrdersModal({ isOpen, onClose }) {
                         className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 rounded-xl text-xs font-extrabold border border-amber-500/40 transition-colors flex items-center gap-1.5"
                       >
                         <Printer className="w-3.5 h-3.5" />
-                        <span>🖨️ View / Print Official Receipt</span>
+                        <span>View / Print Receipt</span>
                       </button>
                     </div>
 

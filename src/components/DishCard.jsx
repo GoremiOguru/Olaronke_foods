@@ -31,10 +31,10 @@ export default function DishCard({ dish }) {
     stockText = "OUT OF STOCK";
   } else if (scoopsLeft <= 5) {
     stockBadgeStyle = "bg-brand-orange/30 text-brand-orange-glow border-brand-orange/60 animate-pulse";
-    stockText = `🔥 ONLY ${scoopsLeft} ${labelUnit.toUpperCase()}${scoopsLeft > 1 ? 'S' : ''} LEFT!`;
+    stockText = `ONLY ${scoopsLeft} ${labelUnit.toUpperCase()}${scoopsLeft > 1 ? 'S' : ''} LEFT!`;
   } else if (scoopsLeft <= 10) {
     stockBadgeStyle = "bg-amber-500/30 text-amber-300 border-amber-500/50";
-    stockText = `⚠️ ${scoopsLeft} ${labelUnit}s remaining`;
+    stockText = `${scoopsLeft} ${labelUnit}s remaining`;
   }
 
   const handleIncrement = () => {
