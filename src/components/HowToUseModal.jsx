@@ -207,47 +207,56 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
   const activeStep = steps[currentStep] || steps[0];
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-3 sm:p-6 bg-slate-950/85 backdrop-blur-2xl animate-in fade-in duration-300">
+    <div
+      className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-3 sm:p-6 bg-slate-950/85 backdrop-blur-2xl animate-in fade-in duration-300 cursor-pointer"
+      onClick={onClose}
+    >
       
       {/* Background Focus Spotlight Overlay Container */}
-      <div className="relative w-full max-w-2xl bg-slate-900/95 border-2 border-slate-700/80 rounded-3xl shadow-2xl overflow-hidden text-white backdrop-blur-2xl transition-all duration-300">
+      <div
+        className="relative w-full max-w-2xl max-h-[90vh] flex flex-col bg-slate-900/95 border-2 border-slate-700/80 rounded-3xl shadow-2xl overflow-hidden text-white backdrop-blur-2xl transition-all duration-300 cursor-default"
+        onClick={(e) => e.stopPropagation()}
+      >
         
         {/* Header Bar */}
-        <div className="bg-slate-950 px-6 py-4 flex items-center justify-between border-b border-slate-800">
-          <div className="flex items-center space-x-3">
-            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black shadow-lg ${
+        <div className="bg-slate-950 px-4 sm:px-6 py-3.5 flex items-center justify-between border-b border-slate-800 shrink-0">
+          <div className="flex items-center space-x-2.5">
+            <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-2xl flex items-center justify-center font-black shadow-lg shrink-0 ${
               isStaffMode ? 'bg-gradient-to-tr from-brand-lemon to-emerald-500 text-slate-950 shadow-lemon-glow' : 'bg-gradient-to-tr from-brand-orange to-brand-lemon text-slate-950 shadow-orange-glow'
             }`}>
               {isStaffMode ? <ShieldCheck className="w-5 h-5 stroke-[2.5]" /> : <HelpCircle className="w-5 h-5 stroke-[2.5]" />}
             </div>
             <div>
-              <h3 className="text-lg font-black text-white flex items-center gap-2">
-                {isStaffMode ? "🛡️ Vendor Staff & Kitchen Guide" : "🎓 Student Ordering Guide"}
+              <h3 className="text-base sm:text-lg font-black text-white flex items-center gap-1.5">
+                <span>{isStaffMode ? "Staff Kitchen Guide" : "Student Ordering Guide"}</span>
                 <Sparkles className="w-4 h-4 text-brand-lemon-glow animate-pulse" />
               </h3>
-              <p className="text-[11px] text-slate-400">Interactive Guided Tour & App Assist</p>
+              <p className="text-[10px] sm:text-xs text-slate-400">Interactive Guided Tour & App Assist</p>
             </div>
           </div>
 
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setIsPlaying(!isPlaying)}
-              className={`p-2 rounded-xl border text-xs font-bold transition-all flex items-center gap-1 ${
+              className={`px-2.5 py-1.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1 ${
                 isPlaying
                   ? 'bg-brand-orange/20 border-brand-orange text-brand-orange-glow'
                   : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-white'
               }`}
               title={isPlaying ? "Pause Auto-Tour" : "Play Auto-Tour"}
             >
-              {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+              {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
               <span className="hidden sm:inline">{isPlaying ? 'Pause' : 'Auto Play'}</span>
             </button>
 
+            {/* High-visibility Close Exit Button */}
             <button
               onClick={onClose}
-              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+              className="px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/40 text-xs font-black transition-all flex items-center gap-1 shadow-md active:scale-95"
+              title="Close Guide"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
+              <span>Exit</span>
             </button>
           </div>
         </div>
@@ -271,7 +280,7 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
         </div>
 
         {/* Animated Step Body Card */}
-        <div className="p-6 space-y-5 animate-in fade-in duration-300">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 animate-in fade-in duration-300 flex-1 overflow-y-auto">
           
           {/* Header Badge & Title */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -353,24 +362,28 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
         </div>
 
         {/* Footer Navigation Bar */}
-        <div className="bg-slate-950 px-6 py-4 border-t border-slate-800 flex items-center justify-between">
+        <div className="bg-slate-950 px-4 sm:px-6 py-3.5 border-t border-slate-800 flex items-center justify-between gap-2 shrink-0">
           <button
             onClick={handlePrev}
-            className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white font-bold text-xs border border-slate-800 transition-all flex items-center gap-1"
+            className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white font-bold text-xs border border-slate-800 transition-all flex items-center gap-1"
           >
             <ChevronLeft className="w-4 h-4" />
-            <span>Previous</span>
+            <span>Prev</span>
           </button>
 
-          <span className="text-xs text-slate-400 font-semibold hidden sm:inline">
-            Use <strong className="text-white font-mono">←</strong> <strong className="text-white font-mono">→</strong> keys to navigate
-          </span>
+          <button
+            onClick={onClose}
+            className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-rose-950/60 text-slate-400 hover:text-rose-300 font-bold text-xs border border-slate-800 hover:border-rose-800/60 transition-all flex items-center gap-1"
+          >
+            <X className="w-3.5 h-3.5" />
+            <span>Close Guide</span>
+          </button>
 
           <button
-            onClick={handleNext}
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-orange to-amber-600 hover:from-orange-500 hover:to-amber-700 text-white font-extrabold text-xs shadow-orange-glow transition-all flex items-center gap-1 hover:scale-105"
+            onClick={currentStep === steps.length - 1 ? onClose : handleNext}
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-brand-orange to-amber-600 hover:from-orange-500 hover:to-amber-700 text-white font-extrabold text-xs shadow-orange-glow transition-all flex items-center gap-1 hover:scale-105"
           >
-            <span>{currentStep === steps.length - 1 ? 'Finish Guide' : 'Next Step'}</span>
+            <span>{currentStep === steps.length - 1 ? 'Finish & Exit' : 'Next Step'}</span>
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
