@@ -111,7 +111,16 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout, isAdmin: user?.role === 'admin' }}>
+    <AuthContext.Provider value={{
+      user,
+      token,
+      loading,
+      login,
+      register,
+      logout,
+      isAdmin: user?.role === 'admin' || user?.role === 'superadmin',
+      isSuperAdmin: user?.role === 'superadmin' || user?.email?.toLowerCase() === 'olaronke@topfaith.edu.ng' || user?.isOwner === true
+    }}>
       {children}
     </AuthContext.Provider>
   );
