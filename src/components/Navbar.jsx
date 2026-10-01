@@ -7,7 +7,7 @@ import { useSocket } from '../context/SocketContext';
 export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdminView, onOpenMyOrders, onOpenChangePassword, onOpenHowToUse }) {
   const { user, logout, isAdmin } = useAuth();
   const { totalQuantityCount, setIsCartOpen } = useCart();
-  const { isConnected, notifications } = useSocket();
+  const { isConnected, isOnline, notifications } = useSocket();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -34,8 +34,8 @@ export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdmi
                 </span>
               </div>
               <p className="text-xs text-slate-400 font-medium flex items-center gap-1.5">
-                <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-brand-lemon-glow animate-ping' : 'bg-amber-400'}`}></span>
-                {isConnected ? 'Kitchen Live Sync' : 'Connecting to Kitchen...'}
+                <span className={`w-2 h-2 rounded-full ${!isOnline ? 'bg-rose-500 animate-pulse' : isConnected ? 'bg-brand-lemon-glow animate-ping' : 'bg-amber-400'}`}></span>
+                {!isOnline ? 'Network Reconnecting...' : isConnected ? 'Kitchen Live Sync' : 'Connecting to Kitchen...'}
               </p>
             </div>
           </div>

@@ -25,11 +25,30 @@ export function SocketProvider({ children }) {
       localStorage.setItem('olaronke_custom_dishes', JSON.stringify(dishes));
     } catch (e) {}
   }, [dishes]);
+  const [isOnline, setIsOnline] = useState(typeof window !== 'undefined' ? navigator.onLine : true);
   const [notifications, setNotifications] = useState([]);
   const [pushPermission, setPushPermission] = useState(
     typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'default'
   );
   const { user } = useAuth();
+
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      refreshDishes();
+    };
+    const handleOffline = () => {
+      setIsOnline(false);
+      setIsConnected(false);
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   const requestPushPermission = async () => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
@@ -163,16 +182,21 @@ export function SocketProvider({ children }) {
   }, [user, socket, isConnected]);
 
   const refreshDishes = async () => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
     try {
-      const res = await fetch('/api/dishes');
+      const res = await fetch('/api/dishes', { signal: controller.signal });
+      clearTimeout(timeoutId);
+
       if (res.ok) {
         setIsConnected(true);
+        setIsOnline(true);
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
           setDishes(prev => {
             const merged = data.map(serverDish => {
               const localDish = prev.find(d => d.id === serverDish.id);
-              // Preserve admin uploaded custom image if server instance re-loaded default
               if (localDish && localDish.image && localDish.image !== serverDish.image && (localDish.image.startsWith('data:') || localDish.image.startsWith('http') || localDish.image.includes('/images/'))) {
                 return { ...serverDish, image: localDish.image };
               }
@@ -186,7 +210,12 @@ export function SocketProvider({ children }) {
         }
       }
     } catch (err) {
-      console.warn('Refresh dishes failed:', err);
+      clearTimeout(timeoutId);
+      if (err.name === 'AbortError') {
+        console.warn('Network request timed out on weak connection.');
+      } else {
+        console.warn('Refresh dishes failed:', err);
+      }
     }
   };
 
@@ -209,6 +238,7 @@ export function SocketProvider({ children }) {
     <SocketContext.Provider value={{
       socket,
       isConnected,
+      isOnline,
       dishes,
       setDishes,
       refreshDishes,
