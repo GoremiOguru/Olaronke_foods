@@ -125,7 +125,7 @@ export default function AuthModal({ isOpen, onClose }) {
         </div>
 
         {/* Tab Selection Bar */}
-        <div className="grid grid-cols-4 bg-slate-950 border-b border-slate-800 text-[11px] font-bold text-slate-400">
+        <div className="grid grid-cols-3 bg-slate-950 border-b border-slate-800 text-[11px] font-bold text-slate-400">
           <button
             type="button"
             onClick={() => { setMode('login'); setError(''); setSuccessMsg(''); setEmail(''); setPassword(''); }}
@@ -157,22 +157,7 @@ export default function AuthModal({ isOpen, onClose }) {
               mode === 'admin-login' ? 'border-brand-lemon text-brand-lemon-glow bg-slate-900' : 'border-transparent hover:text-slate-200'
             }`}
           >
-            Admin Sign In
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setMode('admin-register');
-              setError('');
-              setSuccessMsg('');
-              setEmail('');
-              setPassword('');
-            }}
-            className={`py-3 text-center transition-colors border-b-2 ${
-              mode === 'admin-register' ? 'border-brand-lemon text-brand-lemon-glow bg-slate-900' : 'border-transparent hover:text-slate-200'
-            }`}
-          >
-            Admin Signup
+            Staff Sign In
           </button>
         </div>
 
