@@ -89,7 +89,7 @@ export function SocketProvider({ children }) {
 
     // Listen for new student orders (Notify Admin Staff on phone & browser)
     newSocket.on('order:new', (newOrder) => {
-      if (user && user.role === 'admin') {
+      if (user && (user.role === 'admin' || user.role === 'superadmin')) {
         const toast = {
           id: Date.now(),
           title: `🚨 New Order #${newOrder.id}`,
@@ -116,7 +116,7 @@ export function SocketProvider({ children }) {
 
     // Listen for order status updates
     newSocket.on('order:status_updated', (updatedOrder) => {
-      if (user && (updatedOrder.studentId === user.id || user.role === 'admin')) {
+      if (user && (updatedOrder.studentId === user.id || user.role === 'admin' || user.role === 'superadmin')) {
         const toast = {
           id: Date.now(),
           title: `Order #${updatedOrder.id} Status Updated`,
@@ -166,6 +166,7 @@ export function SocketProvider({ children }) {
     try {
       const res = await fetch('/api/dishes');
       if (res.ok) {
+        setIsConnected(true);
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
           setDishes(prev => {

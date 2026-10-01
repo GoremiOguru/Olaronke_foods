@@ -25,7 +25,7 @@ function authenticateToken(req, res, next) {
 }
 
 function requireAdmin(req, res, next) {
-  if (req.user?.role !== 'admin') {
+  if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin') {
     return res.status(403).json({ message: 'Access denied. Administrator privileges required.' });
   }
   next();
@@ -146,9 +146,7 @@ app.post(['/api/auth/login', '/auth/login'], (req, res) => {
   }
 
   if (user && isAdminEmail && !bcrypt.compareSync(password, user.passwordHash)) {
-    // Auto-update staff/admin password hash on login so staff or owner is never locked out
-    user.passwordHash = bcrypt.hashSync(password, bcrypt.genSaltSync(10));
-    saveDB(db);
+    // If account was previously auto-provisioned or reset with a different password, strictly require valid password match
   }
 
   if (!user || !bcrypt.compareSync(password, user.passwordHash)) {
@@ -264,11 +262,12 @@ app.post(['/api/auth/change-password', '/auth/change-password'], authenticateTok
 app.get(['/api/admin/staff', '/admin/staff'], authenticateToken, requireAdmin, (req, res) => {
   const db = loadDB();
   const staffList = db.users
-    .filter(u => u.role === 'admin')
+    .filter(u => u.role === 'admin' || u.role === 'superadmin')
     .map(u => ({
       id: u.id,
       name: u.name,
       email: u.email,
+      role: u.role,
       lastLogin: u.lastLogin || u.createdAt
     }));
 
@@ -355,7 +354,7 @@ app.delete(['/api/dishes/:id', '/dishes/:id'], authenticateToken, requireAdmin, 
 // -------------------------------------------------------------
 app.get(['/api/orders', '/orders'], authenticateToken, (req, res) => {
   const db = loadDB();
-  if (req.user.role === 'admin') {
+  if (req.user.role === 'admin' || req.user.role === 'superadmin') {
     const sorted = [...db.orders].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     return res.json(sorted);
   } else {
