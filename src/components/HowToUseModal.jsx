@@ -1,25 +1,37 @@
 import React, { useState, useEffect } from 'react';
-import { X, ChevronLeft, ChevronRight, HelpCircle, Sparkles, UtensilsCrossed, ShieldCheck, Flame, Package, MapPin, Key, Printer, Phone, CheckCircle2, Play, Pause, Eye } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, HelpCircle, Sparkles, UtensilsCrossed, ShieldCheck, Flame, Package, MapPin, Key, Printer, Phone, CheckCircle2, Play, Pause, Eye, ArrowRight, Zap, MousePointer } from 'lucide-react';
+import { useCart } from '../context/CartContext';
 
-export default function HowToUseModal({ isOpen, onClose, onOpenAdmin }) {
-  const [roleMode, setRoleMode] = useState('student'); // 'student' | 'admin'
+export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
+  const { setIsCartOpen } = useCart();
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+
+  // Sync mode on open
+  useEffect(() => {
+    setCurrentStep(0);
+  }, [mode, isOpen]);
 
   const studentSteps = [
     {
       id: 'step-menu',
       targetId: 'catalog-section',
-      title: "1. Live Kitchen Menu & Scoop Counters",
+      title: "1. Live Kitchen Menu & Stock Countdown",
       badge: "Real-Time Inventory",
       color: "from-brand-orange to-amber-500",
-      description: "Browse authentic Nigerian meals updated live from the kitchen. Watch scoop counters auto-deduct in real-time. Rice & Meat start at ₦500/scoop, and Sweet Fried Plantain Dodo is ₦100 per piece!",
+      description: "Browse authentic Nigerian meals updated live from cafeteria pots. Scoop counters auto-deduct in real-time across student screens. Smoky Jollof starts at ₦500/scoop, and Sweet Fried Plantain Dodo is ₦100 per piece!",
       image: "/images/student_guide.jpg",
+      actionText: "🔍 Scroll & Highlight Menu Catalog",
       bullets: [
-        "🔥 Live portions counter shows exact scoops left in cafeteria pots",
-        "🍌 Plantain Dodo available at ₦100 per piece",
-        "🔍 Search Jollof, Chicken, Egusi, Swallow, or cold Zobo drinks instantly"
-      ]
+        "🔥 Portion counters deduct live in real-time as meals are ordered",
+        "🍌 Sweet Fried Plantain Dodo available at ₦100 per piece",
+        "🥤 Chilled bottle drinks (Coke 50cl ₦600, Viju Milk ₦500, Zobo ₦500)"
+      ],
+      action: () => {
+        onClose();
+        const el = document.getElementById('catalog-section');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }
     },
     {
       id: 'step-plate',
@@ -27,55 +39,75 @@ export default function HowToUseModal({ isOpen, onClose, onOpenAdmin }) {
       title: "2. Takeout Plates & 5-Scoop Rule",
       badge: "Smart Packaging",
       color: "from-brand-lemon to-lime-500",
-      description: "To keep food fresh, 1 Takeout Plate holds a maximum of 5 scoops of rice. Select your desired container size: Small (₦100), Medium (₦200), or Large (₦300).",
+      description: "To keep food organized, 1 Takeout Plate holds a maximum of 5 scoops of rice. Select your desired container size: Small (₦100), Medium (₦200), or Large (₦300).",
       image: "/images/jollof_rice.png",
+      actionText: "🍱 Open Takeout Tray & Plates",
       bullets: [
         "🍱 Automatic multi-plate organizer splits rice into 5-scoop plates",
         "💰 Choose Small (₦100), Medium (₦200), or Large (₦300) takeout packs",
         "🛒 Easily adjust item quantities per plate"
-      ]
+      ],
+      action: () => {
+        onClose();
+        setIsCartOpen(true);
+      }
     },
     {
       id: 'step-fulfillment',
       targetId: 'catalog-section',
-      title: "3. Cafeteria Pickup or Campus Hostel Delivery",
+      title: "3. Cafeteria Pickup or Topfaith Hostel Delivery",
       badge: "Topfaith Hostels",
       color: "from-sky-400 to-blue-600",
       description: "Choose between quick Cafeteria Pickup or doorstep delivery to any of the 4 Topfaith University hostels (+₦500 delivery fee).",
       image: "/images/amala_ewedu.png",
+      actionText: "🏫 Select Topfaith Hostels",
       bullets: [
-        "🏫 Official Hostels: Clock Hall, Thomas Abraham Hall, Psalm One Hall & Maryam Abraham Hall",
+        "🏫 4 Hostels: Clock Hall, Thomas Abraham Hall, Psalm One Hall & Maryam Abraham Hall",
         "🚪 Specify your room number for direct room delivery",
-        "📱 Provide your WhatsApp number so delivery staff can contact you"
-      ]
+        "📱 Enter your WhatsApp number so delivery staff can reach you"
+      ],
+      action: () => {
+        onClose();
+        setIsCartOpen(true);
+      }
     },
     {
       id: 'step-pickup-code',
       targetId: 'hero-section',
-      title: "4. Secret 3-Digit Pickup Code & WhatsApp Receipt",
+      title: "4. Secret 3-Digit Pickup Code & WhatsApp Confirmation",
       badge: "Secure Verification",
       color: "from-amber-400 to-orange-500",
       description: "Every order generates a unique, secret 3-digit code (e.g. #582). Forward your bank transfer payment proof to vendor staff via WhatsApp with 1 tap!",
       image: "/images/student_guide.jpg",
+      actionText: "💬 View WhatsApp Confirmation Demo",
       bullets: [
         "🔑 Secret 3-digit code prevents anyone else from claiming your meal",
         "💬 Direct 1-tap WhatsApp forwarding to vendor staff (Isaac)",
-        "💳 Bank transfer details provided with 1-click copy account number"
-      ]
+        "💳 Copy Moniepoint/OPay account details with 1 tap"
+      ],
+      action: () => {
+        onClose();
+        const el = document.getElementById('hero-section');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }
     },
     {
       id: 'step-receipt',
       targetId: 'catalog-section',
       title: "5. Payment Confirmation & Official E-Receipt",
-      badge: "Receipt Verification",
+      badge: "Receipt Safeguards",
       color: "from-emerald-400 to-green-600",
-      description: "New receipts show 'UNVERIFIED PAYMENT' until staff verifies bank transfer. Once approved, your receipt upgrades to 'PAID & VERIFIED' for instant meal pickup or print out.",
+      description: "New receipts display 'UNVERIFIED PAYMENT' until staff verifies bank transfer. Once approved, your receipt upgrades to 'PAID & VERIFIED' for instant meal pickup or print out.",
       image: "/images/compay logo.jpeg",
+      actionText: "🖨️ View Official E-Receipt Sample",
       bullets: [
         "⚠️ Unverified watermark prevents fake payment claims",
         "✅ Real-time badge upgrade when staff approves bank transfer",
         "🖨️ Download or print official receipt anytime from 'My Orders'"
-      ]
+      ],
+      action: () => {
+        onClose();
+      }
     }
   ];
 
@@ -83,48 +115,61 @@ export default function HowToUseModal({ isOpen, onClose, onOpenAdmin }) {
     {
       id: 'admin-stock',
       targetId: 'admin-panel',
-      title: "1. Staff Live Stock & Inventory Control",
-      badge: "Staff Controls",
+      title: "1. Staff Portion & Stock Inventory Control",
+      badge: "Staff Kitchen Control",
       color: "from-brand-lemon to-emerald-500",
-      description: "Kitchen staff can adjust remaining scoops or toggle items 'Out of Stock' with 1 tap during busy cafeteria hours. Stock updates instantly for all students.",
+      description: "Kitchen staff can adjust remaining scoops or toggle items 'Out of Stock' with 1 tap during busy cafeteria hours. Stock updates instantly across all student screens.",
       image: "/images/admin_guide.jpg",
+      actionText: "⚡ Focus Live Stock Toggles",
       bullets: [
         "⚡ 1-Tap Available / Out of Stock toggle switches",
         "🍲 Edit portion quantities live as new batches are cooked",
-        "➕ Add new dishes or drinks to the menu in seconds"
-      ]
+        "🖼️ Upload actual dish & bottle photos permanently"
+      ],
+      action: () => {
+        onClose();
+      }
     },
     {
       id: 'admin-verification',
       targetId: 'admin-panel',
-      title: "2. Payment Verification & Order Queue",
-      badge: "Bank Transfer Verification",
+      title: "2. Bank Transfer Verification & Order Queue",
+      badge: "Payment Verification",
       color: "from-amber-500 to-orange-600",
       description: "View incoming student orders in real time. Verify bank transfer receipts sent via WhatsApp and tap 'Confirm Payment & Cook' to validate order receipts.",
       image: "/images/admin_guide.jpg",
+      actionText: "✅ Focus Order Queue",
       bullets: [
         "✅ Tap 'Confirm Payment' to convert student receipt from Draft to PAID",
         "📱 Direct 'WhatsApp Student' button to contact student instantly",
         "🚚 Clear hostel room badges for doorstep delivery orders"
-      ]
+      ],
+      action: () => {
+        onClose();
+      }
     },
     {
       id: 'admin-settings',
       targetId: 'admin-panel',
-      title: "3. Vendor Bank Settings & Receipt Printing",
-      badge: "Store Management",
+      title: "3. Vendor Bank Account & Receipt Printing",
+      badge: "Store Settings",
       color: "from-purple-500 to-indigo-600",
       description: "Update vendor bank account details (Moniepoint/OPay), WhatsApp staff name/number, and print hardcopy receipts for cafeteria accounting.",
       image: "/images/admin_guide.jpg",
+      actionText: "💳 Focus Vendor Settings",
       bullets: [
         "💳 Set active bank account name and account number",
         "🖨️ Print official e-receipts for cafeteria record-keeping",
         "🔒 Secure staff PIN authentication"
-      ]
+      ],
+      action: () => {
+        onClose();
+      }
     }
   ];
 
-  const steps = roleMode === 'student' ? studentSteps : adminSteps;
+  const isStaffMode = mode === 'admin';
+  const steps = isStaffMode ? adminSteps : studentSteps;
 
   // Auto-play timer
   useEffect(() => {
@@ -147,7 +192,7 @@ export default function HowToUseModal({ isOpen, onClose, onOpenAdmin }) {
         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
-  }, [currentStep, isOpen, roleMode]);
+  }, [currentStep, isOpen, steps]);
 
   if (!isOpen) return null;
 
@@ -162,22 +207,25 @@ export default function HowToUseModal({ isOpen, onClose, onOpenAdmin }) {
   const activeStep = steps[currentStep] || steps[0];
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-3 sm:p-6 bg-slate-950/85 backdrop-blur-xl animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-3 sm:p-6 bg-slate-950/85 backdrop-blur-2xl animate-in fade-in duration-300">
       
-      {/* Background Focus Spotlight Overlay */}
+      {/* Background Focus Spotlight Overlay Container */}
       <div className="relative w-full max-w-2xl bg-slate-900/95 border-2 border-slate-700/80 rounded-3xl shadow-2xl overflow-hidden text-white backdrop-blur-2xl transition-all duration-300">
         
         {/* Header Bar */}
         <div className="bg-slate-950 px-6 py-4 flex items-center justify-between border-b border-slate-800">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-orange to-brand-lemon flex items-center justify-center shadow-orange-glow">
-              <HelpCircle className="w-5 h-5 text-slate-950 stroke-[2.5]" />
+            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black shadow-lg ${
+              isStaffMode ? 'bg-gradient-to-tr from-brand-lemon to-emerald-500 text-slate-950 shadow-lemon-glow' : 'bg-gradient-to-tr from-brand-orange to-brand-lemon text-slate-950 shadow-orange-glow'
+            }`}>
+              {isStaffMode ? <ShieldCheck className="w-5 h-5 stroke-[2.5]" /> : <HelpCircle className="w-5 h-5 stroke-[2.5]" />}
             </div>
             <div>
               <h3 className="text-lg font-black text-white flex items-center gap-2">
-                How to Use B'feastas <Sparkles className="w-4 h-4 text-brand-lemon-glow animate-pulse" />
+                {isStaffMode ? "🛡️ Vendor Staff & Kitchen Guide" : "🎓 Student Ordering Guide"}
+                <Sparkles className="w-4 h-4 text-brand-lemon-glow animate-pulse" />
               </h3>
-              <p className="text-[11px] text-slate-400">Interactive Visual Tour & App Guide</p>
+              <p className="text-[11px] text-slate-400">Interactive Guided Tour & App Assist</p>
             </div>
           </div>
 
@@ -202,39 +250,6 @@ export default function HowToUseModal({ isOpen, onClose, onOpenAdmin }) {
               <X className="w-5 h-5" />
             </button>
           </div>
-        </div>
-
-        {/* Role Switcher Tabs (Student vs Vendor Staff) */}
-        <div className="bg-slate-950/60 p-2 border-b border-slate-800 flex items-center justify-center gap-2">
-          <button
-            onClick={() => {
-              setRoleMode('student');
-              setCurrentStep(0);
-            }}
-            className={`flex-1 py-2 px-4 rounded-xl text-xs font-black transition-all flex items-center justify-center space-x-2 ${
-              roleMode === 'student'
-                ? 'bg-gradient-to-r from-brand-orange to-amber-500 text-white shadow-orange-glow scale-[1.02]'
-                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
-            }`}
-          >
-            <UtensilsCrossed className="w-4 h-4" />
-            <span>🎓 Student Ordering Guide</span>
-          </button>
-
-          <button
-            onClick={() => {
-              setRoleMode('admin');
-              setCurrentStep(0);
-            }}
-            className={`flex-1 py-2 px-4 rounded-xl text-xs font-black transition-all flex items-center justify-center space-x-2 ${
-              roleMode === 'admin'
-                ? 'bg-gradient-to-r from-brand-lemon to-emerald-500 text-slate-950 shadow-lemon-glow scale-[1.02]'
-                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
-            }`}
-          >
-            <ShieldCheck className="w-4 h-4" />
-            <span>🛡️ Staff & Admin Guide</span>
-          </button>
         </div>
 
         {/* Active Step Progress Indicators */}
@@ -290,7 +305,7 @@ export default function HowToUseModal({ isOpen, onClose, onOpenAdmin }) {
           </div>
 
           {/* Key Bullet Features */}
-          <div className="bg-slate-950/80 p-4 rounded-2xl border border-slate-800 space-y-2">
+          <div className="bg-slate-950/80 p-4 rounded-2xl border border-slate-800 space-y-3">
             <h5 className="text-xs font-extrabold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5" /> Key Feature Highlights:
             </h5>
@@ -302,6 +317,19 @@ export default function HowToUseModal({ isOpen, onClose, onOpenAdmin }) {
                 </li>
               ))}
             </ul>
+
+            {/* Interactive Try Feature Button */}
+            {activeStep.action && (
+              <div className="pt-2 border-t border-slate-800/80">
+                <button
+                  onClick={activeStep.action}
+                  className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-brand-orange to-amber-600 hover:from-orange-500 hover:to-amber-700 text-white font-black text-xs transition-all shadow-md flex items-center justify-center gap-2 hover:scale-[1.01]"
+                >
+                  <MousePointer className="w-4 h-4" />
+                  <span>{activeStep.actionText || 'Try This Feature Now'}</span>
+                </button>
+              </div>
+            )}
           </div>
 
         </div>

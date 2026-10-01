@@ -26,6 +26,12 @@ export default function App() {
   const [isMyOrdersOpen, setIsMyOrdersOpen] = useState(false);
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
   const [isHowToUseOpen, setIsHowToUseOpen] = useState(false);
+  const [howToUseMode, setHowToUseMode] = useState('student');
+
+  const openHowToUse = (mode = 'student') => {
+    setHowToUseMode(mode);
+    setIsHowToUseOpen(true);
+  };
 
   const handleSetAdminView = (val) => {
     setIsAdminView(val);
@@ -52,16 +58,16 @@ export default function App() {
         setIsAdminView={handleSetAdminView}
         onOpenMyOrders={() => setIsMyOrdersOpen(true)}
         onOpenChangePassword={() => setIsChangePasswordOpen(true)}
-        onOpenHowToUse={() => setIsHowToUseOpen(true)}
+        onOpenHowToUse={() => openHowToUse(isAdminView ? 'admin' : 'student')}
       />
 
       {/* Main Content Area: Switch between Admin Dashboard and Student View */}
       <main className="flex-1">
         {isAdminView && isAdmin ? (
-          <AdminDashboard onOpenHowToUse={() => setIsHowToUseOpen(true)} />
+          <AdminDashboard onOpenHowToUse={() => openHowToUse('admin')} />
         ) : (
           <>
-            <Hero onExploreClick={scrollToCatalog} onOpenHowToUse={() => setIsHowToUseOpen(true)} />
+            <Hero onExploreClick={scrollToCatalog} onOpenHowToUse={() => openHowToUse('student')} />
             <DishCatalog />
           </>
         )}
@@ -73,11 +79,11 @@ export default function App() {
       <WhatsAppModal />
       <MyOrdersModal isOpen={isMyOrdersOpen} onClose={() => setIsMyOrdersOpen(false)} />
       <ChangePasswordModal isOpen={isChangePasswordOpen} onClose={() => setIsChangePasswordOpen(false)} />
-      <HowToUseModal isOpen={isHowToUseOpen} onClose={() => setIsHowToUseOpen(false)} onOpenAdmin={() => handleSetAdminView(true)} />
+      <HowToUseModal isOpen={isHowToUseOpen} onClose={() => setIsHowToUseOpen(false)} mode={howToUseMode} />
       <NotificationToast />
 
       {/* Footer */}
-      <Footer onOpenHowToUse={() => setIsHowToUseOpen(true)} />
+      <Footer onOpenHowToUse={() => openHowToUse(isAdminView ? 'admin' : 'student')} />
 
     </div>
   );

@@ -8,7 +8,23 @@ const SocketContext = createContext();
 export function SocketProvider({ children }) {
   const [socket, setSocket] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
-  const [dishes, setDishes] = useState(defaultDishes);
+  const [dishes, setDishes] = useState(() => {
+    try {
+      const saved = localStorage.getItem('olaronke_custom_dishes');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return defaultDishes;
+  });
+
+  // Save custom dish edits & images to localStorage for persistent state across refreshes & serverless cold starts
+  useEffect(() => {
+    try {
+      localStorage.setItem('olaronke_custom_dishes', JSON.stringify(dishes));
+    } catch (e) {}
+  }, [dishes]);
   const [notifications, setNotifications] = useState([]);
   const [pushPermission, setPushPermission] = useState(
     typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'default'
@@ -152,7 +168,20 @@ export function SocketProvider({ children }) {
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
-          setDishes(data);
+          setDishes(prev => {
+            const merged = data.map(serverDish => {
+              const localDish = prev.find(d => d.id === serverDish.id);
+              // Preserve admin uploaded custom image if server instance re-loaded default
+              if (localDish && localDish.image && localDish.image !== serverDish.image && (localDish.image.startsWith('data:') || localDish.image.startsWith('http') || localDish.image.includes('/images/'))) {
+                return { ...serverDish, image: localDish.image };
+              }
+              return serverDish;
+            });
+            try {
+              localStorage.setItem('olaronke_custom_dishes', JSON.stringify(merged));
+            } catch (e) {}
+            return merged;
+          });
         }
       }
     } catch (err) {
