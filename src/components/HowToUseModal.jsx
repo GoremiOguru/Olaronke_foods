@@ -92,6 +92,25 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
       }
     },
     {
+      id: 'step-preorder',
+      targetId: 'catalog-section',
+      title: "4. Off-Peak Pre-Orders & Time Slots",
+      badge: "Pre-Order Scheduled",
+      color: "from-brand-orange to-amber-500",
+      description: "Pre-order your lunch during morning lectures! Select your preferred time slot (e.g. 12:30 PM Lunch Break, 1:15 PM Afternoon, or 2:00 PM Post-Lecture) so kitchen staff prep your takeout plate in advance.",
+      image: "/images/student_guide.jpg",
+      actionText: "Open Cart & Select Time Slot",
+      bullets: [
+        "Select preferred lunch pickup time during checkout",
+        "Avoid lunch rush queues by scheduling meals in advance",
+        "Add 1-tap Cold Zobo (+₦500) or Sweet Dodo (+₦200) upsells"
+      ],
+      action: () => {
+        onClose();
+        setIsCartOpen(true);
+      }
+    },
+    {
       id: 'step-receipt',
       targetId: 'catalog-section',
       title: "5. Payment Confirmation & E-Receipt",
@@ -113,9 +132,27 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
 
   const adminSteps = [
     {
+      id: 'admin-kds',
+      targetId: 'admin-panel',
+      title: "1. Kitchen KDS Full-Screen Tablet View",
+      badge: "Wall Tablet KDS",
+      color: "from-brand-orange to-amber-600",
+      description: "Launch the full-screen Kitchen Display System (KDS) on wall tablets or kitchen TVs. Cards organize automatically into 3 columns: Awaiting Payment, Cooking, and Ready.",
+      image: "/images/admin_guide.jpg",
+      actionText: "Launch KDS Tablet View",
+      bullets: [
+        "🔴 Awaiting Payment: 1-Tap 'Verify Payment & Cook'",
+        "🟡 Cooking: 1-Tap 'Mark Packed & Ready'",
+        "🟢 Ready: Large 3-digit pickup codes (#582) for counter staff"
+      ],
+      action: () => {
+        onClose();
+      }
+    },
+    {
       id: 'admin-stock',
       targetId: 'admin-panel',
-      title: "1. Portion & Stock Inventory Management",
+      title: "2. Portion & Stock Inventory Management",
       badge: "Kitchen Control",
       color: "from-brand-lemon to-emerald-500",
       description: "Kitchen staff can adjust remaining scoops or toggle items Out of Stock instantly during cafeteria hours. Stock updates live across all connected screens.",
@@ -131,36 +168,36 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
       }
     },
     {
-      id: 'admin-verification',
+      id: 'admin-qr',
       targetId: 'admin-panel',
-      title: "2. Transfer Verification & Order Queue",
-      badge: "Payment Verification",
-      color: "from-amber-500 to-orange-600",
-      description: "View incoming student orders in real time. Verify bank transfer receipts sent via WhatsApp and click Confirm Payment & Cook to validate orders.",
+      title: "3. Printable Cafeteria Table QR Cards",
+      badge: "QR Tent Cards",
+      color: "from-sky-400 to-blue-600",
+      description: "Generate and print branded QR code tent cards for cafeteria tables and counter stands. Students scan with their phone cameras to order without app installs.",
       image: "/images/admin_guide.jpg",
-      actionText: "View Order Queue",
+      actionText: "Generate Table QR Cards",
       bullets: [
-        "Click Confirm Payment to convert student receipts from Draft to PAID",
-        "Direct WhatsApp Student button to reach students instantly",
-        "Clear hostel room indicators for doorstep delivery orders"
+        "Print high-resolution QR tent cards for cafeteria tables",
+        "Instant camera scanning opens live menu on student phones",
+        "1-Click Copy QR scan link for WhatsApp broadcasting"
       ],
       action: () => {
         onClose();
       }
     },
     {
-      id: 'admin-settings',
+      id: 'admin-summary',
       targetId: 'admin-panel',
-      title: "3. Cafeteria Account & Receipt Printing",
-      badge: "Store Settings",
-      color: "from-purple-500 to-indigo-600",
-      description: "Update vendor bank account details, WhatsApp staff contact information, and print paper receipts for cafeteria accounting.",
+      title: "4. Daily Cashflow WhatsApp Summary",
+      badge: "Financial Report",
+      color: "from-emerald-500 to-teal-600",
+      description: "At closing time, click 'Cashflow Summary' to auto-calculate total daily revenue, bank transfer totals, packaging fees, and delivery fees, and forward directly to the owner's WhatsApp.",
       image: "/images/admin_guide.jpg",
-      actionText: "View Cafeteria Settings",
+      actionText: "Generate Daily WhatsApp Report",
       bullets: [
-        "Set active bank account name and account number",
-        "Print official receipts for cafeteria record-keeping",
-        "Secure staff account management"
+        "Auto-calculates total daily revenue & verified order count",
+        "Itemizes packaging container fees & hostel delivery earnings",
+        "1-Click WhatsApp delivery to Cafeteria Owner"
       ],
       action: () => {
         onClose();
