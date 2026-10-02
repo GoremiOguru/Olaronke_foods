@@ -20,6 +20,7 @@ export function CartProvider({ children }) {
   const [isHostelDelivery, setIsHostelDelivery] = useState(false);
   const [hostelAddress, setHostelAddress] = useState('');
   const [scheduledTime, setScheduledTime] = useState('ASAP'); // 'ASAP' | '12:30 PM' | '1:15 PM' | '2:00 PM' | '5:30 PM'
+  const [studentPhone, setStudentPhone] = useState('');
 
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [activeReceiptModal, setActiveReceiptModal] = useState(null);
@@ -31,7 +32,7 @@ export function CartProvider({ children }) {
     if (user?.phone && !studentPhone) {
       setStudentPhone(user.phone);
     }
-  }, [user]);
+  }, [user, studentPhone]);
   const { addNotification, refreshDishes } = useSocket();
   const { settings } = useSettings();
 
