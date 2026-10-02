@@ -298,13 +298,11 @@ app.get(['/api/dishes', '/dishes'], async (req, res) => {
           return res.json(data);
         } else {
           // Auto-seed Supabase database table with initial dish catalog if empty
-          (async () => {
-            try {
-              for (const dish of db.dishes) {
-                await saveSupabaseRecord('dishes', dish);
-              }
-            } catch (e) {}
-          })();
+          try {
+            for (const dish of db.dishes) {
+              await saveSupabaseRecord('dishes', dish);
+            }
+          } catch (e) {}
           return res.json(db.dishes);
         }
       }
@@ -325,7 +323,7 @@ app.post(['/api/dishes', '/dishes'], authenticateToken, requireAdmin, async (req
 
   const db = loadDB();
   const newDish = {
-    id: `dish-${Date.now()}`,
+    id: req.body.id || `dish-${Date.now()}`,
     name: name.trim(),
     description: description?.trim() || '',
     price: Number(price),
@@ -341,7 +339,7 @@ app.post(['/api/dishes', '/dishes'], authenticateToken, requireAdmin, async (req
   saveDB(db);
 
   if (isSupabaseConfigured) {
-    saveSupabaseRecord('dishes', newDish);
+    await saveSupabaseRecord('dishes', newDish);
   }
 
   return res.status(201).json(newDish);
@@ -374,7 +372,7 @@ app.patch(['/api/dishes/:id', '/dishes/:id'], authenticateToken, requireAdmin, a
   saveDB(db);
 
   if (isSupabaseConfigured) {
-    saveSupabaseRecord('dishes', dish);
+    await saveSupabaseRecord('dishes', dish);
   }
 
   return res.json(dish);
@@ -478,7 +476,7 @@ app.post(['/api/orders', '/orders'], authenticateToken, async (req, res) => {
     });
   }
 
-  sanitizedItems.forEach(item => {
+  for (const item of sanitizedItems) {
     const dish = db.dishes.find(d => d.id === item.dishId);
     if (dish) {
       dish.scoopsLeft = Math.max(0, dish.scoopsLeft - item.scoops);
@@ -486,10 +484,10 @@ app.post(['/api/orders', '/orders'], authenticateToken, async (req, res) => {
         dish.isAvailable = false;
       }
       if (isSupabaseConfigured) {
-        saveSupabaseRecord('dishes', dish);
+        await saveSupabaseRecord('dishes', dish);
       }
     }
-  });
+  }
 
   const activePlatesCount = Math.max(1, new Set(sanitizedItems.map(i => i.plateNumber || 1)).size);
   const perPackPrice = Number(plateSize) || db.settings.takeoutPrice || 300;
@@ -525,7 +523,7 @@ app.post(['/api/orders', '/orders'], authenticateToken, async (req, res) => {
   saveDB(db);
 
   if (isSupabaseConfigured) {
-    saveSupabaseRecord('orders', newOrder);
+    await saveSupabaseRecord('orders', newOrder);
   }
 
   return res.status(201).json(newOrder);
@@ -550,7 +548,7 @@ app.patch(['/api/orders/:id/status', '/orders/:id/status'], authenticateToken, r
   saveDB(db);
 
   if (isSupabaseConfigured) {
-    saveSupabaseRecord('orders', order);
+    await saveSupabaseRecord('orders', order);
   }
 
   return res.json(order);
@@ -613,7 +611,7 @@ app.patch(['/api/settings', '/settings'], authenticateToken, requireAdmin, async
   saveDB(db);
 
   if (isSupabaseConfigured) {
-    saveSupabaseRecord('settings', { id: 1, ...db.settings });
+    await saveSupabaseRecord('settings', { id: 1, ...db.settings });
   }
 
   return res.json(db.settings);
