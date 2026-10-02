@@ -480,6 +480,9 @@ app.patch(['/api/orders/:id/status', '/orders/:id/status'], authenticateToken, r
   if (!order) return res.status(404).json({ message: 'Order not found' });
 
   order.status = status;
+  if (status.includes('Confirmed') || status === 'Completed' || status === 'Paid' || status.includes('Preparing') || status.includes('Ready')) {
+    order.paymentConfirmed = true;
+  }
   order.confirmedByAdmin = req.user.name;
   saveDB(db);
 

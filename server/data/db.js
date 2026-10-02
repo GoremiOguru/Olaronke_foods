@@ -480,7 +480,7 @@ export function loadDB() {
   } else if (cachedDB) {
     dbToReturn = cachedDB;
   } else {
-    // 1. Try reading from /tmp/olaronke_database.json (persisted in warm serverless instances)
+    // 1. Try reading from /tmp/olaronke_database.json
     try {
       if (fs.existsSync(TMP_DB_FILE)) {
         const data = fs.readFileSync(TMP_DB_FILE, 'utf8');

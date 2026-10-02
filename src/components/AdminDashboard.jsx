@@ -114,6 +114,10 @@ export default function AdminDashboard({ onOpenHowToUse }) {
 
   useEffect(() => {
     fetchOrdersAndStaff();
+    const intervalId = setInterval(() => {
+      fetchOrdersAndStaff();
+    }, 3000);
+    return () => clearInterval(intervalId);
   }, [token]);
 
   useEffect(() => {
@@ -466,15 +470,15 @@ export default function AdminDashboard({ onOpenHowToUse }) {
             </div>
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:items-center gap-2 sm:gap-3 w-full lg:w-auto">
             {/* How to Use Staff Guide Button */}
             {typeof onOpenHowToUse === 'function' && (
               <button
                 onClick={onOpenHowToUse}
-                className="flex items-center space-x-1.5 px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 transition-all shadow-md"
+                className="flex items-center justify-center space-x-1.5 px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 transition-all shadow-md w-full sm:w-auto"
               >
-                <HelpCircle className="w-4 h-4 text-brand-lemon-glow" />
-                <span>Staff Manual</span>
+                <HelpCircle className="w-4 h-4 text-brand-lemon-glow shrink-0" />
+                <span className="truncate">Staff Manual</span>
               </button>
             )}
 
@@ -483,38 +487,38 @@ export default function AdminDashboard({ onOpenHowToUse }) {
               href="https://wa.me/2348057357728?text=Hello%20Tech%20Support,%20I'm%20a%20B'feastas%20staff/admin%20reporting%20an%20issue:"
               target="_blank"
               rel="noreferrer"
-              className="flex items-center space-x-1.5 px-4 py-2.5 rounded-xl text-xs font-extrabold bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 transition-all shadow-md"
+              className="flex items-center justify-center space-x-1.5 px-3 sm:px-4 py-2.5 rounded-xl text-xs font-extrabold bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 transition-all shadow-md w-full sm:w-auto"
               title="Message Technical Support on WhatsApp"
             >
-              <Bug className="w-4 h-4 text-rose-400" />
-              <span>Technical Support</span>
+              <Bug className="w-4 h-4 text-rose-400 shrink-0" />
+              <span className="truncate">Tech Support</span>
             </a>
 
             {/* Phone Home Screen Notification Button */}
             <button
               onClick={requestPushPermission}
-              className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md ${
+              className={`flex items-center justify-center space-x-1.5 px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md w-full sm:w-auto ${
                 pushPermission === 'granted'
                   ? 'bg-brand-lemon/20 text-brand-lemon-glow border border-brand-lemon/40'
                   : 'bg-brand-orange text-white hover:bg-orange-600 shadow-orange-glow'
               }`}
               title="Get notifications when new orders arrive"
             >
-              <Smartphone className="w-4 h-4" />
-              <BellRing className="w-4 h-4" />
-              <span>
+              <Smartphone className="w-4 h-4 shrink-0" />
+              <BellRing className="w-4 h-4 shrink-0" />
+              <span className="truncate">
                 {pushPermission === 'granted'
-                  ? 'Order Alerts On'
-                  : 'Enable Order Alerts'}
+                  ? 'Alerts On'
+                  : 'Order Alerts'}
               </span>
             </button>
 
             <button
               onClick={fetchOrdersAndStaff}
-              className="flex items-center space-x-2 bg-slate-900 hover:bg-slate-800 text-slate-200 px-4 py-2.5 rounded-xl text-xs font-bold border border-slate-800 transition-colors"
+              className="flex items-center justify-center space-x-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold border border-slate-800 transition-colors w-full sm:w-auto"
             >
-              <RefreshCw className="w-4 h-4 text-brand-lemon-glow" />
-              <span>Refresh Feed</span>
+              <RefreshCw className="w-4 h-4 text-brand-lemon-glow shrink-0" />
+              <span className="truncate">Refresh Feed</span>
             </button>
           </div>
         </div>

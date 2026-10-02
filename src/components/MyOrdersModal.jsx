@@ -140,19 +140,26 @@ export default function MyOrdersModal({ isOpen, onClose }) {
                     </div>
 
                     {/* Total & Action button */}
-                    <div className="flex items-center justify-between pt-3 border-t border-slate-800/80">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-800/80">
                       <div>
-                        <span className="text-[10px] uppercase font-bold text-slate-500 block">Total Paid</span>
+                        <span className="text-[10px] uppercase font-bold text-slate-500 block">Total Amount</span>
                         <span className="text-xl font-black text-white">₦{ord.totalPrice.toLocaleString()}</span>
                       </div>
 
-                      <button
-                        onClick={() => setSelectedReceiptOrder(ord)}
-                        className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 rounded-xl text-xs font-extrabold border border-amber-500/40 transition-colors flex items-center gap-1.5"
-                      >
-                        <Printer className="w-3.5 h-3.5" />
-                        <span>View / Print Receipt</span>
-                      </button>
+                      {Boolean(ord.paymentConfirmed || ord.status === 'Confirmed' || ord.status === 'Completed' || ord.status === 'Paid' || (ord.status && ord.status.includes('Preparing')) || (ord.status && ord.status.includes('Ready'))) ? (
+                        <button
+                          onClick={() => setSelectedReceiptOrder(ord)}
+                          className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-black shadow-md transition-colors flex items-center justify-center gap-1.5"
+                        >
+                          <Printer className="w-3.5 h-3.5" />
+                          <span>View & Print Official Receipt</span>
+                        </button>
+                      ) : (
+                        <div className="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-amber-500/30 text-[11px] text-amber-400 font-bold">
+                          <Clock className="w-3.5 h-3.5 text-amber-400 animate-pulse shrink-0" />
+                          <span>⏳ Receipt Locked until Payment Verified</span>
+                        </div>
+                      )}
                     </div>
 
                   </div>

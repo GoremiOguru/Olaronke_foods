@@ -438,17 +438,17 @@ export default function CartDrawer({ onOpenAuth }) {
 
                       <div>
                         <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                          Room / Door Number:
+                          Room / Door Number (Optional):
                         </label>
                         <input
                           type="text"
-                          required
                           value={hostelAddress.includes(',') ? hostelAddress.split(',')[1].trim() : (['Clock Hall', 'Thomas Abraham Hall', 'Psalm One Hall', 'Maryam Abraham Hall'].some(h => hostelAddress.startsWith(h)) ? '' : hostelAddress)}
                           onChange={(e) => {
                             const selectedHostel = ['Clock Hall', 'Thomas Abraham Hall', 'Psalm One Hall', 'Maryam Abraham Hall'].find(h => hostelAddress.startsWith(h)) || 'Clock Hall';
-                            setHostelAddress(`${selectedHostel}, ${e.target.value}`);
+                            const val = e.target.value;
+                            setHostelAddress(val ? `${selectedHostel}, ${val}` : selectedHostel);
                           }}
-                          placeholder="e.g. Room 204 or Block A Room 12"
+                          placeholder="e.g. Room 204 (Optional)"
                           className="w-full bg-slate-950 border border-slate-700 text-white px-3 py-2 rounded-xl text-xs focus:outline-none focus:border-sky-400 font-medium"
                         />
                       </div>

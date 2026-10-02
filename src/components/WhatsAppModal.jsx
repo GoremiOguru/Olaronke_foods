@@ -173,20 +173,32 @@ export default function WhatsAppModal() {
               <ExternalLink className="w-4 h-4 opacity-75" />
             </a>
 
-            {/* Step 2: Download / Print Official Receipt */}
+            {/* Step 2: Payment Verification Notice & E-Receipt Access */}
             <div className="pt-3 border-t border-slate-800 space-y-2">
               <p className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
                 <Printer className="w-4 h-4 text-amber-400" />
-                Step 2: Print / Download Official B'feastas E-Receipt
+                Step 2: Official Printable Receipt
               </p>
               
-              <button
-                onClick={() => setShowOfficialReceipt(true)}
-                className="w-full py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/40 font-extrabold text-xs shadow-md transition-all flex items-center justify-center space-x-2"
-              >
-                <Printer className="w-4 h-4" />
-                <span>🖨️ Download / Print Official Printable E-Receipt</span>
-              </button>
+              {Boolean(order?.paymentConfirmed || order?.status === 'Confirmed' || order?.status === 'Completed' || order?.status === 'Paid') ? (
+                <button
+                  onClick={() => setShowOfficialReceipt(true)}
+                  className="w-full py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-lg transition-all flex items-center justify-center space-x-2"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>🖨️ Download / Print Verified Official E-Receipt</span>
+                </button>
+              ) : (
+                <div className="bg-slate-950 p-3.5 rounded-2xl border border-amber-500/30 text-center space-y-1.5">
+                  <div className="flex items-center justify-center gap-1.5 text-amber-400 font-extrabold text-xs">
+                    <Clock className="w-4 h-4 animate-pulse text-amber-400" />
+                    <span>⏳ Payment Verification Pending</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 font-medium leading-relaxed">
+                    Official printable receipt will be unlocked in <strong>My Orders</strong> once Admin / Super Admin confirms your payment transfer.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="text-center pt-2">
