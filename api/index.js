@@ -287,19 +287,32 @@ app.get(['/api/admin/staff', '/admin/staff'], authenticateToken, requireAdmin, (
 // DISHES & INVENTORY ROUTES
 // -------------------------------------------------------------
 app.get(['/api/dishes', '/dishes'], async (req, res) => {
+  const db = loadDB();
+
   if (isSupabaseConfigured && supabase) {
     try {
       const { data, error } = await supabase.from('dishes').select('*');
-      if (!error && Array.isArray(data) && data.length > 0) {
-        const db = loadDB();
-        db.dishes = data;
-        return res.json(data);
+      if (!error && Array.isArray(data)) {
+        if (data.length > 0) {
+          db.dishes = data;
+          return res.json(data);
+        } else {
+          // Auto-seed Supabase database table with initial dish catalog if empty
+          (async () => {
+            try {
+              for (const dish of db.dishes) {
+                await saveSupabaseRecord('dishes', dish);
+              }
+            } catch (e) {}
+          })();
+          return res.json(db.dishes);
+        }
       }
     } catch (e) {
       console.warn('Supabase dishes fetch notice:', e.message);
     }
   }
-  const db = loadDB();
+
   return res.json(db.dishes);
 });
 

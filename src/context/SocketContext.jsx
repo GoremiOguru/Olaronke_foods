@@ -194,27 +194,10 @@ export function SocketProvider({ children }) {
         setIsOnline(true);
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
-          setDishes(prev => {
-            // Preserve custom dishes added locally that may not be on a cold-started Vercel function
-            const customDishesNotInServer = prev.filter(p => !data.some(s => s.id === p.id));
-
-            const mergedServerDishes = data.map(serverDish => {
-              const localDish = prev.find(d => d.id === serverDish.id);
-              if (!localDish) return serverDish;
-
-              // Live server data from Supabase takes precedence over cached local state
-              return {
-                ...localDish,
-                ...serverDish
-              };
-            });
-
-            const finalDishes = [...mergedServerDishes, ...customDishesNotInServer];
-            try {
-              localStorage.setItem('olaronke_custom_dishes', JSON.stringify(finalDishes));
-            } catch (e) {}
-            return finalDishes;
-          });
+          setDishes(data);
+          try {
+            localStorage.setItem('olaronke_custom_dishes', JSON.stringify(data));
+          } catch (e) {}
         }
       }
     } catch (err) {
