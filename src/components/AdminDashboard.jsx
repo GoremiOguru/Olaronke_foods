@@ -188,6 +188,41 @@ export default function AdminDashboard({ onOpenHowToUse }) {
     };
   }, [socket]);
 
+  // Helper function to compress heavy device camera photos before upload
+  const compressImageFile = (file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 800;
+
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.75));
+        };
+        img.onerror = () => resolve(e.target.result);
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
   // Handle uploading product image file directly from phone or laptop
   const handleFileUpload = async (e, isEditMode = false) => {
     const file = e.target.files[0];
@@ -202,40 +237,37 @@ export default function AdminDashboard({ onOpenHowToUse }) {
     setUploadSuccessMsg('');
 
     try {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64Data = reader.result;
+      const compressedBase64 = await compressImageFile(file);
 
-        const res = await fetch('/api/upload', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({ imageData: base64Data, fileName: file.name })
-        });
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ imageData: compressedBase64, fileName: file.name })
+      });
 
-        if (res.ok) {
-          const data = await res.json();
-          const uploadedUrl = data.imageUrl;
+      if (res.ok) {
+        const data = await res.json();
+        const uploadedUrl = data.imageUrl;
 
-          if (isEditMode && editingDish) {
-            setEditingDish(prev => ({ ...prev, image: uploadedUrl }));
-          } else {
-            setNewDish(prev => ({ ...prev, image: uploadedUrl }));
-          }
-
-          setUploadSuccessMsg('✅ Image uploaded successfully!');
-          setTimeout(() => setUploadSuccessMsg(''), 4000);
+        if (isEditMode && editingDish) {
+          setEditingDish(prev => ({ ...prev, image: uploadedUrl }));
         } else {
-          alert('Failed to upload image. Please try again.');
+          setNewDish(prev => ({ ...prev, image: uploadedUrl }));
         }
-        setUploadingImage(false);
-      };
-      reader.readAsDataURL(file);
+
+        setUploadSuccessMsg('✅ Image optimized & uploaded successfully!');
+        setTimeout(() => setUploadSuccessMsg(''), 4000);
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        alert(`Failed to upload image: ${errJson.message || 'Server error'}`);
+      }
     } catch (err) {
       console.error('Error during image upload:', err);
       alert('Error uploading image file.');
+    } finally {
       setUploadingImage(false);
     }
   };
