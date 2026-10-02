@@ -64,6 +64,7 @@ export default function DishCard({ dish }) {
       <div className="relative h-52 w-full overflow-hidden bg-slate-950">
         <img
           src={image || "/images/jollof_rice.png"}
+          onError={(e) => { e.target.onerror = null; e.target.src = "/images/jollof_rice.png"; }}
           alt={name}
           className={`w-full h-full object-cover transition-transform duration-500 ${
             isOutOfStock ? 'grayscale opacity-60' : 'group-hover:scale-110'
