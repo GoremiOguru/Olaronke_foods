@@ -195,17 +195,25 @@ export function SocketProvider({ children }) {
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
           setDishes(prev => {
-            const merged = data.map(serverDish => {
+            // Preserve custom dishes added locally that may not be on a cold-started Vercel function
+            const customDishesNotInServer = prev.filter(p => !data.some(s => s.id === p.id));
+
+            const mergedServerDishes = data.map(serverDish => {
               const localDish = prev.find(d => d.id === serverDish.id);
-              if (localDish && localDish.image && localDish.image !== serverDish.image && (localDish.image.startsWith('data:') || localDish.image.startsWith('http') || localDish.image.includes('/images/'))) {
-                return { ...serverDish, image: localDish.image };
-              }
-              return serverDish;
+              if (!localDish) return serverDish;
+
+              // Preserve local edits (availability toggle, scoops left, price, images) so serverless resets don't revert them
+              return {
+                ...serverDish,
+                ...localDish
+              };
             });
+
+            const finalDishes = [...mergedServerDishes, ...customDishesNotInServer];
             try {
-              localStorage.setItem('olaronke_custom_dishes', JSON.stringify(merged));
+              localStorage.setItem('olaronke_custom_dishes', JSON.stringify(finalDishes));
             } catch (e) {}
-            return merged;
+            return finalDishes;
           });
         }
       }

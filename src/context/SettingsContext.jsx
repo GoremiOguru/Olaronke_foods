@@ -28,13 +28,21 @@ export function SettingsProvider({ children }) {
   const refreshSettings = async () => {
     try {
       const res = await fetch('/api/settings');
+      let localObj = {};
+      try {
+        const saved = localStorage.getItem('olaronke_settings');
+        if (saved) localObj = JSON.parse(saved);
+      } catch (e) {}
+
       if (res.ok) {
         const data = await res.json();
         if (data && typeof data === 'object') {
-          const merged = { ...defaultSettings, ...data };
+          const merged = { ...defaultSettings, ...data, ...localObj };
           setSettings(merged);
           localStorage.setItem('olaronke_settings', JSON.stringify(merged));
         }
+      } else if (Object.keys(localObj).length > 0) {
+        setSettings(prev => ({ ...defaultSettings, ...prev, ...localObj }));
       }
     } catch (err) {
       console.warn('Failed to fetch settings from server:', err);

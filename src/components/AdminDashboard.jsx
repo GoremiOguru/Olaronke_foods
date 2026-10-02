@@ -38,10 +38,21 @@ export default function AdminDashboard({ onOpenHowToUse }) {
   const [settingsSuccessMsg, setSettingsSuccessMsg] = useState('');
 
   useEffect(() => {
+    try {
+      const saved = localStorage.getItem('olaronke_settings');
+      if (saved) setVendorSettings(prev => ({ ...prev, ...JSON.parse(saved) }));
+    } catch (e) {}
+
     fetch('/api/settings')
       .then(res => res.ok ? res.json() : null)
       .then(data => {
-        if (data) setVendorSettings(data);
+        if (data) {
+          setVendorSettings(prev => {
+            const merged = { ...prev, ...data };
+            try { localStorage.setItem('olaronke_settings', JSON.stringify(merged)); } catch (e) {}
+            return merged;
+          });
+        }
       })
       .catch(() => {});
   }, []);
@@ -51,6 +62,11 @@ export default function AdminDashboard({ onOpenHowToUse }) {
     setSavingSettings(true);
     setSettingsSuccessMsg('');
     try {
+      try {
+        localStorage.setItem('olaronke_settings', JSON.stringify(vendorSettings));
+        window.dispatchEvent(new Event('olaronke_settings_updated'));
+      } catch (e) {}
+
       const res = await fetch('/api/settings', {
         method: 'PATCH',
         headers: {
@@ -61,7 +77,13 @@ export default function AdminDashboard({ onOpenHowToUse }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Failed to update settings');
-      setVendorSettings(data);
+
+      const merged = { ...vendorSettings, ...(data || {}) };
+      setVendorSettings(merged);
+      try {
+        localStorage.setItem('olaronke_settings', JSON.stringify(merged));
+        window.dispatchEvent(new Event('olaronke_settings_updated'));
+      } catch (e) {}
       setSettingsSuccessMsg('🎉 Vendor Bank Account & Payment Settings saved successfully!');
     } catch (err) {
       alert(err.message || 'Error saving settings');
@@ -382,6 +404,17 @@ export default function AdminDashboard({ onOpenHowToUse }) {
       });
 
       if (res.ok) {
+        const createdDish = await res.json().catch(() => ({ ...newDish, id: `dish-${Date.now()}` }));
+
+        setDishes(prev => {
+          const exists = prev.some(d => d.id === createdDish.id || d.name.toLowerCase() === createdDish.name.toLowerCase());
+          const updated = exists ? prev.map(d => d.id === createdDish.id ? createdDish : d) : [createdDish, ...prev];
+          try {
+            localStorage.setItem('olaronke_custom_dishes', JSON.stringify(updated));
+          } catch (e) {}
+          return updated;
+        });
+
         setDishSuccessMsg(`🎉 "${newDish.name}" published to live B'feastas catalog!`);
         setNewDish({
           name: '',
