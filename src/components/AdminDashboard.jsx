@@ -105,7 +105,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
     scoopsLeft: 30,
     unitType: 'scoop',
     category: 'Rice Dishes',
-    image: '/images/jollof_rice.png'
+    image: ''
   });
   const [addingDish, setAddingDish] = useState(false);
   const [dishSuccessMsg, setDishSuccessMsg] = useState('');
@@ -429,6 +429,12 @@ export default function AdminDashboard({ onOpenHowToUse }) {
     setAddingDish(true);
     setDishSuccessMsg('');
 
+    const defaultCategoryImg = newDish.category === 'Drinks & Refreshments' ? '/images/coke.png'
+      : newDish.category === 'Chicken & Proteins' ? '/images/fried_chicken.png'
+      : newDish.category === 'Swallow & Soups' ? '/images/egusi_soup.png'
+      : newDish.category === 'Sides & Extras' ? '/images/fried_plantain.png'
+      : '/images/jollof_rice.png';
+
     const newDishItem = {
       id: `dish-${Date.now()}`,
       name: newDish.name.trim(),
@@ -438,7 +444,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
       unitType: newDish.unitType || (newDish.category === 'Drinks & Refreshments' ? 'bottle' : 'scoop'),
       isAvailable: true,
       category: newDish.category || 'Rice Dishes',
-      image: newDish.image || '/images/jollof_rice.png'
+      image: newDish.image || defaultCategoryImg
     };
 
     // Optimistically update state & local storage instantly
@@ -461,7 +467,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
       scoopsLeft: 30,
       unitType: 'scoop',
       category: 'Rice Dishes',
-      image: '/images/jollof_rice.png'
+      image: ''
     });
 
     try {
@@ -1481,7 +1487,15 @@ export default function AdminDashboard({ onOpenHowToUse }) {
                   <label className="block text-xs font-bold text-slate-300 mb-1">Category</label>
                   <select
                     value={newDish.category}
-                    onChange={(e) => setNewDish({ ...newDish, category: e.target.value })}
+                    onChange={(e) => {
+                      const cat = e.target.value;
+                      const autoUnit = cat === 'Drinks & Refreshments' ? 'bottle'
+                        : cat === 'Chicken & Proteins' ? 'portion'
+                        : cat === 'Sides & Extras' ? 'piece'
+                        : cat === 'Swallow & Soups' ? 'plate'
+                        : 'scoop';
+                      setNewDish(prev => ({ ...prev, category: cat, unitType: autoUnit }));
+                    }}
                     className="w-full bg-slate-950 border border-slate-700 text-white px-4 py-3 rounded-xl text-sm focus:outline-none"
                   >
                     <option value="Rice Dishes">Rice Dishes</option>
@@ -1494,12 +1508,28 @@ export default function AdminDashboard({ onOpenHowToUse }) {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">Image Path / URL</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-bold text-slate-300">Custom Image Link (Optional)</label>
+                    {newDish.image && (
+                      <button
+                        type="button"
+                        onClick={() => setNewDish(prev => ({ ...prev, image: '' }))}
+                        className="text-[10px] text-rose-400 hover:text-rose-300 font-extrabold"
+                      >
+                        ✕ Clear Photo
+                      </button>
+                    )}
+                  </div>
                   <input
                     type="text"
-                    value={newDish.image}
-                    onChange={(e) => setNewDish({ ...newDish, image: e.target.value })}
-                    placeholder="/images/..."
+                    value={newDish.image?.startsWith('data:') ? '[Uploaded Device Photo]' : newDish.image}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val !== '[Uploaded Device Photo]') {
+                        setNewDish(prev => ({ ...prev, image: val }));
+                      }
+                    }}
+                    placeholder="Leave blank for auto photo"
                     className="w-full bg-slate-950 border border-slate-700 text-white px-4 py-3 rounded-xl text-sm focus:outline-none font-mono"
                   />
                 </div>
