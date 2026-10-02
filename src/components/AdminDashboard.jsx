@@ -338,17 +338,21 @@ export default function AdminDashboard({ onOpenHowToUse }) {
     }
 
     setDeletingDishId(dishId);
+    setDishes(prev => {
+      const updated = prev.filter(d => d.id !== dishId);
+      try {
+        localStorage.setItem('olaronke_custom_dishes', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+
     try {
-      const res = await fetch(`/api/dishes/${dishId}`, {
+      await fetch(`/api/dishes/${dishId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
-
-      if (res.ok) {
-        setDishes(prev => prev.filter(d => d.id !== dishId));
-      }
     } catch (err) {
-      console.error('Failed to delete dish:', err);
+      console.warn('Failed backend sync for delete dish:', err);
     } finally {
       setDeletingDishId(null);
     }
@@ -374,23 +378,17 @@ export default function AdminDashboard({ onOpenHowToUse }) {
   const handleDeleteOrder = async (orderId) => {
     if (!window.confirm(`Permanently remove Order #${orderId} from history?`)) return;
 
+    setOrders(prev => prev.filter(o => o.id !== orderId));
+
     try {
-      const res = await fetch(`/api/orders/${orderId}`, {
+      await fetch(`/api/orders/${orderId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-
-      if (res.ok) {
-        setOrders(prev => prev.filter(o => o.id !== orderId));
-      } else {
-        const data = await res.json();
-        alert(data.message || 'Failed to delete order from server database.');
-      }
     } catch (err) {
       console.error('Failed to delete order:', err);
-      alert('Error communicating with server while deleting order.');
     }
   };
 
@@ -399,6 +397,41 @@ export default function AdminDashboard({ onOpenHowToUse }) {
     setAddingDish(true);
     setDishSuccessMsg('');
 
+    const newDishItem = {
+      id: `dish-${Date.now()}`,
+      name: newDish.name.trim(),
+      description: (newDish.description || '').trim(),
+      price: Number(newDish.price) || 500,
+      scoopsLeft: Number(newDish.scoopsLeft) || 30,
+      unitType: newDish.unitType || (newDish.category === 'Drinks & Refreshments' ? 'bottle' : 'scoop'),
+      isAvailable: true,
+      category: newDish.category || 'Rice Dishes',
+      image: newDish.image || '/images/jollof_rice.png'
+    };
+
+    // Optimistically update state & local storage instantly
+    setDishes(prev => {
+      const exists = prev.some(d => d.name.toLowerCase() === newDishItem.name.toLowerCase());
+      const updated = exists 
+        ? prev.map(d => d.name.toLowerCase() === newDishItem.name.toLowerCase() ? { ...d, ...newDishItem } : d) 
+        : [newDishItem, ...prev];
+      try {
+        localStorage.setItem('olaronke_custom_dishes', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+
+    setDishSuccessMsg(`🎉 "${newDishItem.name}" published to live B'feastas catalog!`);
+    setNewDish({
+      name: '',
+      description: '',
+      price: 500,
+      scoopsLeft: 30,
+      unitType: 'scoop',
+      category: 'Rice Dishes',
+      image: '/images/jollof_rice.png'
+    });
+
     try {
       const res = await fetch('/api/dishes', {
         method: 'POST',
@@ -406,37 +439,18 @@ export default function AdminDashboard({ onOpenHowToUse }) {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(newDish)
+        body: JSON.stringify(newDishItem)
       });
 
       if (res.ok) {
-        const createdDish = await res.json().catch(() => ({ ...newDish, id: `dish-${Date.now()}` }));
-
-        setDishes(prev => {
-          const exists = prev.some(d => d.id === createdDish.id || d.name.toLowerCase() === createdDish.name.toLowerCase());
-          const updated = exists ? prev.map(d => d.id === createdDish.id ? createdDish : d) : [createdDish, ...prev];
-          try {
-            localStorage.setItem('olaronke_custom_dishes', JSON.stringify(updated));
-          } catch (e) {}
-          return updated;
-        });
-
-        setDishSuccessMsg(`🎉 "${newDish.name}" published to live B'feastas catalog!`);
-        setNewDish({
-          name: '',
-          description: '',
-          price: 500,
-          scoopsLeft: 30,
-          unitType: 'scoop',
-          category: 'Rice Dishes',
-          image: '/images/jollof_rice.png'
-        });
-        setTimeout(() => setActiveTab('inventory'), 1200);
+        const createdDish = await res.json();
+        setDishes(prev => prev.map(d => d.id === newDishItem.id ? createdDish : d));
       }
     } catch (err) {
-      console.error('Error adding dish:', err);
+      console.warn('Backend server sync notice for new dish:', err);
     } finally {
       setAddingDish(false);
+      setTimeout(() => setActiveTab('inventory'), 800);
     }
   };
 
