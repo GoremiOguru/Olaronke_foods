@@ -498,43 +498,11 @@ export function mergeDishesWithDefaults(incomingDishes = [], deletedIds = []) {
   return Array.from(map.values());
 }
 
-const DB_STORE_KEY = 'olaronke_bfeastas_db_v3';
-
 export async function syncCloudDB() {
-  let dbToReturn = loadDB();
-  try {
-    const res = await fetch(`https://keyvalue.immanuel.co/api/KeyVal/GetValue/${DB_STORE_KEY}/delta`);
-    if (res.ok) {
-      const b64 = await res.text();
-      if (b64 && b64 !== '""' && b64.length > 5) {
-        const jsonStr = Buffer.from(b64, 'base64url').toString('utf8');
-        const payload = JSON.parse(jsonStr);
-        if (payload) {
-          const merged = mergeDishesWithDefaults(payload.dishes || payload.customDishes, payload.deletedDishIds);
-          dbToReturn.dishes = merged;
-          if (Array.isArray(payload.orders) && payload.orders.length > 0) {
-            const orderMap = new Map();
-            dbToReturn.orders.forEach(o => orderMap.set(o.id, o));
-            payload.orders.forEach(o => orderMap.set(o.id, { ...orderMap.get(o.id), ...o }));
-            dbToReturn.orders = Array.from(orderMap.values()).sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-          }
-          if (payload.settings) {
-            dbToReturn.settings = { ...dbToReturn.settings, ...payload.settings };
-          }
-          cachedDB = dbToReturn;
-          globalThis.__VERCEL_DB__ = dbToReturn;
-        }
-      }
-    }
-  } catch (err) {
-    console.warn('Cloud DB sync read notice:', err.message);
-  }
-
-  // Ensure dishes always has at least defaultDishes merged
-  if (!dbToReturn.dishes || dbToReturn.dishes.length < defaultDishes.length) {
-    dbToReturn.dishes = mergeDishesWithDefaults(dbToReturn.dishes || []);
-  }
-
+  const dbToReturn = loadDB();
+  dbToReturn.dishes = mergeDishesWithDefaults(dbToReturn.dishes || [], dbToReturn.deletedDishIds || []);
+  cachedDB = dbToReturn;
+  globalThis.__VERCEL_DB__ = dbToReturn;
   return dbToReturn;
 }
 
@@ -605,32 +573,8 @@ export function saveDB(data) {
   } catch (err) {
     console.warn('Unable to persist DB to tmp:', err.message);
   }
-
-  // 3. Asynchronously sync to global cloud store so all Vercel serverless containers stay in sync
-  try {
-    if (Array.isArray(data.dishes)) {
-      // Strip heavy base64 image strings from sync payload if too large
-      const compactDishes = data.dishes.map(d => {
-        if (d.image && d.image.startsWith('data:image')) {
-          return { ...d, image: '/images/jollof_rice.png' };
-        }
-        return d;
-      });
-
-      const payload = {
-        dishes: compactDishes,
-        deletedDishIds: data.deletedDishIds || [],
-        orders: (data.orders || []).slice(-30),
-        settings: data.settings || {}
-      };
-
-      const b64 = Buffer.from(JSON.stringify(payload)).toString('base64url');
-      if (b64.length < 1800) {
-        fetch(`https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/${DB_STORE_KEY}/delta/${b64}`, { method: 'POST' }).catch(() => {});
-      }
-    }
-  } catch (err) {}
 }
+
 
 
 
