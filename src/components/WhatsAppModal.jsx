@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, CheckCircle, MessageCircle, Copy, ExternalLink, ShieldCheck, Key, MapPin, Printer } from 'lucide-react';
+import { X, CheckCircle, MessageCircle, Copy, ExternalLink, ShieldCheck, Key, MapPin, Printer, Clock } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useSettings } from '../context/SettingsContext';
 import OfficialReceiptModal from './OfficialReceiptModal';

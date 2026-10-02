@@ -101,7 +101,12 @@ export default function AdminDashboard({ onOpenHowToUse }) {
 
       if (resOrders.ok) {
         const dataOrders = await resOrders.json();
-        setOrders(dataOrders);
+        setOrders(prev => {
+          const map = new Map();
+          prev.forEach(o => map.set(o.id, o));
+          dataOrders.forEach(o => map.set(o.id, { ...map.get(o.id), ...o }));
+          return Array.from(map.values()).sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        });
       }
       if (resStaff.ok) {
         const dataStaff = await resStaff.json();

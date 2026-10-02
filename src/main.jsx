@@ -6,6 +6,7 @@ import { AuthProvider } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 import { CartProvider } from './context/CartContext';
 import { SettingsProvider } from './context/SettingsContext';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Register Service Worker for Home Screen Push Notifications
 if ('serviceWorker' in navigator) {
@@ -18,14 +19,16 @@ if ('serviceWorker' in navigator) {
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <AuthProvider>
-      <SettingsProvider>
-        <SocketProvider>
-          <CartProvider>
-            <App />
-          </CartProvider>
-        </SocketProvider>
-      </SettingsProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <SettingsProvider>
+          <SocketProvider>
+            <CartProvider>
+              <App />
+            </CartProvider>
+          </SocketProvider>
+        </SettingsProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   </React.StrictMode>
 );

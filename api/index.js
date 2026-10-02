@@ -415,7 +415,7 @@ app.post(['/api/orders', '/orders'], authenticateToken, (req, res) => {
     sanitizedItems.push({
       ...item,
       dishId: dish.id,
-      dishName: dish.name,
+      dishName: item.dishName || dish.name,
       price: authoritativePrice,
       scoops,
       subtotal: itemSubtotal
