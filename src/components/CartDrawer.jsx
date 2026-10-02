@@ -7,6 +7,7 @@ import { useSettings } from '../context/SettingsContext';
 export default function CartDrawer({ onOpenAuth }) {
   const {
     cart,
+    addToCart,
     isCartOpen,
     setIsCartOpen,
     updateScoops,
@@ -31,6 +32,8 @@ export default function CartDrawer({ onOpenAuth }) {
     setIsHostelDelivery,
     hostelAddress,
     setHostelAddress,
+    scheduledTime,
+    setScheduledTime,
     checkout,
     isSubmitting
   } = useCart();
@@ -167,6 +170,40 @@ export default function CartDrawer({ onOpenAuth }) {
               </div>
             ) : (
               <>
+                {/* Smart Upsell Prompt */}
+                <div className="p-3.5 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-brand-lemon/10 border border-brand-orange/30 rounded-2xl space-y-2 mb-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-brand-orange flex items-center gap-1.5 uppercase tracking-wider">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" /> Complete Your Plate!
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-semibold">1-Tap Quick Add</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => addToCart({ id: 'dish-14', name: 'Chilled House Zobo Juice (50cl)', price: 500, scoopsLeft: 30, isAvailable: true, unitType: 'bottle', category: 'Drinks & Refreshments', image: '/images/zobo_drink.png' }, 1, 1)}
+                      className="p-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl text-left flex items-center space-x-2 transition-all group"
+                    >
+                      <img src="/images/zobo_drink.png" className="w-8 h-8 rounded-lg object-cover" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[11px] font-bold text-white truncate group-hover:text-brand-orange">+ Cold Zobo</p>
+                        <p className="text-[10px] text-brand-lemon-glow font-black">₦500</p>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => addToCart({ id: 'dish-9', name: 'Sweet Fried Plantain Dodo', price: 100, scoopsLeft: 50, isAvailable: true, unitType: 'piece', category: 'Sides & Extras', image: '/images/fried_plantain.png' }, 2, 1)}
+                      className="p-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl text-left flex items-center space-x-2 transition-all group"
+                    >
+                      <img src="/images/fried_plantain.png" className="w-8 h-8 rounded-lg object-cover" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[11px] font-bold text-white truncate group-hover:text-brand-orange">+ 2 Sweet Dodo</p>
+                        <p className="text-[10px] text-brand-lemon-glow font-black">₦200</p>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
                 {/* Organised Items Grouped by Takeout Plate */}
                 <div className="space-y-6">
                   <div className="flex items-center justify-between border-b border-slate-800 pb-2">
@@ -365,6 +402,42 @@ export default function CartDrawer({ onOpenAuth }) {
                   <p className="text-[10px] text-slate-400">
                     Vendor staff will contact you on WhatsApp using this number.
                   </p>
+                </div>
+
+                {/* Scheduled Pre-Order / Time Slot Selector */}
+                <div className="glass-card p-4 rounded-2xl border border-slate-800 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-extrabold text-white flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-brand-orange" /> Pickup / Delivery Time Slot:
+                    </label>
+                    <span className="text-[10px] font-bold text-brand-lemon-glow bg-brand-lemon/10 px-2 py-0.5 rounded border border-brand-lemon/30">
+                      Off-Peak Pre-Order
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {[
+                      { id: 'ASAP', label: 'Asap (Now)', desc: 'Immediate' },
+                      { id: '12:30 PM', label: '12:30 PM', desc: 'Lunch Break' },
+                      { id: '1:15 PM', label: '1:15 PM', desc: 'Afternoon' },
+                      { id: '2:00 PM', label: '2:00 PM', desc: 'Post-Lecture' },
+                      { id: '5:30 PM', label: '5:30 PM', desc: 'Dinner Slot' }
+                    ].map((slot) => (
+                      <button
+                        key={slot.id}
+                        type="button"
+                        onClick={() => setScheduledTime(slot.id)}
+                        className={`p-2 rounded-xl text-center border transition-all ${
+                          scheduledTime === slot.id
+                            ? 'bg-brand-orange text-white border-brand-orange shadow-orange-glow'
+                            : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        <span className="block text-[11px] font-extrabold">{slot.label}</span>
+                        <span className="block text-[9px] opacity-80">{slot.desc}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Delivery Option */}

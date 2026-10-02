@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Flame, Plus, Minus, ToggleLeft, ToggleRight, DollarSign, CheckCircle2, Clock, PackageCheck, AlertTriangle, RefreshCw, Search, ShieldCheck, User, MessageCircle, Trash2, Key, Users, MapPin, Package, UtensilsCrossed, Upload, Image as ImageIcon, Check, Edit3, X, Bell, BellRing, Smartphone, Printer, Calendar, Filter, HelpCircle, Bug } from 'lucide-react';
+import { Flame, Plus, Minus, ToggleLeft, ToggleRight, DollarSign, CheckCircle2, Clock, PackageCheck, AlertTriangle, RefreshCw, Search, ShieldCheck, User, MessageCircle, Trash2, Key, Users, MapPin, Package, UtensilsCrossed, Upload, Image as ImageIcon, Check, Edit3, X, Bell, BellRing, Smartphone, Printer, Calendar, Filter, HelpCircle, Bug, Tv, QrCode, Share2 } from 'lucide-react';
 import { useSocket } from '../context/SocketContext';
 import { useAuth } from '../context/AuthContext';
 import OfficialReceiptModal from './OfficialReceiptModal';
+import KitchenDisplayModal from './KitchenDisplayModal';
+import QRCodeModal from './QRCodeModal';
 
 export default function AdminDashboard({ onOpenHowToUse }) {
   const { dishes, setDishes, socket, pushPermission, requestPushPermission } = useSocket();
@@ -17,6 +19,10 @@ export default function AdminDashboard({ onOpenHowToUse }) {
   const [selectedPrintOrder, setSelectedPrintOrder] = useState(null);
   const [dishSearch, setDishSearch] = useState('');
   const [deletingDishId, setDeletingDishId] = useState(null);
+
+  // KDS & QR Code Modal States
+  const [isKdsOpen, setIsKdsOpen] = useState(false);
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
 
   // Editing Dish Title & Description State
   const [editingDish, setEditingDish] = useState(null);
@@ -485,6 +491,34 @@ export default function AdminDashboard({ onOpenHowToUse }) {
   const completedCount = filteredOrders.filter(o => o.status === 'Completed').length;
   const cancelledCount = filteredOrders.filter(o => o.status === 'Cancelled').length;
 
+  const handleSendDailyWhatsAppSummary = () => {
+    const todayOrders = orders.filter(o => {
+      if (!o.createdAt) return false;
+      const d = new Date(o.createdAt);
+      return d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    });
+
+    const totalRevenue = todayOrders.reduce((sum, o) => sum + (Number(o.totalPrice) || 0), 0);
+    const totalTakeoutFees = todayOrders.reduce((sum, o) => sum + (Number(o.takeoutFee) || 0), 0);
+    const totalDeliveryFees = todayOrders.reduce((sum, o) => sum + (Number(o.deliveryFee) || 0), 0);
+    const verifiedOrdersCount = todayOrders.filter(o => o.paymentConfirmed || o.status === 'Completed').length;
+
+    const phone = vendorSettings.whatsappNumber || '08133314798';
+    const cleanPhone = phone.startsWith('0') ? `234${phone.slice(1)}` : phone;
+
+    const summaryText = `📊 DAILY FINANCIAL SUMMARY - B'FEASTAS\n` +
+      `--------------------------------------\n` +
+      `📅 Date: ${now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}\n` +
+      `🍱 Total Orders Today: ${todayOrders.length} orders (${verifiedOrdersCount} verified)\n` +
+      `💰 Total Revenue Collected: ₦${totalRevenue.toLocaleString()}\n` +
+      `📦 Takeout Packaging Fees: ₦${totalTakeoutFees.toLocaleString()}\n` +
+      `🚚 Delivery Fees Collected: ₦${totalDeliveryFees.toLocaleString()}\n` +
+      `--------------------------------------\n` +
+      `Sent from B'feastas Admin Dashboard`;
+
+    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(summaryText)}`, '_blank');
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -509,6 +543,36 @@ export default function AdminDashboard({ onOpenHowToUse }) {
           </div>
 
           <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:items-center gap-2 sm:gap-3 w-full lg:w-auto">
+            {/* Kitchen KDS Tablet Mode Button */}
+            <button
+              onClick={() => setIsKdsOpen(true)}
+              className="flex items-center justify-center space-x-1.5 px-3.5 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-brand-orange to-amber-600 hover:from-orange-500 hover:to-amber-700 text-white shadow-orange-glow transition-all w-full sm:w-auto"
+              title="Launch Full-Screen Kitchen Display System for Wall Tablet"
+            >
+              <Tv className="w-4 h-4 shrink-0" />
+              <span className="truncate">Kitchen KDS Tablet</span>
+            </button>
+
+            {/* Table & Counter QR Code Generator */}
+            <button
+              onClick={() => setIsQrModalOpen(true)}
+              className="flex items-center justify-center space-x-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 transition-all shadow-md w-full sm:w-auto"
+              title="Print Branded Table QR Cards for Cafeteria"
+            >
+              <QrCode className="w-4 h-4 text-brand-orange shrink-0" />
+              <span className="truncate">Table QR Cards</span>
+            </button>
+
+            {/* WhatsApp Financial Summary Button */}
+            <button
+              onClick={handleSendDailyWhatsAppSummary}
+              className="flex items-center justify-center space-x-1.5 px-3.5 py-2.5 rounded-xl text-xs font-extrabold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 transition-all shadow-md w-full sm:w-auto"
+              title="Send Daily Cashflow Summary to Owner's WhatsApp"
+            >
+              <MessageCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span className="truncate">Cashflow Summary</span>
+            </button>
+
             {/* How to Use Staff Guide Button */}
             {typeof onOpenHowToUse === 'function' && (
               <button
@@ -519,18 +583,6 @@ export default function AdminDashboard({ onOpenHowToUse }) {
                 <span className="truncate">Staff Manual</span>
               </button>
             )}
-
-            {/* Tech Support / Bug Report Button */}
-            <a
-              href="https://wa.me/2348057357728?text=Hello%20Tech%20Support,%20I'm%20a%20B'feastas%20staff/admin%20reporting%20an%20issue:"
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center justify-center space-x-1.5 px-3 sm:px-4 py-2.5 rounded-xl text-xs font-extrabold bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 transition-all shadow-md w-full sm:w-auto"
-              title="Message Technical Support on WhatsApp"
-            >
-              <Bug className="w-4 h-4 text-rose-400 shrink-0" />
-              <span className="truncate">Tech Support</span>
-            </a>
 
             {/* Phone Home Screen Notification Button */}
             <button
@@ -1557,6 +1609,21 @@ export default function AdminDashboard({ onOpenHowToUse }) {
             </form>
           </div>
         )}
+
+        {/* Kitchen Display System (KDS) Tablet View Modal */}
+        <KitchenDisplayModal
+          isOpen={isKdsOpen}
+          onClose={() => setIsKdsOpen(false)}
+          orders={orders}
+          onUpdateStatus={handleOrderStatusChange}
+          token={token}
+        />
+
+        {/* Table & Counter QR Code Generator Modal */}
+        <QRCodeModal
+          isOpen={isQrModalOpen}
+          onClose={() => setIsQrModalOpen(false)}
+        />
 
       </div>
     </div>

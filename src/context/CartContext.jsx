@@ -19,7 +19,7 @@ export function CartProvider({ children }) {
   const [plateSize, setPlateSize] = useState(200); // 100 | 200 | 300
   const [isHostelDelivery, setIsHostelDelivery] = useState(false);
   const [hostelAddress, setHostelAddress] = useState('');
-  const [studentPhone, setStudentPhone] = useState('');
+  const [scheduledTime, setScheduledTime] = useState('ASAP'); // 'ASAP' | '12:30 PM' | '1:15 PM' | '2:00 PM' | '5:30 PM'
 
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [activeReceiptModal, setActiveReceiptModal] = useState(null);
@@ -246,7 +246,8 @@ export function CartProvider({ children }) {
           takeoutFee,
           isHostelDelivery,
           hostelAddress: hostelAddress.trim(),
-          studentPhone: finalPhone.trim()
+          studentPhone: finalPhone.trim(),
+          scheduledTime: scheduledTime !== 'ASAP' ? scheduledTime : null
         })
       });
 
@@ -303,6 +304,8 @@ export function CartProvider({ children }) {
       setIsHostelDelivery,
       hostelAddress,
       setHostelAddress,
+      scheduledTime,
+      setScheduledTime,
       isCartOpen,
       setIsCartOpen,
       activeReceiptModal,
