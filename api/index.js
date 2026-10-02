@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import { loadDB, saveDB, syncCloudDB } from '../server/data/db.js';
+import { loadDB, saveDB, syncCloudDB, mergeDishesWithDefaults } from '../server/data/db.js';
 import { isSupabaseConfigured, supabase, saveSupabaseRecord } from '../server/data/supabaseDb.js';
 
 const JWT_SECRET = 'bfeastas-campus-secret-key-2026';
@@ -294,8 +294,9 @@ app.get(['/api/dishes', '/dishes'], async (req, res) => {
       const { data, error } = await supabase.from('dishes').select('*');
       if (!error && Array.isArray(data)) {
         if (data.length > 0) {
-          db.dishes = data;
-          return res.json(data);
+          const mergedDishes = mergeDishesWithDefaults(data, db.deletedDishIds);
+          db.dishes = mergedDishes;
+          return res.json(mergedDishes);
         } else {
           // Auto-seed Supabase database table with initial dish catalog if empty
           try {
