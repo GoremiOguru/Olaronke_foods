@@ -1,15 +1,16 @@
 import React, { useState, useMemo, useRef } from 'react';
-import { Search, SlidersHorizontal, Flame, Sparkles, ChevronLeft, ChevronRight, ArrowRight, Grid, LayoutList } from 'lucide-react';
+import { Search, SlidersHorizontal, Flame, Sparkles, ChevronLeft, ChevronRight, ArrowRight, Grid, LayoutList, RefreshCw } from 'lucide-react';
 import { useSocket } from '../context/SocketContext';
 import DishCard from './DishCard';
 
 export default function DishCatalog() {
-  const { dishes } = useSocket();
+  const { dishes, refreshDishes } = useSocket();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [sortBy, setSortBy] = useState('popular');
   const [viewMode, setViewMode] = useState('carousel'); // 'carousel' | 'grid'
   const [expandedCategories, setExpandedCategories] = useState({});
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const categoryList = [
     'Rice Dishes',
@@ -106,8 +107,23 @@ export default function DishCatalog() {
           </p>
         </div>
 
-        {/* Controls: Layout Mode Switch & Sorting */}
+        {/* Controls: Refresh Button, Layout Mode Switch & Sorting */}
         <div className="flex items-center space-x-2">
+
+          {/* 1-Tap Manual Refresh Button */}
+          <button
+            onClick={async () => {
+              setIsRefreshing(true);
+              await refreshDishes();
+              setTimeout(() => setIsRefreshing(false), 600);
+            }}
+            disabled={isRefreshing}
+            className="p-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white rounded-2xl transition-all flex items-center gap-1.5 text-xs font-bold shadow-md active:scale-95 disabled:opacity-50"
+            title="Refresh Live Menu & Stock"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-brand-lemon-glow ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">Refresh</span>
+          </button>
           
           {/* View mode toggle */}
           <div className="flex items-center bg-slate-900 border border-slate-800 rounded-2xl p-1">
