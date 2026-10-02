@@ -1029,52 +1029,6 @@
       "totalPrice": 4200,
       "status": "Pending Payment Verification",
       "createdAt": "2026-10-01T23:19:41.107Z"
-    },
-    {
-      "id": "ORD-7007",
-      "pickupCode": "941",
-      "studentId": "usr-student-1790896982000",
-      "studentName": "Chisom Student",
-      "studentEmail": "student_1790896981642@topfaith.edu.ng",
-      "studentPhone": "08012345678",
-      "items": [
-        {
-          "dishId": "dish-1",
-          "dishName": "B'feastas Special Smoky Jollof Rice",
-          "scoops": 2,
-          "price": 500,
-          "plateNumber": 1,
-          "subtotal": 1000
-        },
-        {
-          "dishId": "dish-3",
-          "dishName": "Big Fried Chicken Quarter (Large)",
-          "scoops": 1,
-          "price": 2000,
-          "plateNumber": 1,
-          "subtotal": 2000
-        },
-        {
-          "dishId": "dish-11",
-          "dishName": "Coca-Cola Soda Bottle (50cl)",
-          "scoops": 1,
-          "price": 600,
-          "plateNumber": 1,
-          "subtotal": 600
-        }
-      ],
-      "includeTakeoutPack": true,
-      "plateSize": 300,
-      "plateSizeName": "₦300 plate",
-      "takeoutFee": 300,
-      "deliveryFee": 500,
-      "isHostelDelivery": true,
-      "hostelAddress": "Grace Hostel Room 204",
-      "totalPrice": 4400,
-      "status": "Payment Confirmed - Preparing Meal",
-      "paymentConfirmed": false,
-      "createdAt": "2026-10-01T23:23:02.051Z",
-      "confirmedByAdmin": "Cafeteria Admin"
     }
   ],
   "settings": {
