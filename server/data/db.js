@@ -472,6 +472,28 @@ function ensureDefaultAdmins(db) {
   });
 }
 
+export async function syncCloudDB() {
+  let dbToReturn = loadDB();
+  try {
+    const res = await fetch('https://keyvalue.immanuel.co/api/KeyVal/GetValue/olaronke_bfeastas_db_v1/dishes');
+    if (res.ok) {
+      const b64 = await res.text();
+      if (b64 && b64 !== '""' && b64.length > 10) {
+        const jsonStr = Buffer.from(b64, 'base64url').toString('utf8');
+        const parsedDishes = JSON.parse(jsonStr);
+        if (Array.isArray(parsedDishes) && parsedDishes.length > 0) {
+          dbToReturn.dishes = parsedDishes;
+          cachedDB = dbToReturn;
+          globalThis.__VERCEL_DB__ = dbToReturn;
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('Cloud DB sync read notice:', err.message);
+  }
+  return dbToReturn;
+}
+
 export function loadDB() {
   let dbToReturn = null;
 
@@ -537,5 +559,14 @@ export function saveDB(data) {
   } catch (err) {
     console.warn('Unable to persist DB to tmp:', err.message);
   }
+
+  // 3. Asynchronously sync to global cloud store so all Vercel serverless containers stay in sync
+  try {
+    if (Array.isArray(data.dishes)) {
+      const b64 = Buffer.from(JSON.stringify(data.dishes)).toString('base64url');
+      fetch(`https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/olaronke_bfeastas_db_v1/dishes/${b64}`, { method: 'POST' }).catch(() => {});
+    }
+  } catch (err) {}
 }
+
 

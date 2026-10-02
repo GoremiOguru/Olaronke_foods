@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import { loadDB, saveDB } from '../server/data/db.js';
+import { loadDB, saveDB, syncCloudDB } from '../server/data/db.js';
 import { isSupabaseConfigured, supabase, saveSupabaseRecord } from '../server/data/supabaseDb.js';
 
 const JWT_SECRET = 'bfeastas-campus-secret-key-2026';
@@ -287,7 +287,7 @@ app.get(['/api/admin/staff', '/admin/staff'], authenticateToken, requireAdmin, (
 // DISHES & INVENTORY ROUTES
 // -------------------------------------------------------------
 app.get(['/api/dishes', '/dishes'], async (req, res) => {
-  const db = loadDB();
+  let db = await syncCloudDB();
 
   if (isSupabaseConfigured && supabase) {
     try {
