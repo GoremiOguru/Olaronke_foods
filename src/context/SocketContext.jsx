@@ -202,10 +202,10 @@ export function SocketProvider({ children }) {
               const localDish = prev.find(d => d.id === serverDish.id);
               if (!localDish) return serverDish;
 
-              // Preserve local edits (availability toggle, scoops left, price, images) so serverless resets don't revert them
+              // Live server data from Supabase takes precedence over cached local state
               return {
-                ...serverDish,
-                ...localDish
+                ...localDish,
+                ...serverDish
               };
             });
 
