@@ -138,7 +138,12 @@ export default function AdminDashboard({ onOpenHowToUse }) {
       }
       if (resStaff.ok) {
         const dataStaff = await resStaff.json();
-        setStaffList(dataStaff);
+        setStaffList(prev => {
+          const map = new Map();
+          prev.forEach(s => map.set(s.id || s.email, s));
+          dataStaff.forEach(s => map.set(s.id || s.email, { ...map.get(s.id || s.email), ...s }));
+          return Array.from(map.values());
+        });
       }
     } catch (err) {
       console.error('Error fetching admin data:', err);

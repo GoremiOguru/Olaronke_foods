@@ -24,7 +24,12 @@ export default function MyOrdersModal({ isOpen, onClose }) {
         const studentOrders = Array.isArray(data)
           ? data.filter(o => o.studentEmail?.toLowerCase() === user?.email?.toLowerCase())
           : [];
-        setOrders(studentOrders);
+        setOrders(prev => {
+          const map = new Map();
+          prev.forEach(o => map.set(o.id, o));
+          studentOrders.forEach(o => map.set(o.id, { ...map.get(o.id), ...o }));
+          return Array.from(map.values()).sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        });
       })
       .catch(err => console.error('Failed to fetch student order history:', err))
       .finally(() => setLoading(false));
