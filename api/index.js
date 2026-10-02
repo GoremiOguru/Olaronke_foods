@@ -3,6 +3,7 @@ import cors from 'cors';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { loadDB, saveDB } from '../server/data/db.js';
+import { isSupabaseConfigured, supabase, saveSupabaseRecord } from '../server/data/supabaseDb.js';
 
 const JWT_SECRET = 'bfeastas-campus-secret-key-2026';
 const app = express();
@@ -285,13 +286,25 @@ app.get(['/api/admin/staff', '/admin/staff'], authenticateToken, requireAdmin, (
 // -------------------------------------------------------------
 // DISHES & INVENTORY ROUTES
 // -------------------------------------------------------------
-app.get(['/api/dishes', '/dishes'], (req, res) => {
+app.get(['/api/dishes', '/dishes'], async (req, res) => {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase.from('dishes').select('*');
+      if (!error && Array.isArray(data) && data.length > 0) {
+        const db = loadDB();
+        db.dishes = data;
+        return res.json(data);
+      }
+    } catch (e) {
+      console.warn('Supabase dishes fetch notice:', e.message);
+    }
+  }
   const db = loadDB();
   return res.json(db.dishes);
 });
 
-app.post(['/api/dishes', '/dishes'], authenticateToken, requireAdmin, (req, res) => {
-  const { name, description, price, scoopsLeft, isAvailable, category, image, unitType } = req.body;
+app.post(['/api/dishes', '/dishes'], authenticateToken, requireAdmin, async (req, res) => {
+  const { name, description, price, scoopsLeft, isAvailable, category, image, unitType, prepTime } = req.body;
 
   if (!name || price === undefined || scoopsLeft === undefined) {
     return res.status(400).json({ message: 'Dish name, price, and stock count are required.' });
@@ -307,18 +320,23 @@ app.post(['/api/dishes', '/dishes'], authenticateToken, requireAdmin, (req, res)
     unitType: unitType || (category === 'Drinks & Refreshments' ? 'bottle' : 'scoop'),
     isAvailable: isAvailable !== undefined ? Boolean(isAvailable) : true,
     category: category || 'Rice Dishes',
+    prepTime: prepTime || null,
     image: image || '/images/jollof_rice.png'
   };
 
   db.dishes.push(newDish);
   saveDB(db);
 
+  if (isSupabaseConfigured) {
+    saveSupabaseRecord('dishes', newDish);
+  }
+
   return res.status(201).json(newDish);
 });
 
-app.patch(['/api/dishes/:id', '/dishes/:id'], authenticateToken, requireAdmin, (req, res) => {
+app.patch(['/api/dishes/:id', '/dishes/:id'], authenticateToken, requireAdmin, async (req, res) => {
   const { id } = req.params;
-  const { scoopsLeft, isAvailable, price, name, description, category, image, unitType } = req.body;
+  const { scoopsLeft, isAvailable, price, name, description, category, image, unitType, prepTime } = req.body;
 
   const db = loadDB();
   const dishIndex = db.dishes.findIndex(d => d.id === id);
@@ -337,14 +355,19 @@ app.patch(['/api/dishes/:id', '/dishes/:id'], authenticateToken, requireAdmin, (
   if (category !== undefined) dish.category = category;
   if (image !== undefined) dish.image = image;
   if (unitType !== undefined) dish.unitType = unitType;
+  if (prepTime !== undefined) dish.prepTime = prepTime;
 
   db.dishes[dishIndex] = dish;
   saveDB(db);
 
+  if (isSupabaseConfigured) {
+    saveSupabaseRecord('dishes', dish);
+  }
+
   return res.json(dish);
 });
 
-app.delete(['/api/dishes/:id', '/dishes/:id'], authenticateToken, requireAdmin, (req, res) => {
+app.delete(['/api/dishes/:id', '/dishes/:id'], authenticateToken, requireAdmin, async (req, res) => {
   const { id } = req.params;
   const db = loadDB();
 
@@ -354,13 +377,33 @@ app.delete(['/api/dishes/:id', '/dishes/:id'], authenticateToken, requireAdmin, 
   db.dishes = db.dishes.filter(d => d.id !== id);
   saveDB(db);
 
+  if (isSupabaseConfigured && supabase) {
+    try {
+      await supabase.from('dishes').delete().eq('id', id);
+    } catch (e) {}
+  }
+
   return res.json({ message: 'Dish deleted successfully' });
 });
 
 // -------------------------------------------------------------
 // ORDERS ROUTES
 // -------------------------------------------------------------
-app.get(['/api/orders', '/orders'], authenticateToken, (req, res) => {
+app.get(['/api/orders', '/orders'], authenticateToken, async (req, res) => {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      let query = supabase.from('orders').select('*').order('createdAt', { ascending: false });
+      if (req.user.role !== 'admin' && req.user.role !== 'superadmin') {
+        query = query.or(`studentId.eq.${req.user.id},studentEmail.eq.${req.user.email}`);
+      }
+      const { data, error } = await query;
+      if (!error && Array.isArray(data)) {
+        return res.json(data);
+      }
+    } catch (e) {
+      console.warn('Supabase orders fetch notice:', e.message);
+    }
+  }
   const db = loadDB();
   if (req.user.role === 'admin' || req.user.role === 'superadmin') {
     const sorted = [...db.orders].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -373,7 +416,7 @@ app.get(['/api/orders', '/orders'], authenticateToken, (req, res) => {
   }
 });
 
-app.post(['/api/orders', '/orders'], authenticateToken, (req, res) => {
+app.post(['/api/orders', '/orders'], authenticateToken, async (req, res) => {
   const { items, includeTakeoutPack, plateSize, plateSizeName, takeoutFee: reqTakeoutFee, isHostelDelivery, hostelAddress, studentPhone } = req.body;
 
   if (!items || !Array.isArray(items) || items.length === 0) {
@@ -429,6 +472,9 @@ app.post(['/api/orders', '/orders'], authenticateToken, (req, res) => {
       if (dish.scoopsLeft === 0) {
         dish.isAvailable = false;
       }
+      if (isSupabaseConfigured) {
+        saveSupabaseRecord('dishes', dish);
+      }
     }
   });
 
@@ -465,10 +511,14 @@ app.post(['/api/orders', '/orders'], authenticateToken, (req, res) => {
   db.orders.push(newOrder);
   saveDB(db);
 
+  if (isSupabaseConfigured) {
+    saveSupabaseRecord('orders', newOrder);
+  }
+
   return res.status(201).json(newOrder);
 });
 
-app.patch(['/api/orders/:id/status', '/orders/:id/status'], authenticateToken, requireAdmin, (req, res) => {
+app.patch(['/api/orders/:id/status', '/orders/:id/status'], authenticateToken, requireAdmin, async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
 
@@ -486,10 +536,14 @@ app.patch(['/api/orders/:id/status', '/orders/:id/status'], authenticateToken, r
   order.confirmedByAdmin = req.user.name;
   saveDB(db);
 
+  if (isSupabaseConfigured) {
+    saveSupabaseRecord('orders', order);
+  }
+
   return res.json(order);
 });
 
-app.delete(['/api/orders/:id', '/orders/:id'], authenticateToken, requireAdmin, (req, res) => {
+app.delete(['/api/orders/:id', '/orders/:id'], authenticateToken, requireAdmin, async (req, res) => {
   const { id } = req.params;
   const db = loadDB();
   const index = db.orders.findIndex(o => o.id === id);
@@ -501,15 +555,33 @@ app.delete(['/api/orders/:id', '/orders/:id'], authenticateToken, requireAdmin, 
   db.orders.splice(index, 1);
   saveDB(db);
 
+  if (isSupabaseConfigured && supabase) {
+    try {
+      await supabase.from('orders').delete().eq('id', id);
+    } catch (e) {}
+  }
+
   return res.json({ message: `Order #${id} deleted successfully.` });
 });
 
-app.get(['/api/settings', '/settings'], (req, res) => {
+app.get(['/api/settings', '/settings'], async (req, res) => {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase.from('settings').select('*').limit(1);
+      if (!error && Array.isArray(data) && data.length > 0) {
+        const db = loadDB();
+        db.settings = { ...db.settings, ...data[0] };
+        return res.json(db.settings);
+      }
+    } catch (e) {
+      console.warn('Supabase settings fetch notice:', e.message);
+    }
+  }
   const db = loadDB();
   return res.json(db.settings || {});
 });
 
-app.patch(['/api/settings', '/settings'], authenticateToken, requireAdmin, (req, res) => {
+app.patch(['/api/settings', '/settings'], authenticateToken, requireAdmin, async (req, res) => {
   const { accountName, bankName, accountNumber, whatsappName, whatsappNumber, takeoutPrice, heroTitle, heroSubtitle, announcementText } = req.body;
   const db = loadDB();
 
@@ -526,6 +598,11 @@ app.patch(['/api/settings', '/settings'], authenticateToken, requireAdmin, (req,
   if (announcementText !== undefined) db.settings.announcementText = announcementText.trim();
 
   saveDB(db);
+
+  if (isSupabaseConfigured) {
+    saveSupabaseRecord('settings', { id: 1, ...db.settings });
+  }
+
   return res.json(db.settings);
 });
 
