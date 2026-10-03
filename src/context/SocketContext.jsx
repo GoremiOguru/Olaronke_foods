@@ -201,21 +201,37 @@ export function SocketProvider({ children }) {
               if (saved) localSaved = JSON.parse(saved);
             } catch (e) {}
 
-            const merged = serverData.map(sDish => {
-              const localMatch = (Array.isArray(prevDishes) ? prevDishes : localSaved).find(d => d.id === sDish.id);
-              if (!localMatch) return sDish;
-              
-              // Preserve data URL photos uploaded on device
-              return {
-                ...sDish,
-                image: (localMatch.image && localMatch.image.startsWith('data:')) ? localMatch.image : sDish.image
-              };
+            const existingList = Array.isArray(prevDishes) && prevDishes.length > 0 ? prevDishes : localSaved;
+            
+            // Map to merge server dishes into existing dishes without dropping local custom meals
+            const mergedMap = new Map();
+            
+            // 1. Add all existing local dishes first
+            existingList.forEach(d => {
+              if (d && d.id) mergedMap.set(d.id, d);
             });
 
+            // 2. Merge server dishes over existing dishes
+            serverData.forEach(sDish => {
+              if (!sDish || !sDish.id) return;
+              const localMatch = mergedMap.get(sDish.id);
+              if (!localMatch) {
+                mergedMap.set(sDish.id, sDish);
+              } else {
+                mergedMap.set(sDish.id, {
+                  ...sDish,
+                  // Keep uploaded device photo if present locally
+                  image: (localMatch.image && localMatch.image.startsWith('data:')) ? localMatch.image : sDish.image
+                });
+              }
+            });
+
+            const finalMerged = Array.from(mergedMap.values());
+
             try {
-              localStorage.setItem('olaronke_custom_dishes', JSON.stringify(merged));
+              localStorage.setItem('olaronke_custom_dishes', JSON.stringify(finalMerged));
             } catch (e) {}
-            return merged;
+            return finalMerged;
           });
         }
       }
@@ -229,10 +245,10 @@ export function SocketProvider({ children }) {
     }
   };
 
-  // Initial fetch and 5-second polling for real-time catalog & stock sync across all devices
+  // Initial fetch and 30-second background sync for real-time catalog & stock across devices
   useEffect(() => {
     refreshDishes();
-    const interval = setInterval(refreshDishes, 5000);
+    const interval = setInterval(refreshDishes, 30000);
     return () => clearInterval(interval);
   }, []);
 
