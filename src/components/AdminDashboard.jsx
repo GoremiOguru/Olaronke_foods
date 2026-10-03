@@ -317,7 +317,8 @@ export default function AdminDashboard({ onOpenHowToUse }) {
 
   const handleScoopChange = async (dishId, newScoops) => {
     const validScoops = Math.max(0, newScoops);
-    setDishes(prev => prev.map(d => d.id === dishId ? { ...d, scoopsLeft: validScoops, isAvailable: validScoops > 0 ? d.isAvailable : false } : d));
+    const isAvail = validScoops > 0;
+    setDishes(prev => prev.map(d => d.id === dishId ? { ...d, scoopsLeft: validScoops, isAvailable: isAvail } : d));
 
     try {
       await fetch(`/api/dishes/${dishId}`, {
@@ -326,7 +327,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ scoopsLeft: validScoops })
+        body: JSON.stringify({ scoopsLeft: validScoops, isAvailable: isAvail })
       });
     } catch (err) {
       console.error('Failed to update stock:', err);
@@ -334,8 +335,11 @@ export default function AdminDashboard({ onOpenHowToUse }) {
   };
 
   const handleToggleAvailability = async (dishId, currentAvailability) => {
+    const targetDish = dishes.find(d => d.id === dishId);
     const nextState = !currentAvailability;
-    setDishes(prev => prev.map(d => d.id === dishId ? { ...d, isAvailable: nextState } : d));
+    const updatedScoops = nextState ? (targetDish && targetDish.scoopsLeft > 0 ? targetDish.scoopsLeft : 30) : 0;
+
+    setDishes(prev => prev.map(d => d.id === dishId ? { ...d, isAvailable: nextState, scoopsLeft: updatedScoops } : d));
 
     try {
       await fetch(`/api/dishes/${dishId}`, {
@@ -344,7 +348,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ isAvailable: nextState })
+        body: JSON.stringify({ isAvailable: nextState, scoopsLeft: updatedScoops })
       });
     } catch (err) {
       console.error('Failed to toggle availability:', err);

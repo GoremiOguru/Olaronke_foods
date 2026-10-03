@@ -52,39 +52,65 @@ export async function fetchSupabaseDB() {
 export async function saveSupabaseRecord(table, record) {
   if (!isSupabaseConfigured || !supabase) return false;
   try {
-    const cleanRecord = { ...record };
-
     if (table === 'dishes') {
-      const rawScoops = record.scoopsLeft;
+      const rawScoops = record.scoopsLeft !== undefined ? record.scoopsLeft : record.scoopsleft;
       const scoops = (rawScoops !== undefined && rawScoops !== null && !isNaN(Number(rawScoops)))
         ? Math.max(0, Number(rawScoops))
         : 30;
 
-      const rawAvail = record.isAvailable;
+      const rawAvail = record.isAvailable !== undefined ? record.isAvailable : record.isavailable;
       const isAvail = (rawAvail !== undefined && rawAvail !== null)
         ? Boolean(rawAvail)
         : (scoops > 0);
 
-      cleanRecord.scoopsLeft = scoops;
-      cleanRecord.scoopsleft = scoops;
-      cleanRecord.isAvailable = isAvail && scoops > 0;
-      cleanRecord.isavailable = cleanRecord.isAvailable;
+      // Attempt 1: Standard Supabase Postgres lowercase columns
+      const lowercaseRecord = {
+        id: String(record.id),
+        name: String(record.name || ''),
+        description: String(record.description || ''),
+        price: Number(record.price) || 500,
+        scoopsleft: scoops,
+        unittype: String(record.unitType || record.unittype || 'scoop'),
+        isavailable: isAvail,
+        category: String(record.category || 'Rice Dishes'),
+        preptime: record.prepTime || record.preptime || null,
+        image: String(record.image || '/images/jollof_rice.png')
+      };
+
+      const res1 = await supabase.from(table).upsert(lowercaseRecord);
+      if (!res1.error) return true;
+
+      // Attempt 2: camelCase columns
+      const camelRecord = {
+        id: String(record.id),
+        name: String(record.name || ''),
+        description: String(record.description || ''),
+        price: Number(record.price) || 500,
+        scoopsLeft: scoops,
+        unitType: String(record.unitType || record.unittype || 'scoop'),
+        isAvailable: isAvail,
+        category: String(record.category || 'Rice Dishes'),
+        prepTime: record.prepTime || record.preptime || null,
+        image: String(record.image || '/images/jollof_rice.png')
+      };
+
+      const res2 = await supabase.from(table).upsert(camelRecord);
+      if (!res2.error) return true;
+
+      // Attempt 3: combined columns
+      const combinedRecord = { ...lowercaseRecord, ...camelRecord };
+      const res3 = await supabase.from(table).upsert(combinedRecord);
+      if (res3.error) {
+        console.warn('Supabase upsert failed on dishes:', res3.error.message);
+      }
+      return !res3.error;
     }
 
-    const { error } = await supabase.from(table).upsert(cleanRecord);
+    const { error } = await supabase.from(table).upsert(record);
     if (error) {
       console.warn(`Supabase upsert notice on ${table}:`, error.message);
-      
-      delete cleanRecord.scoopsleft;
-      delete cleanRecord.isavailable;
-
-      const retryRes = await supabase.from(table).upsert(cleanRecord);
-      if (retryRes.error) {
-        console.warn(`Supabase minimal upsert notice on ${table}:`, retryRes.error.message);
-      }
-      return !retryRes.error;
     }
-    return true;
+    return !error;
   } catch (err) {
     console.warn(`Supabase save error on ${table}:`, err.message);
     return false;
