@@ -104,6 +104,41 @@ export async function saveSupabaseRecord(table, record) {
       return !res2.error;
     }
 
+    if (table === 'orders') {
+      const itemsWithScheduledTime = Array.isArray(record.items) ? record.items.map(item => ({
+        ...item,
+        scheduledTime: record.scheduledTime || item.scheduledTime || null
+      })) : [];
+
+      const cleanOrder = {
+        id: String(record.id),
+        pickupCode: String(record.pickupCode || ''),
+        studentId: String(record.studentId || ''),
+        studentName: String(record.studentName || ''),
+        studentEmail: String(record.studentEmail || ''),
+        studentPhone: String(record.studentPhone || ''),
+        items: itemsWithScheduledTime,
+        includeTakeoutPack: Boolean(record.includeTakeoutPack),
+        plateSize: Number(record.plateSize) || 300,
+        plateSizeName: String(record.plateSizeName || ''),
+        takeoutFee: Number(record.takeoutFee) || 0,
+        deliveryFee: Number(record.deliveryFee) || 0,
+        isHostelDelivery: Boolean(record.isHostelDelivery),
+        hostelAddress: String(record.hostelAddress || ''),
+        totalPrice: Number(record.totalPrice) || 0,
+        status: String(record.status || 'Pending Payment Verification'),
+        paymentConfirmed: Boolean(record.paymentConfirmed),
+        createdAt: record.createdAt || new Date().toISOString()
+      };
+
+      const { error } = await supabase.from('orders').upsert(cleanOrder);
+      if (error) {
+        console.warn('Supabase upsert failed on orders:', error.message);
+        return false;
+      }
+      return true;
+    }
+
     const { error } = await supabase.from(table).upsert(record);
     if (error) {
       console.warn(`Supabase upsert notice on ${table}:`, error.message);

@@ -15,7 +15,7 @@ export function CartProvider({ children }) {
     }
   });
 
-  const [includeTakeoutPack, setIncludeTakeoutPack] = useState(true);
+  const [includeTakeoutPack, setIncludeTakeoutPack] = useState(false);
   const [plateSize, setPlateSize] = useState(200); // 100 | 200 | 300
   const [isHostelDelivery, setIsHostelDelivery] = useState(false);
   const [hostelAddress, setHostelAddress] = useState('');
@@ -54,6 +54,12 @@ export function CartProvider({ children }) {
     }
 
     const isRice = dish.category === 'Rice Dishes' || dish.unitType === 'scoop' || dish.name.toLowerCase().includes('rice');
+    const resolvedUnit = (dish.unitType && dish.unitType !== 'scoop')
+      ? dish.unitType
+      : (dish.category === 'Drinks & Refreshments' ? 'bottle'
+      : (dish.category === 'Sides & Extras' ? 'piece'
+      : (dish.category === 'Chicken & Proteins' ? 'portion'
+      : (isRice ? 'scoop' : 'portion'))));
 
     setCart(prev => {
       // Find existing item for this dish in the SAME target plate
@@ -93,7 +99,7 @@ export function CartProvider({ children }) {
           dishName: dish.name,
           price: dish.price,
           scoops: scoops,
-          unitType: dish.unitType || (isRice ? 'scoop' : 'portion'),
+          unitType: resolvedUnit,
           image: dish.image,
           category: dish.category,
           isRice: isRice,

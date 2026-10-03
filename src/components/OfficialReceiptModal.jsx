@@ -197,29 +197,33 @@ export default function OfficialReceiptModal({ order, onClose }) {
             </div>
           )}
 
-          {/* Print / Save & Close Action Buttons */}
-          <div className="flex items-center space-x-3 pt-2 print:hidden">
-            {isPaymentVerified ? (
-              <button
-                onClick={handlePrint}
-                className="flex-1 py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-amber-400 font-extrabold text-xs shadow-lg transition-all flex items-center justify-center space-x-2 border border-amber-500/30"
-              >
-                <Printer className="w-4 h-4 text-amber-400" />
-                <span>🖨️ Download / Print Verified Receipt</span>
-              </button>
-            ) : (
-              <button
-                disabled
-                className="flex-1 py-3.5 rounded-2xl bg-slate-200 text-slate-500 font-bold text-xs flex items-center justify-center space-x-2 cursor-not-allowed opacity-75"
-              >
-                <AlertTriangle className="w-4 h-4 text-amber-600" />
-                <span>🔒 Print Unavailable Until Staff Payment Verification</span>
-              </button>
-            )}
+          {/* Print / Save & Share Action Buttons */}
+          <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-2 print:hidden">
+            <button
+              onClick={handlePrint}
+              className="w-full sm:flex-1 py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-amber-400 font-extrabold text-xs shadow-lg transition-all flex items-center justify-center space-x-2 border border-amber-500/30"
+            >
+              <Printer className="w-4 h-4 text-amber-400" />
+              <span>🖨️ Print / Save PDF Receipt</span>
+            </button>
+
+            <button
+              onClick={() => {
+                const text = `🧾 B'FEASTAS OFFICIAL RECEIPT #${order.id}\nSecret Pickup Code: #${pickupCode}\nStudent: ${order.studentName}\nTotal: ₦${order.totalPrice.toLocaleString()}\nStatus: ${order.status}`;
+                if (navigator.clipboard) {
+                  navigator.clipboard.writeText(text);
+                  alert("Receipt summary copied to clipboard!");
+                }
+              }}
+              className="w-full sm:w-auto px-4 py-3.5 rounded-2xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-900 border border-amber-500/40 font-extrabold text-xs flex items-center justify-center gap-1.5"
+            >
+              <Download className="w-4 h-4 text-amber-700" />
+              <span>Copy Receipt Summary</span>
+            </button>
 
             <button
               onClick={onClose}
-              className="px-5 py-3.5 rounded-2xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-extrabold text-xs transition-all flex items-center justify-center space-x-1"
+              className="w-full sm:w-auto px-5 py-3.5 rounded-2xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-extrabold text-xs transition-all flex items-center justify-center space-x-1"
             >
               <X className="w-4 h-4 text-slate-600" />
               <span>Close</span>

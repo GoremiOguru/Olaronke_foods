@@ -561,11 +561,32 @@ export default function AdminDashboard({ onOpenHowToUse }) {
     const totalDeliveryFees = todayOrders.reduce((sum, o) => sum + (Number(o.deliveryFee) || 0), 0);
     const verifiedOrdersCount = todayOrders.filter(o => o.paymentConfirmed || o.status === 'Completed').length;
 
+    // Calculate Top-Selling Dish / Drink of the Day
+    const itemCounts = {};
+    todayOrders.forEach(o => {
+      (o.items || []).forEach(item => {
+        const cleanName = (item.dishName || '').replace(/^\[Plate #\d+\]\s*/, '').trim();
+        if (cleanName) {
+          itemCounts[cleanName] = (itemCounts[cleanName] || 0) + Math.max(1, Number(item.scoops || 1));
+        }
+      });
+    });
+
+    let topSellingItem = 'None yet today';
+    let topSellingCount = 0;
+    Object.entries(itemCounts).forEach(([name, count]) => {
+      if (count > topSellingCount) {
+        topSellingCount = count;
+        topSellingItem = `${name} (${count} portion${count > 1 ? 's' : ''} sold)`;
+      }
+    });
+
     const ownerPhone = '2347032739252';
     const summaryText = `📊 EXECUTIVE DAILY FINANCIAL SUMMARY - MRS. OLARONKE OGIDAN\n` +
       `--------------------------------------\n` +
       `📅 Date: ${now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}\n` +
       `🍱 Total Orders Today: ${todayOrders.length} orders (${verifiedOrdersCount} verified)\n` +
+      `🔥 Top-Selling Item Today: ${topSellingItem}\n` +
       `💰 Total Revenue Collected: ₦${totalRevenue.toLocaleString()}\n` +
       `📦 Takeout Packaging Fees: ₦${totalTakeoutFees.toLocaleString()}\n` +
       `🚚 Delivery Fees Collected: ₦${totalDeliveryFees.toLocaleString()}\n` +

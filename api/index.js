@@ -480,7 +480,11 @@ app.get(['/api/orders', '/orders'], authenticateToken, async (req, res) => {
       }
       const { data, error } = await query;
       if (!error && Array.isArray(data)) {
-        return res.json(data);
+        const formatted = data.map(o => ({
+          ...o,
+          scheduledTime: o.scheduledTime || (Array.isArray(o.items) && o.items[0]?.scheduledTime) || null
+        }));
+        return res.json(formatted);
       }
     } catch (e) {
       console.warn('Supabase orders fetch notice:', e.message);
