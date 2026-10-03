@@ -326,15 +326,20 @@ app.get(['/api/dishes', '/dishes'], async (req, res) => {
   if (isSupabaseConfigured && supabase) {
     try {
       let cloudCustomDishes = [];
+      let cloudDeletedIds = db.deletedDishIds || [];
+
       try {
         const settingsRes = await supabase.from('settings').select('*').limit(1);
         if (!settingsRes.error && settingsRes.data?.[0]) {
           const s = settingsRes.data[0];
           if (s.deletedDishIds && Array.isArray(s.deletedDishIds)) {
-            db.deletedDishIds = s.deletedDishIds;
+            cloudDeletedIds = s.deletedDishIds;
+            db.deletedDishIds = cloudDeletedIds;
           }
           if (s.customDishes && Array.isArray(s.customDishes)) {
             cloudCustomDishes = s.customDishes;
+          } else if (s.heroSubtitle && typeof s.heroSubtitle === 'string' && s.heroSubtitle.startsWith('[{"id":')) {
+            try { cloudCustomDishes = JSON.parse(s.heroSubtitle); } catch (e) {}
           }
         }
       } catch (e) {}
@@ -365,7 +370,7 @@ app.get(['/api/dishes', '/dishes'], async (req, res) => {
       }
 
       const combinedIncoming = [...sanitized, ...cloudCustomDishes];
-      const mergedDishes = mergeDishesWithDefaults(combinedIncoming, db.deletedDishIds);
+      const mergedDishes = mergeDishesWithDefaults(combinedIncoming, cloudDeletedIds);
       db.dishes = mergedDishes;
 
       return res.json(mergedDishes);
@@ -405,7 +410,11 @@ app.post(['/api/dishes', '/dishes'], authenticateToken, requireAdmin, async (req
   if (isSupabaseConfigured) {
     await saveSupabaseRecord('dishes', newDish);
     try {
-      await saveSupabaseRecord('settings', { id: 1, customDishes: db.dishes, deletedDishIds: db.deletedDishIds });
+      await saveSupabaseRecord('settings', {
+        id: 1,
+        deletedDishIds: db.deletedDishIds,
+        heroSubtitle: JSON.stringify(db.dishes)
+      });
     } catch (e) {}
   }
 
@@ -448,7 +457,11 @@ app.patch(['/api/dishes/:id', '/dishes/:id'], authenticateToken, requireAdmin, a
   if (isSupabaseConfigured) {
     await saveSupabaseRecord('dishes', dish);
     try {
-      await saveSupabaseRecord('settings', { id: 1, customDishes: db.dishes, deletedDishIds: db.deletedDishIds });
+      await saveSupabaseRecord('settings', {
+        id: 1,
+        deletedDishIds: db.deletedDishIds,
+        heroSubtitle: JSON.stringify(db.dishes)
+      });
     } catch (e) {}
   }
 
@@ -475,7 +488,11 @@ app.delete(['/api/dishes/:id', '/dishes/:id'], authenticateToken, requireAdmin, 
       if (targetName) {
         await supabase.from('dishes').delete().ilike('name', `%${targetName}%`);
       }
-      await saveSupabaseRecord('settings', { id: 1, customDishes: db.dishes, deletedDishIds: db.deletedDishIds });
+      await saveSupabaseRecord('settings', {
+        id: 1,
+        deletedDishIds: db.deletedDishIds,
+        heroSubtitle: JSON.stringify(db.dishes)
+      });
     } catch (e) {}
   }
 
