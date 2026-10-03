@@ -321,37 +321,18 @@ app.get(['/api/admin/staff', '/admin/staff'], authenticateToken, requireAdmin, (
 // DISHES & INVENTORY ROUTES
 // -------------------------------------------------------------
 app.get(['/api/dishes', '/dishes'], async (req, res) => {
-  let db = await syncCloudDB();
-
+  const db = loadDB();
   if (isSupabaseConfigured && supabase) {
     try {
-      let cloudCustomDishes = [];
       let cloudDeletedIds = db.deletedDishIds || [];
-
       try {
         const settingsRes = await supabase.from('settings').select('*').limit(1);
         if (!settingsRes.error && settingsRes.data?.[0]) {
           const s = settingsRes.data[0];
           const rawDel = s.deletedDishIds || s.deleteddishids;
           if (rawDel && Array.isArray(rawDel)) {
-            cloudDeletedIds = rawDel;
+            cloudDeletedIds = Array.from(new Set([...cloudDeletedIds, ...rawDel]));
             db.deletedDishIds = cloudDeletedIds;
-          }
-          const rawWa = s.whatsappName || s.whatsappname;
-          const rawSub = s.heroSubtitle || s.herosubtitle;
-          const targetStr = (rawWa && rawWa.startsWith('{')) ? rawWa : ((rawSub && rawSub.startsWith('{')) ? rawSub : null);
-
-          if (targetStr) {
-            try {
-              const parsed = JSON.parse(targetStr);
-              if (parsed.dishes && Array.isArray(parsed.dishes)) {
-                cloudCustomDishes = parsed.dishes;
-              }
-              if (parsed.deletedDishIds && Array.isArray(parsed.deletedDishIds)) {
-                cloudDeletedIds = Array.from(new Set([...cloudDeletedIds, ...parsed.deletedDishIds]));
-                db.deletedDishIds = cloudDeletedIds;
-              }
-            } catch (e) {}
           }
         }
       } catch (e) {}
@@ -381,8 +362,7 @@ app.get(['/api/dishes', '/dishes'], async (req, res) => {
         });
       }
 
-      const combinedIncoming = [...sanitized, ...cloudCustomDishes];
-      const mergedDishes = mergeDishesWithDefaults(combinedIncoming, cloudDeletedIds);
+      const mergedDishes = mergeDishesWithDefaults(sanitized, cloudDeletedIds);
       db.dishes = mergedDishes;
 
       return res.json(mergedDishes);
@@ -421,14 +401,6 @@ app.post(['/api/dishes', '/dishes'], authenticateToken, requireAdmin, async (req
 
   if (isSupabaseConfigured) {
     await saveSupabaseRecord('dishes', newDish);
-    try {
-      const syncData = JSON.stringify({ dishes: db.dishes, deletedDishIds: db.deletedDishIds });
-      await saveSupabaseRecord('settings', {
-        id: 1,
-        deletedDishIds: db.deletedDishIds,
-        whatsappName: syncData
-      });
-    } catch (e) {}
   }
 
   return res.status(201).json(newDish);
@@ -469,14 +441,6 @@ app.patch(['/api/dishes/:id', '/dishes/:id'], authenticateToken, requireAdmin, a
 
   if (isSupabaseConfigured) {
     await saveSupabaseRecord('dishes', dish);
-    try {
-      const syncData = JSON.stringify({ dishes: db.dishes, deletedDishIds: db.deletedDishIds });
-      await saveSupabaseRecord('settings', {
-        id: 1,
-        deletedDishIds: db.deletedDishIds,
-        whatsappName: syncData
-      });
-    } catch (e) {}
   }
 
   return res.json(dish);
@@ -502,11 +466,9 @@ app.delete(['/api/dishes/:id', '/dishes/:id'], authenticateToken, requireAdmin, 
       if (targetName) {
         await supabase.from('dishes').delete().ilike('name', `%${targetName}%`);
       }
-      const syncData = JSON.stringify({ dishes: db.dishes, deletedDishIds: db.deletedDishIds });
       await saveSupabaseRecord('settings', {
         id: 1,
-        deletedDishIds: db.deletedDishIds,
-        whatsappName: syncData
+        deletedDishIds: db.deletedDishIds
       });
     } catch (e) {}
   }

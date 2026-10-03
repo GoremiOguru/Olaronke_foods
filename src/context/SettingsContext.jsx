@@ -15,11 +15,34 @@ const defaultSettings = {
   announcementText: "Topfaith University Campus Gourmet Dining"
 };
 
+function sanitizeSettings(settingsObj) {
+  if (!settingsObj || typeof settingsObj !== 'object') return defaultSettings;
+  const clean = { ...defaultSettings, ...settingsObj };
+
+  // Sanitize whatsappName: if it is JSON, array, or abnormally long string, fallback to 'Isaac'
+  if (typeof clean.whatsappName !== 'string' || clean.whatsappName.trim().startsWith('{') || clean.whatsappName.trim().startsWith('[') || clean.whatsappName.length > 40) {
+    clean.whatsappName = 'Isaac';
+  }
+  if (typeof clean.accountName !== 'string' || clean.accountName.trim().startsWith('{') || clean.accountName.length > 80) {
+    clean.accountName = defaultSettings.accountName;
+  }
+  if (typeof clean.bankName !== 'string' || clean.bankName.trim().startsWith('{') || clean.bankName.length > 50) {
+    clean.bankName = defaultSettings.bankName;
+  }
+  if (typeof clean.accountNumber !== 'string' || clean.accountNumber.trim().startsWith('{') || clean.accountNumber.length > 30) {
+    clean.accountNumber = defaultSettings.accountNumber;
+  }
+  if (typeof clean.whatsappNumber !== 'string' || clean.whatsappNumber.trim().startsWith('{') || clean.whatsappNumber.length > 30) {
+    clean.whatsappNumber = defaultSettings.whatsappNumber;
+  }
+  return clean;
+}
+
 export function SettingsProvider({ children }) {
   const [settings, setSettings] = useState(() => {
     try {
       const saved = localStorage.getItem('olaronke_settings');
-      return saved ? { ...defaultSettings, ...JSON.parse(saved) } : defaultSettings;
+      return saved ? sanitizeSettings(JSON.parse(saved)) : defaultSettings;
     } catch {
       return defaultSettings;
     }
@@ -37,12 +60,12 @@ export function SettingsProvider({ children }) {
       if (res.ok) {
         const data = await res.json();
         if (data && typeof data === 'object') {
-          const merged = { ...defaultSettings, ...data, ...localObj };
+          const merged = sanitizeSettings({ ...data, ...localObj });
           setSettings(merged);
           localStorage.setItem('olaronke_settings', JSON.stringify(merged));
         }
       } else if (Object.keys(localObj).length > 0) {
-        setSettings(prev => ({ ...defaultSettings, ...prev, ...localObj }));
+        setSettings(prev => sanitizeSettings({ ...prev, ...localObj }));
       }
     } catch (err) {
       console.warn('Failed to fetch settings from server:', err);
@@ -56,7 +79,7 @@ export function SettingsProvider({ children }) {
       try {
         const saved = localStorage.getItem('olaronke_settings');
         if (saved) {
-          setSettings(prev => ({ ...prev, ...JSON.parse(saved) }));
+          setSettings(prev => sanitizeSettings({ ...prev, ...JSON.parse(saved) }));
         }
       } catch (e) {}
     };
@@ -67,7 +90,7 @@ export function SettingsProvider({ children }) {
 
   const updateSettingsState = (newSettings) => {
     setSettings(prev => {
-      const updated = { ...prev, ...newSettings };
+      const updated = sanitizeSettings({ ...prev, ...newSettings });
       localStorage.setItem('olaronke_settings', JSON.stringify(updated));
       return updated;
     });

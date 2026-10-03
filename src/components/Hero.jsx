@@ -12,7 +12,10 @@ export default function Hero({ onExploreClick, onOpenHowToUse }) {
 
   const phone = settings.whatsappNumber || '08133314798';
   const cleanPhone = phone.startsWith('0') ? `234${phone.slice(1)}` : phone;
-  const staffName = settings.whatsappName || 'Isaac';
+  const rawStaffName = settings.whatsappName || 'Isaac';
+  const staffName = (typeof rawStaffName === 'string' && !rawStaffName.trim().startsWith('{') && rawStaffName.length < 30)
+    ? rawStaffName
+    : 'Isaac';
   const accountName = settings.accountName || 'OLARONKE OGIDAN';
   const bankName = settings.bankName || 'MONIEPOINT';
   const accountNumber = settings.accountNumber || '8234786544';
