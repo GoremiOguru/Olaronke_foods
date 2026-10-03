@@ -327,18 +327,26 @@ app.get(['/api/dishes', '/dishes'], async (req, res) => {
     try {
       const { data, error } = await supabase.from('dishes').select('*');
       if (!error && Array.isArray(data)) {
-        const sanitized = data.map(d => ({
-          id: d.id,
-          name: d.name,
-          description: d.description || '',
-          price: Number(d.price) || 0,
-          scoopsLeft: Number(d.scoopsLeft ?? d.scoopsleft ?? 30),
-          unitType: d.unitType || d.unittype || 'scoop',
-          isAvailable: d.isAvailable ?? d.isavailable ?? true,
-          category: d.category || 'Rice Dishes',
-          prepTime: d.prepTime || d.preptime || null,
-          image: d.image || '/images/jollof_rice.png'
-        }));
+        const sanitized = data.map(d => {
+          const rawScoops = d.scoopsLeft !== undefined && d.scoopsLeft !== null ? d.scoopsLeft : d.scoopsleft;
+          const parsedScoops = (rawScoops !== undefined && rawScoops !== null && !isNaN(Number(rawScoops))) ? Number(rawScoops) : 30;
+
+          const rawAvailable = d.isAvailable !== undefined && d.isAvailable !== null ? d.isAvailable : d.isavailable;
+          const parsedAvailable = rawAvailable !== undefined && rawAvailable !== null ? Boolean(rawAvailable) : (parsedScoops > 0);
+
+          return {
+            id: d.id,
+            name: d.name,
+            description: d.description || '',
+            price: Number(d.price) || 500,
+            scoopsLeft: parsedScoops,
+            unitType: d.unitType || d.unittype || 'scoop',
+            isAvailable: parsedAvailable,
+            category: d.category || 'Rice Dishes',
+            prepTime: d.prepTime || d.preptime || null,
+            image: d.image || '/images/jollof_rice.png'
+          };
+        });
 
         const mergedDishes = mergeDishesWithDefaults(sanitized, db.deletedDishIds);
         db.dishes = mergedDishes;

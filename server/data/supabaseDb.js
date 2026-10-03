@@ -55,27 +55,21 @@ export async function saveSupabaseRecord(table, record) {
     const cleanRecord = { ...record };
 
     if (table === 'dishes') {
-      if (cleanRecord.scoopsLeft !== undefined) cleanRecord.scoopsleft = cleanRecord.scoopsLeft;
-      if (cleanRecord.isAvailable !== undefined) cleanRecord.isavailable = cleanRecord.isAvailable;
-      if (cleanRecord.unitType !== undefined) cleanRecord.unittype = cleanRecord.unitType;
-      if (cleanRecord.prepTime !== undefined) cleanRecord.preptime = cleanRecord.prepTime;
+      const scoops = record.scoopsLeft !== undefined && record.scoopsLeft !== null ? Number(record.scoopsLeft) : 30;
+      cleanRecord.scoopsLeft = scoops;
+      cleanRecord.scoopsleft = scoops;
+      cleanRecord.isAvailable = record.isAvailable !== undefined ? Boolean(record.isAvailable) : scoops > 0;
+      cleanRecord.isavailable = cleanRecord.isAvailable;
     }
 
     const { error } = await supabase.from(table).upsert(cleanRecord);
     if (error) {
       console.warn(`Supabase upsert notice on ${table}:`, error.message);
       
-      // Retry with minimal clean record
-      const minimalRecord = {
-        id: record.id,
-        name: record.name,
-        description: record.description || '',
-        price: Number(record.price) || 0,
-        category: record.category || 'Rice Dishes',
-        image: record.image || '/images/jollof_rice.png'
-      };
+      delete cleanRecord.scoopsleft;
+      delete cleanRecord.isavailable;
 
-      const retryRes = await supabase.from(table).upsert(minimalRecord);
+      const retryRes = await supabase.from(table).upsert(cleanRecord);
       if (retryRes.error) {
         console.warn(`Supabase minimal upsert notice on ${table}:`, retryRes.error.message);
       }
