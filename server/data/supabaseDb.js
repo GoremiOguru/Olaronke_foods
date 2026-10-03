@@ -53,15 +53,33 @@ export async function saveSupabaseRecord(table, record) {
   if (!isSupabaseConfigured || !supabase) return false;
   try {
     const cleanRecord = { ...record };
+
+    if (table === 'dishes') {
+      if (cleanRecord.scoopsLeft !== undefined) cleanRecord.scoopsleft = cleanRecord.scoopsLeft;
+      if (cleanRecord.isAvailable !== undefined) cleanRecord.isavailable = cleanRecord.isAvailable;
+      if (cleanRecord.unitType !== undefined) cleanRecord.unittype = cleanRecord.unitType;
+      if (cleanRecord.prepTime !== undefined) cleanRecord.preptime = cleanRecord.prepTime;
+    }
+
     const { error } = await supabase.from(table).upsert(cleanRecord);
     if (error) {
       console.warn(`Supabase upsert notice on ${table}:`, error.message);
-      // Try insert if upsert fails
-      const insertRes = await supabase.from(table).insert(cleanRecord);
-      if (insertRes.error) {
-        console.warn(`Supabase insert notice on ${table}:`, insertRes.error.message);
+      
+      // Retry with minimal clean record
+      const minimalRecord = {
+        id: record.id,
+        name: record.name,
+        description: record.description || '',
+        price: Number(record.price) || 0,
+        category: record.category || 'Rice Dishes',
+        image: record.image || '/images/jollof_rice.png'
+      };
+
+      const retryRes = await supabase.from(table).upsert(minimalRecord);
+      if (retryRes.error) {
+        console.warn(`Supabase minimal upsert notice on ${table}:`, retryRes.error.message);
       }
-      return !insertRes.error;
+      return !retryRes.error;
     }
     return true;
   } catch (err) {

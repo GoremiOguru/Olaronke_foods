@@ -327,19 +327,32 @@ app.get(['/api/dishes', '/dishes'], async (req, res) => {
     try {
       const { data, error } = await supabase.from('dishes').select('*');
       if (!error && Array.isArray(data)) {
-        if (data.length > 0) {
-          const mergedDishes = mergeDishesWithDefaults(data, db.deletedDishIds);
-          db.dishes = mergedDishes;
-          return res.json(mergedDishes);
-        } else {
-          // Auto-seed Supabase database table with initial dish catalog if empty
+        const sanitized = data.map(d => ({
+          id: d.id,
+          name: d.name,
+          description: d.description || '',
+          price: Number(d.price) || 0,
+          scoopsLeft: Number(d.scoopsLeft ?? d.scoopsleft ?? 30),
+          unitType: d.unitType || d.unittype || 'scoop',
+          isAvailable: d.isAvailable ?? d.isavailable ?? true,
+          category: d.category || 'Rice Dishes',
+          prepTime: d.prepTime || d.preptime || null,
+          image: d.image || '/images/jollof_rice.png'
+        }));
+
+        const mergedDishes = mergeDishesWithDefaults(sanitized, db.deletedDishIds);
+        db.dishes = mergedDishes;
+
+        // Auto-seed Supabase with any missing default dishes if Supabase table has fewer items
+        if (data.length < 29) {
           try {
-            for (const dish of db.dishes) {
+            for (const dish of mergedDishes) {
               await saveSupabaseRecord('dishes', dish);
             }
           } catch (e) {}
-          return res.json(db.dishes);
         }
+
+        return res.json(mergedDishes);
       }
     } catch (e) {
       console.warn('Supabase dishes fetch notice:', e.message);
