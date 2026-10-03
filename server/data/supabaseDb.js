@@ -63,24 +63,6 @@ export async function saveSupabaseRecord(table, record) {
         ? Boolean(rawAvail)
         : (scoops > 0);
 
-      // Attempt 1: Standard Supabase Postgres lowercase columns
-      const lowercaseRecord = {
-        id: String(record.id),
-        name: String(record.name || ''),
-        description: String(record.description || ''),
-        price: Number(record.price) || 500,
-        scoopsleft: scoops,
-        unittype: String(record.unitType || record.unittype || 'scoop'),
-        isavailable: isAvail,
-        category: String(record.category || 'Rice Dishes'),
-        preptime: record.prepTime || record.preptime || null,
-        image: String(record.image || '/images/jollof_rice.png')
-      };
-
-      const res1 = await supabase.from(table).upsert(lowercaseRecord);
-      if (!res1.error) return true;
-
-      // Attempt 2: camelCase columns
       const camelRecord = {
         id: String(record.id),
         name: String(record.name || ''),
@@ -90,20 +72,15 @@ export async function saveSupabaseRecord(table, record) {
         unitType: String(record.unitType || record.unittype || 'scoop'),
         isAvailable: isAvail,
         category: String(record.category || 'Rice Dishes'),
-        prepTime: record.prepTime || record.preptime || null,
         image: String(record.image || '/images/jollof_rice.png')
       };
 
-      const res2 = await supabase.from(table).upsert(camelRecord);
-      if (!res2.error) return true;
-
-      // Attempt 3: combined columns
-      const combinedRecord = { ...lowercaseRecord, ...camelRecord };
-      const res3 = await supabase.from(table).upsert(combinedRecord);
-      if (res3.error) {
-        console.warn('Supabase upsert failed on dishes:', res3.error.message);
+      const res = await supabase.from('dishes').upsert(camelRecord);
+      if (res.error) {
+        console.warn('Supabase upsert failed on dishes:', res.error.message);
+        return false;
       }
-      return !res3.error;
+      return true;
     }
 
     if (table === 'settings') {

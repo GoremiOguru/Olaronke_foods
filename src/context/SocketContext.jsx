@@ -243,10 +243,10 @@ export function SocketProvider({ children }) {
     }
   };
 
-  // Initial fetch and 10-second real-time sync across all student & admin devices
+  // Initial fetch and 5-second real-time sync across all student & admin devices
   useEffect(() => {
     refreshDishes();
-    const interval = setInterval(refreshDishes, 10000);
+    const interval = setInterval(refreshDishes, 5000);
     return () => clearInterval(interval);
   }, []);
 
