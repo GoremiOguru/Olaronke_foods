@@ -112,12 +112,18 @@ export default function OfficialReceiptModal({ order, onClose }) {
                 <Calendar className="w-3 h-3 text-slate-400" /> {formattedDate} at {formattedTime}
               </span>
             </div>
-            <div className="flex justify-between pt-1">
+            <div className="flex justify-between border-b border-slate-100 pb-2">
               <span className="text-slate-500 font-medium">Fulfillment Mode:</span>
               <span className="font-bold text-amber-600">
                 {order.isHostelDelivery ? `🚚 Hostel Delivery: ${order.hostelAddress}` : '📍 Cafeteria Pickup'}
               </span>
             </div>
+            {order.scheduledTime && (
+              <div className="flex justify-between pt-1">
+                <span className="text-slate-500 font-medium">Scheduled Pickup Time:</span>
+                <span className="font-extrabold text-slate-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">⏰ {order.scheduledTime}</span>
+              </div>
+            )}
           </div>
 
           {/* Itemized Table */}

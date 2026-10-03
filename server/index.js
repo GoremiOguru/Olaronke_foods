@@ -421,7 +421,7 @@ app.get('/api/orders', authenticateToken, (req, res) => {
 });
 
 app.post('/api/orders', authenticateToken, (req, res) => {
-  const { items, includeTakeoutPack, plateSize, plateSizeName, takeoutFee: reqTakeoutFee, isHostelDelivery, hostelAddress, studentPhone } = req.body;
+  const { items, includeTakeoutPack, plateSize, plateSizeName, takeoutFee: reqTakeoutFee, isHostelDelivery, hostelAddress, studentPhone, scheduledTime, pickupTime, scheduledPickupTime } = req.body;
 
   if (!items || !Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ message: 'Order items cannot be empty.' });
@@ -485,9 +485,9 @@ app.post('/api/orders', authenticateToken, (req, res) => {
   const deliveryFee = isHostelDelivery ? 500 : 0;
   const totalPrice = mealsTotal + takeoutFee + deliveryFee;
 
-  // Always generate guaranteed 3-digit pickup code between 100 and 999
   const pickupCode = String(Math.floor(100 + Math.random() * 900));
   const orderId = `ORD-${Math.floor(1000 + Math.random() * 9000)}`;
+  const finalScheduledTime = scheduledTime || pickupTime || scheduledPickupTime || null;
 
   const newOrder = {
     id: orderId,
@@ -504,9 +504,11 @@ app.post('/api/orders', authenticateToken, (req, res) => {
     deliveryFee,
     isHostelDelivery: Boolean(isHostelDelivery),
     hostelAddress: isHostelDelivery ? hostelAddress.trim() : '',
+    scheduledTime: finalScheduledTime,
     totalPrice,
     status: 'Pending Payment Verification',
     paymentConfirmed: false,
+    isCancelled: false,
     createdAt: new Date().toISOString()
   };
 
@@ -531,12 +533,51 @@ app.patch('/api/orders/:id/status', authenticateToken, requireAdmin, (req, res) 
   if (!order) return res.status(404).json({ message: 'Order not found' });
 
   order.status = status;
+  order.confirmedByAdmin = req.user.name;
+
+  const isNewStatusCancelled = status.toLowerCase().includes('cancel') || status.toLowerCase().includes('reject') || status.toLowerCase().includes('fail');
+  const wasPreviouslyCancelled = Boolean(order.isCancelled);
+
+  if (isNewStatusCancelled && !wasPreviouslyCancelled) {
+    order.isCancelled = true;
+    order.paymentConfirmed = false;
+
+    if (Array.isArray(order.items)) {
+      for (const item of order.items) {
+        const scoopsToRestore = Math.floor(Number(item.scoops) || 1);
+        const dish = db.dishes.find(d => d.id === item.dishId || (item.dishName && d.name && item.dishName.includes(d.name)));
+        if (dish) {
+          dish.scoopsLeft = Math.max(0, Number(dish.scoopsLeft || 0) + scoopsToRestore);
+          if (dish.scoopsLeft > 0) {
+            dish.isAvailable = true;
+          }
+        }
+      }
+    }
+  } else if (!isNewStatusCancelled && wasPreviouslyCancelled) {
+    order.isCancelled = false;
+
+    if (Array.isArray(order.items)) {
+      for (const item of order.items) {
+        const scoopsToDeduct = Math.floor(Number(item.scoops) || 1);
+        const dish = db.dishes.find(d => d.id === item.dishId || (item.dishName && d.name && item.dishName.includes(d.name)));
+        if (dish) {
+          dish.scoopsLeft = Math.max(0, Number(dish.scoopsLeft || 0) - scoopsToDeduct);
+          if (dish.scoopsLeft === 0) {
+            dish.isAvailable = false;
+          }
+        }
+      }
+    }
+  }
+
   if (status.includes('Confirmed') || status === 'Completed' || status === 'Paid' || status.includes('Preparing') || status.includes('Ready')) {
     order.paymentConfirmed = true;
   }
-  order.confirmedByAdmin = req.user.name;
+
   saveDB(db);
 
+  io.emit('inventory:update', db.dishes);
   io.to(`user:${order.studentId}`).emit('order:status_updated', order);
   io.to('admin-room').emit('order:status_updated', order);
   io.emit('order:broadcast_status', order);
@@ -547,17 +588,15 @@ app.patch('/api/orders/:id/status', authenticateToken, requireAdmin, (req, res) 
 app.delete('/api/orders/:id', authenticateToken, requireAdmin, (req, res) => {
   const { id } = req.params;
   const db = loadDB();
-  const index = db.orders.findIndex(o => o.id === id);
 
-  if (index === -1) {
-    return res.status(404).json({ message: 'Order not found' });
-  }
-
-  db.orders.splice(index, 1);
+  db.orders = db.orders.filter(o => o.id !== id);
   saveDB(db);
 
   io.emit('orders:deleted', { orderId: id });
   io.emit('orders:update', db.orders);
+
+  return res.json({ message: `Order #${id} deleted successfully.` });
+});
   return res.json({ message: `Order #${id} deleted successfully.` });
 });
 

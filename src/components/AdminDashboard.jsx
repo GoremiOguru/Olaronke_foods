@@ -129,12 +129,9 @@ export default function AdminDashboard({ onOpenHowToUse }) {
 
       if (resOrders.ok) {
         const dataOrders = await resOrders.json();
-        setOrders(prev => {
-          const map = new Map();
-          prev.forEach(o => map.set(o.id, o));
-          dataOrders.forEach(o => map.set(o.id, { ...map.get(o.id), ...o }));
-          return Array.from(map.values()).sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-        });
+        if (Array.isArray(dataOrders)) {
+          setOrders(dataOrders);
+        }
       }
       if (resStaff.ok) {
         const dataStaff = await resStaff.json();
@@ -1169,9 +1166,11 @@ export default function AdminDashboard({ onOpenHowToUse }) {
                             <Key className="w-3.5 h-3.5 text-brand-orange" /> Pickup Code: <strong className="text-amber-300 text-sm font-mono">#{codeDisplay}</strong>
                           </span>
 
-                          <span className="text-xs text-slate-400 flex items-center gap-1">
-                            <Clock className="w-3.5 h-3.5 text-slate-500" /> {orderDateStr} at {orderTimeStr}
-                          </span>
+                          {ord.scheduledTime && (
+                            <span className="flex items-center gap-1.5 font-mono text-xs font-black bg-amber-500/20 text-amber-300 px-3 py-1 rounded-lg border border-amber-500/50 shadow-inner">
+                              <Clock className="w-3.5 h-3.5 text-amber-400" /> Scheduled Pickup: <strong className="text-white text-xs font-extrabold">{ord.scheduledTime}</strong>
+                            </span>
+                          )}
                         </div>
 
                         {/* Customer & Address Details Box */}

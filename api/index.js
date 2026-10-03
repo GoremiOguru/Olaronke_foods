@@ -499,7 +499,7 @@ app.get(['/api/orders', '/orders'], authenticateToken, async (req, res) => {
 });
 
 app.post(['/api/orders', '/orders'], authenticateToken, async (req, res) => {
-  const { items, includeTakeoutPack, plateSize, plateSizeName, takeoutFee: reqTakeoutFee, isHostelDelivery, hostelAddress, studentPhone } = req.body;
+  const { items, includeTakeoutPack, plateSize, plateSizeName, takeoutFee: reqTakeoutFee, isHostelDelivery, hostelAddress, studentPhone, scheduledTime, pickupTime, scheduledPickupTime } = req.body;
 
   if (!items || !Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ message: 'Order items cannot be empty.' });
@@ -568,6 +568,7 @@ app.post(['/api/orders', '/orders'], authenticateToken, async (req, res) => {
 
   const pickupCode = String(Math.floor(100 + Math.random() * 900));
   const orderId = `ORD-${Math.floor(1000 + Math.random() * 9000)}`;
+  const finalScheduledTime = scheduledTime || pickupTime || scheduledPickupTime || null;
 
   const newOrder = {
     id: orderId,
@@ -584,9 +585,11 @@ app.post(['/api/orders', '/orders'], authenticateToken, async (req, res) => {
     deliveryFee,
     isHostelDelivery: Boolean(isHostelDelivery),
     hostelAddress: isHostelDelivery ? hostelAddress.trim() : '',
+    scheduledTime: finalScheduledTime,
     totalPrice,
     status: 'Pending Payment Verification',
     paymentConfirmed: false,
+    isCancelled: false,
     createdAt: new Date().toISOString()
   };
 
@@ -612,10 +615,54 @@ app.patch(['/api/orders/:id/status', '/orders/:id/status'], authenticateToken, r
   if (!order) return res.status(404).json({ message: 'Order not found' });
 
   order.status = status;
+  order.confirmedByAdmin = req.user.name;
+
+  const isNewStatusCancelled = status.toLowerCase().includes('cancel') || status.toLowerCase().includes('reject') || status.toLowerCase().includes('fail');
+  const wasPreviouslyCancelled = Boolean(order.isCancelled);
+
+  if (isNewStatusCancelled && !wasPreviouslyCancelled) {
+    order.isCancelled = true;
+    order.paymentConfirmed = false;
+
+    if (Array.isArray(order.items)) {
+      for (const item of order.items) {
+        const scoopsToRestore = Math.floor(Number(item.scoops) || 1);
+        const dish = db.dishes.find(d => d.id === item.dishId || (item.dishName && d.name && item.dishName.includes(d.name)));
+        if (dish) {
+          dish.scoopsLeft = Math.max(0, Number(dish.scoopsLeft || 0) + scoopsToRestore);
+          if (dish.scoopsLeft > 0) {
+            dish.isAvailable = true;
+          }
+          if (isSupabaseConfigured) {
+            await saveSupabaseRecord('dishes', dish);
+          }
+        }
+      }
+    }
+  } else if (!isNewStatusCancelled && wasPreviouslyCancelled) {
+    order.isCancelled = false;
+
+    if (Array.isArray(order.items)) {
+      for (const item of order.items) {
+        const scoopsToDeduct = Math.floor(Number(item.scoops) || 1);
+        const dish = db.dishes.find(d => d.id === item.dishId || (item.dishName && d.name && item.dishName.includes(d.name)));
+        if (dish) {
+          dish.scoopsLeft = Math.max(0, Number(dish.scoopsLeft || 0) - scoopsToDeduct);
+          if (dish.scoopsLeft === 0) {
+            dish.isAvailable = false;
+          }
+          if (isSupabaseConfigured) {
+            await saveSupabaseRecord('dishes', dish);
+          }
+        }
+      }
+    }
+  }
+
   if (status.includes('Confirmed') || status === 'Completed' || status === 'Paid' || status.includes('Preparing') || status.includes('Ready')) {
     order.paymentConfirmed = true;
   }
-  order.confirmedByAdmin = req.user.name;
+
   saveDB(db);
 
   if (isSupabaseConfigured) {
@@ -628,13 +675,8 @@ app.patch(['/api/orders/:id/status', '/orders/:id/status'], authenticateToken, r
 app.delete(['/api/orders/:id', '/orders/:id'], authenticateToken, requireAdmin, async (req, res) => {
   const { id } = req.params;
   const db = loadDB();
-  const index = db.orders.findIndex(o => o.id === id);
 
-  if (index === -1) {
-    return res.status(404).json({ message: 'Order not found' });
-  }
-
-  db.orders.splice(index, 1);
+  db.orders = db.orders.filter(o => o.id !== id);
   saveDB(db);
 
   if (isSupabaseConfigured && supabase) {
