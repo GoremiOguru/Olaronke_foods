@@ -106,6 +106,26 @@ export async function saveSupabaseRecord(table, record) {
       return !res3.error;
     }
 
+    if (table === 'settings') {
+      const lowerSettings = { ...record };
+      if (record.heroSubtitle !== undefined) lowerSettings.herosubtitle = record.heroSubtitle;
+      if (record.deletedDishIds !== undefined) lowerSettings.deleteddishids = record.deletedDishIds;
+      if (record.announcementText !== undefined) lowerSettings.announcementtext = record.announcementText;
+      if (record.heroTitle !== undefined) lowerSettings.herotitle = record.heroTitle;
+      if (record.accountName !== undefined) lowerSettings.accountname = record.accountName;
+      if (record.bankName !== undefined) lowerSettings.bankname = record.bankName;
+      if (record.accountNumber !== undefined) lowerSettings.accountnumber = record.accountNumber;
+      if (record.whatsappName !== undefined) lowerSettings.whatsappname = record.whatsappName;
+      if (record.whatsappNumber !== undefined) lowerSettings.whatsappnumber = record.whatsappNumber;
+      if (record.takeoutPrice !== undefined) lowerSettings.takeoutprice = record.takeoutPrice;
+
+      const res1 = await supabase.from(table).upsert(lowerSettings);
+      if (!res1.error) return true;
+
+      const res2 = await supabase.from(table).upsert(record);
+      return !res2.error;
+    }
+
     const { error } = await supabase.from(table).upsert(record);
     if (error) {
       console.warn(`Supabase upsert notice on ${table}:`, error.message);

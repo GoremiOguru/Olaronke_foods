@@ -332,14 +332,17 @@ app.get(['/api/dishes', '/dishes'], async (req, res) => {
         const settingsRes = await supabase.from('settings').select('*').limit(1);
         if (!settingsRes.error && settingsRes.data?.[0]) {
           const s = settingsRes.data[0];
-          if (s.deletedDishIds && Array.isArray(s.deletedDishIds)) {
-            cloudDeletedIds = s.deletedDishIds;
+          const rawDel = s.deletedDishIds || s.deleteddishids;
+          if (rawDel && Array.isArray(rawDel)) {
+            cloudDeletedIds = rawDel;
             db.deletedDishIds = cloudDeletedIds;
           }
-          if (s.customDishes && Array.isArray(s.customDishes)) {
-            cloudCustomDishes = s.customDishes;
-          } else if (s.heroSubtitle && typeof s.heroSubtitle === 'string' && s.heroSubtitle.startsWith('[{"id":')) {
-            try { cloudCustomDishes = JSON.parse(s.heroSubtitle); } catch (e) {}
+          const rawCustom = s.customDishes || s.customdishes;
+          const rawSub = s.heroSubtitle || s.herosubtitle;
+          if (rawCustom && Array.isArray(rawCustom)) {
+            cloudCustomDishes = rawCustom;
+          } else if (rawSub && typeof rawSub === 'string' && rawSub.startsWith('[{"id":')) {
+            try { cloudCustomDishes = JSON.parse(rawSub); } catch (e) {}
           }
         }
       } catch (e) {}
