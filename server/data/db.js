@@ -482,13 +482,18 @@ export function mergeDishesWithDefaults(incomingDishes = [], deletedIds = []) {
   if (Array.isArray(incomingDishes)) {
     incomingDishes.forEach(d => {
       if (!d || !d.id) return;
+      const isTestItem = d.name?.toLowerCase().includes('test') || d.id?.toLowerCase().includes('test');
+      if (isTestItem && Array.isArray(deletedIds) && (deletedIds.includes(d.id) || deletedIds.some(id => d.name?.toLowerCase().includes(id.toLowerCase())))) {
+        return;
+      }
+
       if (map.has(d.id)) {
         const existing = map.get(d.id);
         const scoops = (d.scoopsLeft !== undefined && d.scoopsLeft !== null && !isNaN(Number(d.scoopsLeft)))
           ? Math.max(0, Number(d.scoopsLeft))
           : (existing.scoopsLeft ?? 30);
 
-        const isAvail = d.isAvailable !== undefined && d.isAvailable !== null
+        const isAvail = (d.isAvailable !== undefined && d.isAvailable !== null)
           ? Boolean(d.isAvailable)
           : (scoops > 0);
 
@@ -503,7 +508,7 @@ export function mergeDishesWithDefaults(incomingDishes = [], deletedIds = []) {
           ? Math.max(0, Number(d.scoopsLeft))
           : 30;
 
-        const isAvail = d.isAvailable !== undefined && d.isAvailable !== null
+        const isAvail = (d.isAvailable !== undefined && d.isAvailable !== null)
           ? Boolean(d.isAvailable)
           : (scoops > 0);
 
@@ -516,9 +521,16 @@ export function mergeDishesWithDefaults(incomingDishes = [], deletedIds = []) {
     });
   }
 
-  // 3. Exclude any explicitly deleted dish IDs
+  // 3. Exclude any explicitly deleted dish IDs or names
   if (Array.isArray(deletedIds)) {
-    deletedIds.forEach(id => map.delete(id));
+    deletedIds.forEach(idOrName => {
+      map.delete(idOrName);
+      for (const [key, item] of map.entries()) {
+        if (item.name?.toLowerCase() === idOrName.toLowerCase() || (item.name?.toLowerCase().includes('test') && idOrName.toLowerCase().includes('test'))) {
+          map.delete(key);
+        }
+      }
+    });
   }
 
   return Array.from(map.values());

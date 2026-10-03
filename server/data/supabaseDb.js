@@ -55,10 +55,19 @@ export async function saveSupabaseRecord(table, record) {
     const cleanRecord = { ...record };
 
     if (table === 'dishes') {
-      const scoops = record.scoopsLeft !== undefined && record.scoopsLeft !== null ? Number(record.scoopsLeft) : 30;
+      const rawScoops = record.scoopsLeft;
+      const scoops = (rawScoops !== undefined && rawScoops !== null && !isNaN(Number(rawScoops)))
+        ? Math.max(0, Number(rawScoops))
+        : 30;
+
+      const rawAvail = record.isAvailable;
+      const isAvail = (rawAvail !== undefined && rawAvail !== null)
+        ? Boolean(rawAvail)
+        : (scoops > 0);
+
       cleanRecord.scoopsLeft = scoops;
       cleanRecord.scoopsleft = scoops;
-      cleanRecord.isAvailable = record.isAvailable !== undefined ? Boolean(record.isAvailable) : scoops > 0;
+      cleanRecord.isAvailable = isAvail && scoops > 0;
       cleanRecord.isavailable = cleanRecord.isAvailable;
     }
 

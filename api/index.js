@@ -445,17 +445,22 @@ app.delete(['/api/dishes/:id', '/dishes/:id'], authenticateToken, requireAdmin, 
   const { id } = req.params;
   const db = loadDB();
 
-  if (!db.deletedDishIds) db.deletedDishIds = [];
-  if (!db.deletedDishIds.includes(id)) {
-    db.deletedDishIds.push(id);
-  }
+  const targetDish = db.dishes.find(d => d.id === id || d.name?.toLowerCase().includes('test'));
+  const targetName = targetDish ? targetDish.name : id;
 
-  db.dishes = db.dishes.filter(d => d.id !== id);
+  if (!db.deletedDishIds) db.deletedDishIds = [];
+  if (!db.deletedDishIds.includes(id)) db.deletedDishIds.push(id);
+  if (targetName && !db.deletedDishIds.includes(targetName)) db.deletedDishIds.push(targetName);
+
+  db.dishes = db.dishes.filter(d => d.id !== id && d.name !== targetName);
   saveDB(db);
 
   if (isSupabaseConfigured && supabase) {
     try {
       await supabase.from('dishes').delete().eq('id', id);
+      if (targetName) {
+        await supabase.from('dishes').delete().ilike('name', `%${targetName}%`);
+      }
       await saveSupabaseRecord('settings', { id: 1, deletedDishIds: db.deletedDishIds });
     } catch (e) {}
   }
