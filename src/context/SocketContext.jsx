@@ -194,43 +194,10 @@ export function SocketProvider({ children }) {
         setIsOnline(true);
         const serverData = await res.json();
         if (Array.isArray(serverData) && serverData.length > 0) {
-          setDishes(prevDishes => {
-            let localSaved = [];
-            try {
-              const saved = localStorage.getItem('olaronke_custom_dishes');
-              if (saved) localSaved = JSON.parse(saved);
-            } catch (e) {}
-
-            const localList = Array.isArray(prevDishes) && prevDishes.length > 0 ? prevDishes : localSaved;
-            const mergedMap = new Map();
-
-            // 1. Add server dishes as authoritative live state
-            serverData.forEach(sDish => {
-              if (sDish && sDish.id) mergedMap.set(sDish.id, sDish);
-            });
-
-            // 2. Preserve any newly added custom dishes or uploaded base64 photos from local state
-            localList.forEach(lDish => {
-              if (!lDish || !lDish.id) return;
-              if (!mergedMap.has(lDish.id)) {
-                // Locally created dish not yet returned by server
-                mergedMap.set(lDish.id, lDish);
-              } else {
-                const sDish = mergedMap.get(lDish.id);
-                // Keep base64 photo uploaded on device if server image is default
-                if (lDish.image && lDish.image.startsWith('data:')) {
-                  mergedMap.set(lDish.id, { ...sDish, image: lDish.image });
-                }
-              }
-            });
-
-            const finalMerged = Array.from(mergedMap.values());
-
-            try {
-              localStorage.setItem('olaronke_custom_dishes', JSON.stringify(finalMerged));
-            } catch (e) {}
-            return finalMerged;
-          });
+          setDishes(serverData);
+          try {
+            localStorage.setItem('olaronke_custom_dishes', JSON.stringify(serverData));
+          } catch (e) {}
         }
       }
     } catch (err) {

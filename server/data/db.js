@@ -475,11 +475,9 @@ function ensureDefaultAdmins(db) {
 export function mergeDishesWithDefaults(incomingDishes = [], deletedIds = []) {
   const map = new Map();
 
-  // 1. Always start with authentic default dishes
-  defaultDishes.forEach(d => map.set(d.id, { ...d }));
-
-  // 2. Overlay incoming dishes (updated stock, prices, images, or newly created custom dishes)
-  if (Array.isArray(incomingDishes)) {
+  if (!Array.isArray(incomingDishes) || incomingDishes.length === 0) {
+    defaultDishes.forEach(d => map.set(d.id, { ...d }));
+  } else {
     incomingDishes.forEach(d => {
       if (!d || !d.id) return;
       const isTestItem = d.name?.toLowerCase().includes('test') || d.id?.toLowerCase().includes('test');
@@ -487,46 +485,36 @@ export function mergeDishesWithDefaults(incomingDishes = [], deletedIds = []) {
         return;
       }
 
-      if (map.has(d.id)) {
-        const existing = map.get(d.id);
-        const scoops = (d.scoopsLeft !== undefined && d.scoopsLeft !== null && !isNaN(Number(d.scoopsLeft)))
-          ? Math.max(0, Number(d.scoopsLeft))
-          : (existing.scoopsLeft ?? 30);
+      const defaultDish = defaultDishes.find(def => def.id === d.id);
+      const scoops = (d.scoopsLeft !== undefined && d.scoopsLeft !== null && !isNaN(Number(d.scoopsLeft)))
+        ? Math.max(0, Number(d.scoopsLeft))
+        : (defaultDish?.scoopsLeft ?? 30);
 
-        const isAvail = (d.isAvailable !== undefined && d.isAvailable !== null)
-          ? Boolean(d.isAvailable)
-          : (scoops > 0);
+      const isAvail = (d.isAvailable !== undefined && d.isAvailable !== null)
+        ? Boolean(d.isAvailable)
+        : (scoops > 0);
 
-        map.set(d.id, {
-          ...existing,
-          ...d,
-          scoopsLeft: scoops,
-          isAvailable: isAvail && scoops > 0
-        });
-      } else {
-        const scoops = (d.scoopsLeft !== undefined && d.scoopsLeft !== null && !isNaN(Number(d.scoopsLeft)))
-          ? Math.max(0, Number(d.scoopsLeft))
-          : 30;
-
-        const isAvail = (d.isAvailable !== undefined && d.isAvailable !== null)
-          ? Boolean(d.isAvailable)
-          : (scoops > 0);
-
-        map.set(d.id, {
-          ...d,
-          scoopsLeft: scoops,
-          isAvailable: isAvail && scoops > 0
-        });
-      }
+      map.set(d.id, {
+        ...(defaultDish || {}),
+        ...d,
+        scoopsLeft: scoops,
+        isAvailable: isAvail && scoops > 0
+      });
     });
   }
 
-  // 3. Exclude any explicitly deleted dish IDs or names
   if (Array.isArray(deletedIds)) {
     deletedIds.forEach(idOrName => {
+      if (!idOrName) return;
+      const lower = String(idOrName).toLowerCase();
       map.delete(idOrName);
       for (const [key, item] of map.entries()) {
-        if (item.name?.toLowerCase() === idOrName.toLowerCase() || (item.name?.toLowerCase().includes('test') && idOrName.toLowerCase().includes('test'))) {
+        if (
+          key === idOrName ||
+          item.id === idOrName ||
+          item.name?.toLowerCase() === lower ||
+          (item.name?.toLowerCase().includes('test') && lower.includes('test'))
+        ) {
           map.delete(key);
         }
       }
