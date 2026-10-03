@@ -358,8 +358,8 @@ app.get(['/api/dishes', '/dishes'], async (req, res) => {
         const mergedDishes = mergeDishesWithDefaults(sanitized, db.deletedDishIds);
         db.dishes = mergedDishes;
 
-        // Auto-seed Supabase with any missing default dishes if Supabase table has fewer items
-        if (data.length < 29) {
+        // Auto-seed Supabase with baseline default dishes only if Supabase table is empty
+        if (data.length === 0) {
           try {
             for (const dish of mergedDishes) {
               await saveSupabaseRecord('dishes', dish);

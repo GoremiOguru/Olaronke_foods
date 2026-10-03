@@ -194,20 +194,10 @@ export function SocketProvider({ children }) {
         setIsOnline(true);
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
-          setDishes(prev => {
-            const map = new Map();
-            data.forEach(d => map.set(d.id, d));
-            prev.forEach(d => {
-              if (!map.has(d.id) && d.id && (d.id.startsWith('dish-1') || d.id.startsWith('dish-2') || d.id.startsWith('dish-3') || d.id.startsWith('dish-4') || d.id.startsWith('dish-5') || d.id.startsWith('dish-6') || d.id.startsWith('dish-7') || d.id.startsWith('dish-8') || d.id.startsWith('dish-9'))) {
-                map.set(d.id, d);
-              }
-            });
-            const merged = Array.from(map.values());
-            try {
-              localStorage.setItem('olaronke_custom_dishes', JSON.stringify(merged));
-            } catch (e) {}
-            return merged;
-          });
+          setDishes(data);
+          try {
+            localStorage.setItem('olaronke_custom_dishes', JSON.stringify(data));
+          } catch (e) {}
         }
       }
     } catch (err) {
