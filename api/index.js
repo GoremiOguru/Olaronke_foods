@@ -337,12 +337,21 @@ app.get(['/api/dishes', '/dishes'], async (req, res) => {
             cloudDeletedIds = rawDel;
             db.deletedDishIds = cloudDeletedIds;
           }
-          const rawCustom = s.customDishes || s.customdishes;
+          const rawWa = s.whatsappName || s.whatsappname;
           const rawSub = s.heroSubtitle || s.herosubtitle;
-          if (rawCustom && Array.isArray(rawCustom)) {
-            cloudCustomDishes = rawCustom;
-          } else if (rawSub && typeof rawSub === 'string' && rawSub.startsWith('[{"id":')) {
-            try { cloudCustomDishes = JSON.parse(rawSub); } catch (e) {}
+          const targetStr = (rawWa && rawWa.startsWith('{')) ? rawWa : ((rawSub && rawSub.startsWith('{')) ? rawSub : null);
+
+          if (targetStr) {
+            try {
+              const parsed = JSON.parse(targetStr);
+              if (parsed.dishes && Array.isArray(parsed.dishes)) {
+                cloudCustomDishes = parsed.dishes;
+              }
+              if (parsed.deletedDishIds && Array.isArray(parsed.deletedDishIds)) {
+                cloudDeletedIds = Array.from(new Set([...cloudDeletedIds, ...parsed.deletedDishIds]));
+                db.deletedDishIds = cloudDeletedIds;
+              }
+            } catch (e) {}
           }
         }
       } catch (e) {}
@@ -413,10 +422,11 @@ app.post(['/api/dishes', '/dishes'], authenticateToken, requireAdmin, async (req
   if (isSupabaseConfigured) {
     await saveSupabaseRecord('dishes', newDish);
     try {
+      const syncData = JSON.stringify({ dishes: db.dishes, deletedDishIds: db.deletedDishIds });
       await saveSupabaseRecord('settings', {
         id: 1,
         deletedDishIds: db.deletedDishIds,
-        heroSubtitle: JSON.stringify(db.dishes)
+        whatsappName: syncData
       });
     } catch (e) {}
   }
@@ -460,10 +470,11 @@ app.patch(['/api/dishes/:id', '/dishes/:id'], authenticateToken, requireAdmin, a
   if (isSupabaseConfigured) {
     await saveSupabaseRecord('dishes', dish);
     try {
+      const syncData = JSON.stringify({ dishes: db.dishes, deletedDishIds: db.deletedDishIds });
       await saveSupabaseRecord('settings', {
         id: 1,
         deletedDishIds: db.deletedDishIds,
-        heroSubtitle: JSON.stringify(db.dishes)
+        whatsappName: syncData
       });
     } catch (e) {}
   }
@@ -491,10 +502,11 @@ app.delete(['/api/dishes/:id', '/dishes/:id'], authenticateToken, requireAdmin, 
       if (targetName) {
         await supabase.from('dishes').delete().ilike('name', `%${targetName}%`);
       }
+      const syncData = JSON.stringify({ dishes: db.dishes, deletedDishIds: db.deletedDishIds });
       await saveSupabaseRecord('settings', {
         id: 1,
         deletedDishIds: db.deletedDishIds,
-        heroSubtitle: JSON.stringify(db.dishes)
+        whatsappName: syncData
       });
     } catch (e) {}
   }
