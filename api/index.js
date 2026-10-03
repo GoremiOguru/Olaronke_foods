@@ -317,46 +317,6 @@ app.get(['/api/admin/staff', '/admin/staff'], authenticateToken, requireAdmin, (
   return res.json(staffList);
 });
 
-// Global Cloud Persistence Engine for cross-device sync worldwide
-const CLOUD_SYNC_URL = 'https://api.restful-api.dev/objects/ff808181a09d98f701a102bbf0cc6dd7';
-
-async function syncToGlobalCloud(dishes, deletedDishIds) {
-  try {
-    const payload = {
-      name: 'bfeastas_live_catalog',
-      data: {
-        dishes: Array.isArray(dishes) ? dishes : [],
-        deletedDishIds: Array.isArray(deletedDishIds) ? deletedDishIds : []
-      }
-    };
-    await fetch(CLOUD_SYNC_URL, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-  } catch (e) {
-    console.warn('Global Cloud Sync Notice:', e.message);
-  }
-}
-
-async function fetchFromGlobalCloud() {
-  try {
-    const res = await fetch(CLOUD_SYNC_URL);
-    if (res.ok) {
-      const json = await res.json();
-      if (json && json.data) {
-        return {
-          dishes: Array.isArray(json.data.dishes) ? json.data.dishes : [],
-          deletedDishIds: Array.isArray(json.data.deletedDishIds) ? json.data.deletedDishIds : []
-        };
-      }
-    }
-  } catch (e) {
-    console.warn('Global Cloud Fetch Notice:', e.message);
-  }
-  return null;
-}
-
 // -------------------------------------------------------------
 // DISHES & INVENTORY ROUTES
 // -------------------------------------------------------------
@@ -365,7 +325,6 @@ app.get(['/api/dishes', '/dishes'], async (req, res) => {
   let cloudDeletedIds = db.deletedDishIds || [];
   let cloudCustomDishes = [];
 
-  // 1. Try Supabase
   if (isSupabaseConfigured && supabase) {
     try {
       const settingsRes = await supabase.from('settings').select('*').limit(1);
@@ -416,17 +375,6 @@ app.get(['/api/dishes', '/dishes'], async (req, res) => {
     }
   }
 
-  // 2. Global Cloud Sync Fallback (guarantees instant persistence worldwide across all Vercel serverless instances)
-  const globalCloud = await fetchFromGlobalCloud();
-  if (globalCloud) {
-    if (Array.isArray(globalCloud.deletedDishIds) && globalCloud.deletedDishIds.length > 0) {
-      cloudDeletedIds = Array.from(new Set([...cloudDeletedIds, ...globalCloud.deletedDishIds]));
-    }
-    if (Array.isArray(globalCloud.dishes) && globalCloud.dishes.length > 0) {
-      cloudCustomDishes = [...globalCloud.dishes, ...cloudCustomDishes];
-    }
-  }
-
   db.deletedDishIds = cloudDeletedIds;
   const mergedDishes = mergeDishesWithDefaults(cloudCustomDishes, cloudDeletedIds);
   db.dishes = mergedDishes;
@@ -469,9 +417,6 @@ app.post(['/api/dishes', '/dishes'], authenticateToken, requireAdmin, async (req
       });
     } catch (e) {}
   }
-
-  // Sync to global cloud store for instant worldwide availability across all devices
-  await syncToGlobalCloud(db.dishes, db.deletedDishIds);
 
   return res.status(201).json(newDish);
 });
@@ -520,9 +465,6 @@ app.patch(['/api/dishes/:id', '/dishes/:id'], authenticateToken, requireAdmin, a
     } catch (e) {}
   }
 
-  // Sync updated stock & availability to global cloud store
-  await syncToGlobalCloud(db.dishes, db.deletedDishIds);
-
   return res.json(dish);
 });
 
@@ -553,9 +495,6 @@ app.delete(['/api/dishes/:id', '/dishes/:id'], authenticateToken, requireAdmin, 
       });
     } catch (e) {}
   }
-
-  // Sync deletions to global cloud store
-  await syncToGlobalCloud(db.dishes, db.deletedDishIds);
 
   return res.json({ message: 'Dish deleted successfully' });
 });
