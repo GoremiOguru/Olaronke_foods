@@ -37,6 +37,40 @@ app.get(['/api/health', '/health', '/api', '/'], (req, res) => {
   return res.json({ status: 'ok', message: "B'feastas Serverless API is active and responsive." });
 });
 
+app.get(['/api/debug-supabase', '/debug-supabase'], async (req, res) => {
+  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_PROJECT_URL || process.env.POSTGRES_URL || '';
+  const key = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || process.env.SUPABASE_SECRET_KEY || '';
+
+  let dbTestResult = null;
+  let dbTestError = null;
+
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase.from('dishes').select('id, name').limit(5);
+      if (error) {
+        dbTestError = error.message;
+      } else {
+        dbTestResult = data;
+      }
+    } catch (err) {
+      dbTestError = err.message;
+    }
+  }
+
+  return res.json({
+    isSupabaseConfigured,
+    hasUrl: Boolean(url),
+    urlLength: url.length,
+    urlPreview: url ? url.substring(0, 15) + '...' : 'none',
+    hasKey: Boolean(key),
+    keyLength: key.length,
+    dbTestError,
+    dbTestResultCount: Array.isArray(dbTestResult) ? dbTestResult.length : null,
+    dbTestResult,
+    envKeysPresent: Object.keys(process.env).filter(k => k.toLowerCase().includes('supabase') || k.toLowerCase().includes('postgres') || k.toLowerCase().includes('database'))
+  });
+});
+
 // -------------------------------------------------------------
 // IMAGE UPLOAD ROUTE
 // -------------------------------------------------------------
