@@ -6,7 +6,7 @@ function ToastItem({ notification, onRemove }) {
   React.useEffect(() => {
     const timer = setTimeout(() => {
       onRemove(notification.id);
-    }, 2500); // Auto-dismiss after 2.5 seconds
+    }, 6000); // Auto-dismiss after 6.0 seconds for mobile visibility
     return () => clearTimeout(timer);
   }, [notification.id, onRemove]);
 

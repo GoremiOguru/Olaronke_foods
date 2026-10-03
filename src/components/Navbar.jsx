@@ -196,42 +196,102 @@ export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdmi
 
           </div>
 
-          {/* Mobile Button */}
-          <div className="md:hidden flex items-center space-x-2">
+          {/* Mobile Buttons */}
+          <div className="md:hidden flex items-center space-x-1.5">
+            
+            {/* Quick My Orders button on mobile header if user logged in */}
+            {user && (
+              <button
+                onClick={() => {
+                  if (onOpenMyOrders) onOpenMyOrders();
+                }}
+                className="flex items-center space-x-1 px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-500/40 rounded-xl text-xs font-black shadow-sm"
+                title="My Orders & Receipts"
+              >
+                <ShoppingBag className="w-3.5 h-3.5 text-brand-orange" />
+                <span className="text-[10px]">Orders</span>
+              </button>
+            )}
+
+            {/* Notification Bell */}
+            <div className="relative">
+              <button
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="p-2 rounded-xl bg-slate-900 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors relative border border-slate-800"
+                title="Notifications"
+              >
+                <Bell className="w-4 h-4" />
+                {notifications.length > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-brand-orange text-white text-[9px] font-black rounded-full flex items-center justify-center animate-pulse">
+                    {notifications.length}
+                  </span>
+                )}
+              </button>
+
+              {/* Mobile Notification Dropdown */}
+              {showNotifications && (
+                <div className="absolute right-0 mt-3 w-72 max-w-[88vw] bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-3.5 z-50 animate-in fade-in duration-200">
+                  <div className="flex items-center justify-between pb-2.5 border-b border-slate-800">
+                    <h4 className="font-bold text-xs text-white flex items-center gap-1.5">
+                      <Bell className="w-3.5 h-3.5 text-brand-orange" /> Notifications
+                    </h4>
+                    <span className="text-[10px] text-slate-400">{notifications.length} new</span>
+                  </div>
+                  <div className="max-h-56 overflow-y-auto space-y-2 mt-2 pr-0.5">
+                    {notifications.length === 0 ? (
+                      <p className="text-[11px] text-slate-400 text-center py-3">No recent notifications</p>
+                    ) : (
+                      notifications.map(n => (
+                        <div key={n.id} className="p-2.5 bg-slate-950 rounded-xl border border-slate-800 text-[11px]">
+                          <p className="font-semibold text-white mb-0.5">{n.title}</p>
+                          <p className="text-slate-300">{n.message}</p>
+                          {n.timestamp && <span className="text-[9px] text-slate-500 mt-0.5 block">{n.timestamp}</span>}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Shopping Cart Drawer Trigger */}
             <button
               onClick={() => setIsCartOpen(true)}
-              className="relative p-2 bg-brand-orange text-white rounded-xl"
+              className="relative p-2 bg-brand-orange text-white rounded-xl shadow-orange-glow"
             >
-              <ShoppingBag className="w-5 h-5" />
+              <ShoppingBag className="w-4 h-4" />
               {totalQuantityCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-brand-lemon text-slate-950 text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 bg-brand-lemon text-slate-950 text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">
                   {totalQuantityCount}
                 </span>
               )}
             </button>
+
+            {/* Hamburger Toggle */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 text-slate-300 hover:text-white bg-slate-900 rounded-xl border border-slate-800"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
 
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-slate-950 border-b border-slate-800 px-4 py-4 space-y-3">
+          
           <button
             onClick={() => {
               onOpenHowToUse();
               setMobileMenuOpen(false);
             }}
-            className="w-full flex items-center justify-center space-x-2 bg-slate-900 border border-slate-700 text-white font-extrabold py-2.5 rounded-xl text-sm shadow"
+            className="w-full flex items-center justify-center space-x-2 bg-slate-900 border border-slate-700 text-white font-extrabold py-2.5 rounded-xl text-xs shadow"
           >
             <HelpCircle className="w-4 h-4 text-brand-lemon-glow" />
-            <span>How to Order</span>
+            <span>How to Order Guide</span>
           </button>
 
           {isAdmin && (
@@ -240,25 +300,68 @@ export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdmi
                 setIsAdminView(!isAdminView);
                 setMobileMenuOpen(false);
               }}
-              className="w-full flex items-center justify-center space-x-2 bg-brand-lemon text-slate-950 font-black py-2.5 rounded-xl text-sm"
+              className="w-full flex items-center justify-center space-x-2 bg-brand-lemon text-slate-950 font-black py-2.5 rounded-xl text-xs"
             >
               <ShieldCheck className="w-4 h-4" />
-              <span>{isAdminView ? 'Student Menu' : 'Staff Portal'}</span>
+              <span>{isAdminView ? 'Switch to Student Menu' : 'Switch to Staff Portal'}</span>
             </button>
           )}
 
           {user ? (
-            <div className="bg-slate-900 p-3 rounded-xl space-y-2 border border-slate-800">
-              <p className="text-xs font-bold text-white">{user.name}</p>
-              <p className="text-xs text-slate-400">{user.email}</p>
+            <div className="bg-slate-900 p-4 rounded-2xl space-y-3 border border-slate-800">
+              <div className="flex items-center space-x-3 pb-3 border-b border-slate-800">
+                <div className="w-9 h-9 rounded-xl bg-brand-lemon/20 text-brand-lemon font-black flex items-center justify-center text-sm uppercase border border-brand-lemon/30">
+                  {user.name ? user.name.charAt(0) : 'U'}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-bold text-white truncate">{user.name}</p>
+                  <p className="text-[11px] text-slate-400 font-mono truncate">{user.email}</p>
+                  <span className="inline-block mt-0.5 px-2 py-0.5 text-[9px] font-bold bg-brand-lemon/20 text-brand-lemon-glow rounded">
+                    {user.role === 'admin' ? 'Cafeteria Staff' : 'Verified Student'}
+                  </span>
+                </div>
+              </div>
+
+              {/* My Orders & Receipts Button */}
+              <button
+                onClick={() => {
+                  if (onOpenMyOrders) onOpenMyOrders();
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-black transition-all text-left"
+              >
+                <ShoppingBag className="w-4 h-4 text-brand-orange shrink-0" />
+                <div className="flex-1">
+                  <span className="block font-bold">My Orders & Official Receipts</span>
+                  <span className="text-[10px] text-amber-400/80 font-normal">Track order status, pickup code & receipts</span>
+                </div>
+              </button>
+
+              {/* Change Password Button */}
+              <button
+                onClick={() => {
+                  if (onOpenChangePassword) onOpenChangePassword();
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 border border-sky-500/30 text-xs font-black transition-all text-left"
+              >
+                <KeyRound className="w-4 h-4 text-sky-400 shrink-0" />
+                <div className="flex-1">
+                  <span className="block font-bold">Change Account Password</span>
+                  <span className="text-[10px] text-sky-400/80 font-normal">Update your login security password</span>
+                </div>
+              </button>
+
+              {/* Log Out Button */}
               <button
                 onClick={() => {
                   logout();
                   setMobileMenuOpen(false);
                 }}
-                className="text-xs font-bold text-rose-400 flex items-center gap-1.5 pt-2 border-t border-slate-800"
+                className="w-full flex items-center justify-center space-x-2 px-3 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-bold transition-all mt-1"
               >
-                <LogOut className="w-4 h-4" /> Log Out
+                <LogOut className="w-4 h-4" />
+                <span>Log Out</span>
               </button>
             </div>
           ) : (
@@ -267,9 +370,9 @@ export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdmi
                 onOpenAuth();
                 setMobileMenuOpen(false);
               }}
-              className="w-full bg-brand-orange text-white py-2.5 rounded-xl font-extrabold text-sm"
+              className="w-full bg-brand-orange text-white py-2.5 rounded-xl font-extrabold text-xs shadow-orange-glow"
             >
-              Sign In / Register
+              Sign In / Register Student Account
             </button>
           )}
         </div>
