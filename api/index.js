@@ -250,7 +250,7 @@ app.post(['/api/auth/reset-password', '/auth/reset-password'], (req, res) => {
     // If user is from vault or matches admin/domain pattern, create/reset account
     const isAdminEmail = cleanEmail.includes('admin') || cleanEmail.includes('olaronke') || cleanEmail.includes('staff');
     const isStudentEmail = cleanEmail.endsWith('@topfaith.edu.ng');
-    
+
     if (isAdminEmail || isStudentEmail) {
       user = {
         id: `usr-${isAdminEmail ? 'admin' : 'student'}-${Date.now()}`,
@@ -321,39 +321,19 @@ app.get(['/api/admin/staff', '/admin/staff'], authenticateToken, requireAdmin, (
 // DISHES & INVENTORY ROUTES
 // -------------------------------------------------------------
 app.get(['/api/dishes', '/dishes'], async (req, res) => {
-  const db = loadDB();
-  let cloudDeletedIds = db.deletedDishIds || [];
-  let cloudCustomDishes = [];
+  let db = await syncCloudDB();
 
   if (isSupabaseConfigured && supabase) {
     try {
-      const settingsRes = await supabase.from('settings').select('*').limit(1);
-      if (!settingsRes.error && settingsRes.data?.[0]) {
-        const s = settingsRes.data[0];
-        const rawDel = s.deletedDishIds || s.deleteddishids;
-        if (rawDel && Array.isArray(rawDel)) {
-          cloudDeletedIds = Array.from(new Set([...cloudDeletedIds, ...rawDel]));
+      try {
+        const settingsRes = await supabase.from('settings').select('*').limit(1);
+        if (!settingsRes.error && settingsRes.data?.[0]?.deletedDishIds) {
+          db.deletedDishIds = settingsRes.data[0].deletedDishIds;
         }
-
-        const rawWa = s.whatsappName || s.whatsappname;
-        const rawSub = s.heroSubtitle || s.herosubtitle;
-        const targetStr = (rawWa && typeof rawWa === 'string' && rawWa.startsWith('{')) ? rawWa : ((rawSub && typeof rawSub === 'string' && rawSub.startsWith('{')) ? rawSub : null);
-
-        if (targetStr) {
-          try {
-            const parsed = JSON.parse(targetStr);
-            if (parsed.dishes && Array.isArray(parsed.dishes)) {
-              cloudCustomDishes = parsed.dishes;
-            }
-            if (parsed.deletedDishIds && Array.isArray(parsed.deletedDishIds)) {
-              cloudDeletedIds = Array.from(new Set([...cloudDeletedIds, ...parsed.deletedDishIds]));
-            }
-          } catch (e) {}
-        }
-      }
+      } catch (e) { }
 
       const { data, error } = await supabase.from('dishes').select('*');
-      if (!error && Array.isArray(data) && data.length > 0) {
+      if (!error && Array.isArray(data)) {
         const sanitized = data.map(d => {
           const rawScoops = d.scoopsLeft !== undefined && d.scoopsLeft !== null ? d.scoopsLeft : d.scoopsleft;
           const parsedScoops = (rawScoops !== undefined && rawScoops !== null && !isNaN(Number(rawScoops))) ? Math.max(0, Number(rawScoops)) : 30;
@@ -374,18 +354,27 @@ app.get(['/api/dishes', '/dishes'], async (req, res) => {
             image: d.image || '/images/jollof_rice.png'
           };
         });
-        cloudCustomDishes = [...sanitized, ...cloudCustomDishes];
+
+        const mergedDishes = mergeDishesWithDefaults(sanitized, db.deletedDishIds);
+        db.dishes = mergedDishes;
+
+        // Auto-seed Supabase with baseline default dishes only if Supabase table is empty
+        if (data.length === 0) {
+          try {
+            for (const dish of mergedDishes) {
+              await saveSupabaseRecord('dishes', dish);
+            }
+          } catch (e) { }
+        }
+
+        return res.json(mergedDishes);
       }
     } catch (e) {
       console.warn('Supabase dishes fetch notice:', e.message);
     }
   }
 
-  db.deletedDishIds = cloudDeletedIds;
-  const mergedDishes = mergeDishesWithDefaults(cloudCustomDishes, cloudDeletedIds);
-  db.dishes = mergedDishes;
-
-  return res.json(mergedDishes);
+  return res.json(db.dishes);
 });
 
 app.post(['/api/dishes', '/dishes'], authenticateToken, requireAdmin, async (req, res) => {
@@ -409,20 +398,11 @@ app.post(['/api/dishes', '/dishes'], authenticateToken, requireAdmin, async (req
     image: image || '/images/jollof_rice.png'
   };
 
-  db.dishes = db.dishes.filter(d => d.id !== newDish.id);
-  db.dishes.unshift(newDish);
+  db.dishes.push(newDish);
   saveDB(db);
 
   if (isSupabaseConfigured) {
     await saveSupabaseRecord('dishes', newDish);
-    try {
-      const syncData = JSON.stringify({ dishes: db.dishes, deletedDishIds: db.deletedDishIds });
-      await saveSupabaseRecord('settings', {
-        id: 1,
-        deletedDishIds: db.deletedDishIds,
-        whatsappName: syncData
-      });
-    } catch (e) {}
   }
 
   return res.status(201).json(newDish);
@@ -433,17 +413,10 @@ app.patch(['/api/dishes/:id', '/dishes/:id'], authenticateToken, requireAdmin, a
   const { scoopsLeft, isAvailable, price, name, description, category, image, unitType, prepTime } = req.body;
 
   const db = loadDB();
-  let dishIndex = db.dishes.findIndex(d => d.id === id);
+  const dishIndex = db.dishes.findIndex(d => d.id === id);
 
   if (dishIndex === -1) {
-    const merged = mergeDishesWithDefaults(db.dishes, db.deletedDishIds);
-    const found = merged.find(d => d.id === id);
-    if (found) {
-      db.dishes.push({ ...found });
-      dishIndex = db.dishes.length - 1;
-    } else {
-      return res.status(404).json({ message: 'Dish not found' });
-    }
+    return res.status(404).json({ message: 'Dish not found' });
   }
 
   const dish = db.dishes[dishIndex];
@@ -463,14 +436,6 @@ app.patch(['/api/dishes/:id', '/dishes/:id'], authenticateToken, requireAdmin, a
 
   if (isSupabaseConfigured) {
     await saveSupabaseRecord('dishes', dish);
-    try {
-      const syncData = JSON.stringify({ dishes: db.dishes, deletedDishIds: db.deletedDishIds });
-      await saveSupabaseRecord('settings', {
-        id: 1,
-        deletedDishIds: db.deletedDishIds,
-        whatsappName: syncData
-      });
-    } catch (e) {}
   }
 
   return res.json(dish);
@@ -496,13 +461,8 @@ app.delete(['/api/dishes/:id', '/dishes/:id'], authenticateToken, requireAdmin, 
       if (targetName) {
         await supabase.from('dishes').delete().ilike('name', `%${targetName}%`);
       }
-      const syncData = JSON.stringify({ dishes: db.dishes, deletedDishIds: db.deletedDishIds });
-      await saveSupabaseRecord('settings', {
-        id: 1,
-        deletedDishIds: db.deletedDishIds,
-        whatsappName: syncData
-      });
-    } catch (e) {}
+      await saveSupabaseRecord('settings', { id: 1, deletedDishIds: db.deletedDishIds });
+    } catch (e) { }
   }
 
   return res.json({ message: 'Dish deleted successfully' });
@@ -680,7 +640,7 @@ app.delete(['/api/orders/:id', '/orders/:id'], authenticateToken, requireAdmin, 
   if (isSupabaseConfigured && supabase) {
     try {
       await supabase.from('orders').delete().eq('id', id);
-    } catch (e) {}
+    } catch (e) { }
   }
 
   return res.json({ message: `Order #${id} deleted successfully.` });
