@@ -564,10 +564,8 @@ export default function AdminDashboard({ onOpenHowToUse }) {
     const totalDeliveryFees = todayOrders.reduce((sum, o) => sum + (Number(o.deliveryFee) || 0), 0);
     const verifiedOrdersCount = todayOrders.filter(o => o.paymentConfirmed || o.status === 'Completed').length;
 
-    const phone = vendorSettings.whatsappNumber || '08133314798';
-    const cleanPhone = phone.startsWith('0') ? `234${phone.slice(1)}` : phone;
-
-    const summaryText = `📊 DAILY FINANCIAL SUMMARY - B'FEASTAS\n` +
+    const ownerPhone = '2347032739252';
+    const summaryText = `📊 EXECUTIVE DAILY FINANCIAL SUMMARY - MRS. OLARONKE OGIDAN\n` +
       `--------------------------------------\n` +
       `📅 Date: ${now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}\n` +
       `🍱 Total Orders Today: ${todayOrders.length} orders (${verifiedOrdersCount} verified)\n` +
@@ -575,9 +573,9 @@ export default function AdminDashboard({ onOpenHowToUse }) {
       `📦 Takeout Packaging Fees: ₦${totalTakeoutFees.toLocaleString()}\n` +
       `🚚 Delivery Fees Collected: ₦${totalDeliveryFees.toLocaleString()}\n` +
       `--------------------------------------\n` +
-      `Sent from B'feastas Admin Dashboard`;
+      `Sent from B'feastas Executive Cafeteria Portal`;
 
-    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(summaryText)}`, '_blank');
+    window.open(`https://wa.me/${ownerPhone}?text=${encodeURIComponent(summaryText)}`, '_blank');
   };
 
   return (

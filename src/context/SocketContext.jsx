@@ -202,26 +202,23 @@ export function SocketProvider({ children }) {
             } catch (e) {}
 
             const existingList = Array.isArray(prevDishes) && prevDishes.length > 0 ? prevDishes : localSaved;
-            
-            // Map to merge server dishes into existing dishes without dropping local custom meals
             const mergedMap = new Map();
-            
-            // 1. Add all existing local dishes first
-            existingList.forEach(d => {
-              if (d && d.id) mergedMap.set(d.id, d);
+
+            // 1. Add server dishes first
+            serverData.forEach(sDish => {
+              if (sDish && sDish.id) mergedMap.set(sDish.id, sDish);
             });
 
-            // 2. Merge server dishes over existing dishes
-            serverData.forEach(sDish => {
-              if (!sDish || !sDish.id) return;
-              const localMatch = mergedMap.get(sDish.id);
-              if (!localMatch) {
-                mergedMap.set(sDish.id, sDish);
+            // 2. Overlay local existing dishes so local edits (scoops, prices, new dishes, uploaded images) take precedence
+            existingList.forEach(lDish => {
+              if (!lDish || !lDish.id) return;
+              const serverMatch = mergedMap.get(lDish.id);
+              if (!serverMatch) {
+                mergedMap.set(lDish.id, lDish);
               } else {
-                mergedMap.set(sDish.id, {
-                  ...sDish,
-                  // Keep uploaded device photo if present locally
-                  image: (localMatch.image && localMatch.image.startsWith('data:')) ? localMatch.image : sDish.image
+                mergedMap.set(lDish.id, {
+                  ...serverMatch,
+                  ...lDish
                 });
               }
             });
@@ -245,11 +242,9 @@ export function SocketProvider({ children }) {
     }
   };
 
-  // Initial fetch and 30-second background sync for real-time catalog & stock across devices
+  // Run initial fetch on mount (no repetitive polling loop to avoid reverting admin edits)
   useEffect(() => {
     refreshDishes();
-    const interval = setInterval(refreshDishes, 30000);
-    return () => clearInterval(interval);
   }, []);
 
   const addNotification = (toast) => {
