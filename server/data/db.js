@@ -483,9 +483,28 @@ export function mergeDishesWithDefaults(incomingDishes = [], deletedIds = []) {
     incomingDishes.forEach(d => {
       if (!d || !d.id) return;
       if (map.has(d.id)) {
-        map.set(d.id, { ...map.get(d.id), ...d });
+        const existing = map.get(d.id);
+        const incomingScoops = Number(d.scoopsLeft);
+        const finalScoops = (!isNaN(incomingScoops) && incomingScoops > 0)
+          ? incomingScoops
+          : (existing.scoopsLeft || 30);
+
+        map.set(d.id, {
+          ...existing,
+          ...d,
+          scoopsLeft: finalScoops,
+          isAvailable: d.isAvailable !== undefined ? Boolean(d.isAvailable) : (finalScoops > 0)
+        });
       } else {
-        map.set(d.id, { ...d });
+        const scoops = (d.scoopsLeft !== undefined && d.scoopsLeft !== null && !isNaN(Number(d.scoopsLeft)) && Number(d.scoopsLeft) > 0)
+          ? Number(d.scoopsLeft)
+          : 30;
+
+        map.set(d.id, {
+          ...d,
+          scoopsLeft: scoops,
+          isAvailable: d.isAvailable !== undefined ? Boolean(d.isAvailable) : (scoops > 0)
+        });
       }
     });
   }
