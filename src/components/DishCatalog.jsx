@@ -63,12 +63,19 @@ export default function DishCatalog() {
     return result;
   }, [dishes, selectedCategory, searchQuery, sortBy]);
 
-  // Group dishes by category for 'All' view
+  // Group & sort dishes by category for 'All' view, ordered by best-selling & fast-moving meals
   const groupedDishes = useMemo(() => {
     const map = {};
     categoryList.forEach(cat => {
       let items = filteredDishes.filter(d => d.category === cat);
       if (items.length > 0) {
+        items.sort((a, b) => {
+          if (a.isAvailable !== b.isAvailable) return b.isAvailable ? 1 : -1;
+          const salesA = Number(a.salesCount || a.portionsSold || 0);
+          const salesB = Number(b.salesCount || b.portionsSold || 0);
+          if (salesB !== salesA) return salesB - salesA;
+          return Number(a.scoopsLeft ?? 30) - Number(b.scoopsLeft ?? 30);
+        });
         map[cat] = items;
       }
     });
@@ -273,18 +280,18 @@ export default function DishCatalog() {
             const catDishes = groupedDishes[catName];
             const isExpanded = expandedCategories[catName];
             const containerId = `carousel-${catName.replace(/[^a-zA-Z0-9]/g, '-')}`;
-            const displayDishes = isExpanded ? catDishes : catDishes;
+            const displayDishes = isExpanded ? catDishes : catDishes.slice(0, 3);
 
             return (
               <div key={catName} className="space-y-4 border-b border-slate-900 pb-8 last:border-none">
                 
                 {/* Category Section Header */}
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-2">
                   <div className="flex items-center space-x-2">
                     <h3 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
                       <span>{catName}</span>
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-brand-lemon-glow font-mono font-bold">
-                        {catDishes.length} item{catDishes.length === 1 ? '' : 's'}
+                      <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-brand-lemon-glow font-mono font-bold">
+                        {isExpanded ? `All ${catDishes.length} Items` : `Top 3 Best-Sellers (${catDishes.length} Total)`}
                       </span>
                     </h3>
                   </div>
@@ -308,14 +315,24 @@ export default function DishCatalog() {
                       </button>
                     </div>
 
-                    {/* View All / View More Button for Category */}
-                    <button
-                      onClick={() => setSelectedCategory(catName)}
-                      className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-brand-orange border border-brand-orange/30 text-xs font-extrabold transition-all flex items-center gap-1 shadow-sm hover:scale-105"
-                    >
-                      <span>View All {catDishes.length}</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
+                    {/* View All / Expand Category Button */}
+                    {catDishes.length > 3 ? (
+                      <button
+                        onClick={() => toggleCategoryExpand(catName)}
+                        className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-brand-orange border border-brand-orange/40 text-xs font-black transition-all flex items-center gap-1.5 shadow-sm hover:scale-105 active:scale-95"
+                      >
+                        <span>{isExpanded ? 'Show Top 3 Only' : `View All ${catDishes.length} (+${catDishes.length - 3} More)`}</span>
+                        <ArrowRight className={`w-3.5 h-3.5 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setSelectedCategory(catName)}
+                        className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-brand-orange border border-brand-orange/30 text-xs font-extrabold transition-all flex items-center gap-1 shadow-sm hover:scale-105"
+                      >
+                        <span>View Section</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -333,22 +350,26 @@ export default function DishCatalog() {
                     </div>
                   ))}
 
-                  {/* End of Carousel "View More" Card */}
-                  <div
-                    onClick={() => setSelectedCategory(catName)}
-                    className="w-56 shrink-0 snap-start bg-slate-900/60 border-2 border-dashed border-slate-800 hover:border-brand-orange/60 rounded-3xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-all hover:bg-slate-900/90 group"
-                  >
-                    <div className="w-12 h-12 rounded-2xl bg-brand-orange/20 text-brand-orange flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                      <ArrowRight className="w-6 h-6" />
+                  {/* End of Carousel "View More" Card if more than 3 dishes */}
+                  {catDishes.length > 3 && (
+                    <div
+                      onClick={() => toggleCategoryExpand(catName)}
+                      className="w-56 shrink-0 snap-start bg-slate-900/60 border-2 border-dashed border-brand-orange/40 hover:border-brand-orange rounded-3xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-all hover:bg-slate-900/90 group"
+                    >
+                      <div className="w-12 h-12 rounded-2xl bg-brand-orange/20 text-brand-orange flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                        <ArrowRight className="w-6 h-6" />
+                      </div>
+                      <h4 className="font-extrabold text-white text-sm">
+                        {isExpanded ? 'Collapse View' : `View +${catDishes.length - 3} More`}
+                      </h4>
+                      <p className="text-[11px] text-slate-400 mt-1">
+                        {isExpanded ? 'Show top 3 best-sellers only' : `See all ${catDishes.length} items in ${catName}`}
+                      </p>
+                      <span className="mt-4 px-3.5 py-1.5 bg-brand-orange text-white text-xs font-black rounded-xl shadow-orange-glow">
+                        {isExpanded ? 'Show Top 3' : 'Expand All →'}
+                      </span>
                     </div>
-                    <h4 className="font-extrabold text-white text-sm">Explore All {catName}</h4>
-                    <p className="text-[11px] text-slate-400 mt-1">
-                      See full list of {catDishes.length} available items
-                    </p>
-                    <span className="mt-4 px-3.5 py-1.5 bg-brand-orange text-white text-xs font-black rounded-xl shadow-orange-glow">
-                      View Section →
-                    </span>
-                  </div>
+                  )}
                 </div>
 
               </div>

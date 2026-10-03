@@ -355,7 +355,26 @@ app.get(['/api/dishes', '/dishes'], async (req, res) => {
           };
         });
 
-        const mergedDishes = mergeDishesWithDefaults(sanitized, db.deletedDishIds);
+        // Calculate sales count per dish from orders history
+        const dishSalesMap = {};
+        if (Array.isArray(db.orders)) {
+          db.orders.forEach(o => {
+            if (o.status !== 'Cancelled') {
+              (o.items || []).forEach(it => {
+                const dId = it.dishId;
+                const qty = Math.max(1, Number(it.scoops || 1));
+                if (dId) {
+                  dishSalesMap[dId] = (dishSalesMap[dId] || 0) + qty;
+                }
+              });
+            }
+          });
+        }
+
+        const mergedDishes = mergeDishesWithDefaults(sanitized, db.deletedDishIds).map(d => ({
+          ...d,
+          salesCount: dishSalesMap[d.id] || 0
+        }));
         db.dishes = mergedDishes;
 
         // Auto-seed Supabase with baseline default dishes only if Supabase table is empty
@@ -374,7 +393,27 @@ app.get(['/api/dishes', '/dishes'], async (req, res) => {
     }
   }
 
-  return res.json(db.dishes);
+  const dishSalesMap = {};
+  if (Array.isArray(db.orders)) {
+    db.orders.forEach(o => {
+      if (o.status !== 'Cancelled') {
+        (o.items || []).forEach(it => {
+          const dId = it.dishId;
+          const qty = Math.max(1, Number(it.scoops || 1));
+          if (dId) {
+            dishSalesMap[dId] = (dishSalesMap[dId] || 0) + qty;
+          }
+        });
+      }
+    });
+  }
+
+  const formattedLocalDishes = (db.dishes || []).map(d => ({
+    ...d,
+    salesCount: dishSalesMap[d.id] || 0
+  }));
+
+  return res.json(formattedLocalDishes);
 });
 
 app.post(['/api/dishes', '/dishes'], authenticateToken, requireAdmin, async (req, res) => {
