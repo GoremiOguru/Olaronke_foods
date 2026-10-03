@@ -192,12 +192,31 @@ export function SocketProvider({ children }) {
       if (res.ok) {
         setIsConnected(true);
         setIsOnline(true);
-        const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
-          setDishes(data);
-          try {
-            localStorage.setItem('olaronke_custom_dishes', JSON.stringify(data));
-          } catch (e) {}
+        const serverData = await res.json();
+        if (Array.isArray(serverData) && serverData.length > 0) {
+          setDishes(prevDishes => {
+            let localSaved = [];
+            try {
+              const saved = localStorage.getItem('olaronke_custom_dishes');
+              if (saved) localSaved = JSON.parse(saved);
+            } catch (e) {}
+
+            const merged = serverData.map(sDish => {
+              const localMatch = (Array.isArray(prevDishes) ? prevDishes : localSaved).find(d => d.id === sDish.id);
+              if (!localMatch) return sDish;
+              
+              // Preserve data URL photos uploaded on device
+              return {
+                ...sDish,
+                image: (localMatch.image && localMatch.image.startsWith('data:')) ? localMatch.image : sDish.image
+              };
+            });
+
+            try {
+              localStorage.setItem('olaronke_custom_dishes', JSON.stringify(merged));
+            } catch (e) {}
+            return merged;
+          });
         }
       }
     } catch (err) {

@@ -110,6 +110,7 @@ export async function saveSupabaseRecord(table, record) {
       const lowerSettings = { ...record };
       if (record.heroSubtitle !== undefined) lowerSettings.herosubtitle = record.heroSubtitle;
       if (record.deletedDishIds !== undefined) lowerSettings.deleteddishids = record.deletedDishIds;
+      if (record.customDishesJson !== undefined) lowerSettings.customdishesjson = typeof record.customDishesJson === 'string' ? record.customDishesJson : JSON.stringify(record.customDishesJson);
       if (record.announcementText !== undefined) lowerSettings.announcementtext = record.announcementText;
       if (record.heroTitle !== undefined) lowerSettings.herotitle = record.heroTitle;
       if (record.accountName !== undefined) lowerSettings.accountname = record.accountName;
