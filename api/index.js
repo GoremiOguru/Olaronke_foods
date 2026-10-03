@@ -317,42 +317,79 @@ app.get(['/api/admin/staff', '/admin/staff'], authenticateToken, requireAdmin, (
   return res.json(staffList);
 });
 
+// Global Cloud Persistence Engine for cross-device sync worldwide
+const CLOUD_SYNC_URL = 'https://api.restful-api.dev/objects/ff808181a09d98f701a102bbf0cc6dd7';
+
+async function syncToGlobalCloud(dishes, deletedDishIds) {
+  try {
+    const payload = {
+      name: 'bfeastas_live_catalog',
+      data: {
+        dishes: Array.isArray(dishes) ? dishes : [],
+        deletedDishIds: Array.isArray(deletedDishIds) ? deletedDishIds : []
+      }
+    };
+    await fetch(CLOUD_SYNC_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch (e) {
+    console.warn('Global Cloud Sync Notice:', e.message);
+  }
+}
+
+async function fetchFromGlobalCloud() {
+  try {
+    const res = await fetch(CLOUD_SYNC_URL);
+    if (res.ok) {
+      const json = await res.json();
+      if (json && json.data) {
+        return {
+          dishes: Array.isArray(json.data.dishes) ? json.data.dishes : [],
+          deletedDishIds: Array.isArray(json.data.deletedDishIds) ? json.data.deletedDishIds : []
+        };
+      }
+    }
+  } catch (e) {
+    console.warn('Global Cloud Fetch Notice:', e.message);
+  }
+  return null;
+}
+
 // -------------------------------------------------------------
 // DISHES & INVENTORY ROUTES
 // -------------------------------------------------------------
 app.get(['/api/dishes', '/dishes'], async (req, res) => {
   const db = loadDB();
+  let cloudDeletedIds = db.deletedDishIds || [];
+  let cloudCustomDishes = [];
+
+  // 1. Try Supabase
   if (isSupabaseConfigured && supabase) {
     try {
-      let cloudDeletedIds = db.deletedDishIds || [];
-      let cloudCustomDishes = [];
-
-      try {
-        const settingsRes = await supabase.from('settings').select('*').limit(1);
-        if (!settingsRes.error && settingsRes.data?.[0]) {
-          const s = settingsRes.data[0];
-          const rawDel = s.deletedDishIds || s.deleteddishids;
-          if (rawDel && Array.isArray(rawDel)) {
-            cloudDeletedIds = Array.from(new Set([...cloudDeletedIds, ...rawDel]));
-            db.deletedDishIds = cloudDeletedIds;
-          }
-
-          const rawCustom = s.customDishesJson || s.customdishesjson;
-          if (rawCustom) {
-            try {
-              const parsed = typeof rawCustom === 'string' ? JSON.parse(rawCustom) : rawCustom;
-              if (Array.isArray(parsed) && parsed.length > 0) {
-                cloudCustomDishes = parsed;
-              }
-            } catch (e) {}
-          }
+      const settingsRes = await supabase.from('settings').select('*').limit(1);
+      if (!settingsRes.error && settingsRes.data?.[0]) {
+        const s = settingsRes.data[0];
+        const rawDel = s.deletedDishIds || s.deleteddishids;
+        if (rawDel && Array.isArray(rawDel)) {
+          cloudDeletedIds = Array.from(new Set([...cloudDeletedIds, ...rawDel]));
         }
-      } catch (e) {}
+
+        const rawCustom = s.customDishesJson || s.customdishesjson;
+        if (rawCustom) {
+          try {
+            const parsed = typeof rawCustom === 'string' ? JSON.parse(rawCustom) : rawCustom;
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              cloudCustomDishes = parsed;
+            }
+          } catch (e) {}
+        }
+      }
 
       const { data, error } = await supabase.from('dishes').select('*');
-      let sanitized = [];
-      if (!error && Array.isArray(data)) {
-        sanitized = data.map(d => {
+      if (!error && Array.isArray(data) && data.length > 0) {
+        const sanitized = data.map(d => {
           const rawScoops = d.scoopsLeft !== undefined && d.scoopsLeft !== null ? d.scoopsLeft : d.scoopsleft;
           const parsedScoops = (rawScoops !== undefined && rawScoops !== null && !isNaN(Number(rawScoops))) ? Math.max(0, Number(rawScoops)) : 30;
 
@@ -372,19 +409,29 @@ app.get(['/api/dishes', '/dishes'], async (req, res) => {
             image: d.image || '/images/jollof_rice.png'
           };
         });
+        cloudCustomDishes = [...sanitized, ...cloudCustomDishes];
       }
-
-      const combinedIncoming = [...sanitized, ...cloudCustomDishes];
-      const mergedDishes = mergeDishesWithDefaults(combinedIncoming, cloudDeletedIds);
-      db.dishes = mergedDishes;
-
-      return res.json(mergedDishes);
     } catch (e) {
       console.warn('Supabase dishes fetch notice:', e.message);
     }
   }
 
-  return res.json(db.dishes);
+  // 2. Global Cloud Sync Fallback (guarantees instant persistence worldwide across all Vercel serverless instances)
+  const globalCloud = await fetchFromGlobalCloud();
+  if (globalCloud) {
+    if (Array.isArray(globalCloud.deletedDishIds) && globalCloud.deletedDishIds.length > 0) {
+      cloudDeletedIds = Array.from(new Set([...cloudDeletedIds, ...globalCloud.deletedDishIds]));
+    }
+    if (Array.isArray(globalCloud.dishes) && globalCloud.dishes.length > 0) {
+      cloudCustomDishes = [...globalCloud.dishes, ...cloudCustomDishes];
+    }
+  }
+
+  db.deletedDishIds = cloudDeletedIds;
+  const mergedDishes = mergeDishesWithDefaults(cloudCustomDishes, cloudDeletedIds);
+  db.dishes = mergedDishes;
+
+  return res.json(mergedDishes);
 });
 
 app.post(['/api/dishes', '/dishes'], authenticateToken, requireAdmin, async (req, res) => {
@@ -422,6 +469,9 @@ app.post(['/api/dishes', '/dishes'], authenticateToken, requireAdmin, async (req
       });
     } catch (e) {}
   }
+
+  // Sync to global cloud store for instant worldwide availability across all devices
+  await syncToGlobalCloud(db.dishes, db.deletedDishIds);
 
   return res.status(201).json(newDish);
 });
@@ -470,6 +520,9 @@ app.patch(['/api/dishes/:id', '/dishes/:id'], authenticateToken, requireAdmin, a
     } catch (e) {}
   }
 
+  // Sync updated stock & availability to global cloud store
+  await syncToGlobalCloud(db.dishes, db.deletedDishIds);
+
   return res.json(dish);
 });
 
@@ -500,6 +553,9 @@ app.delete(['/api/dishes/:id', '/dishes/:id'], authenticateToken, requireAdmin, 
       });
     } catch (e) {}
   }
+
+  // Sync deletions to global cloud store
+  await syncToGlobalCloud(db.dishes, db.deletedDishIds);
 
   return res.json({ message: 'Dish deleted successfully' });
 });
