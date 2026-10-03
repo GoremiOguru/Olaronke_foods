@@ -484,26 +484,33 @@ export function mergeDishesWithDefaults(incomingDishes = [], deletedIds = []) {
       if (!d || !d.id) return;
       if (map.has(d.id)) {
         const existing = map.get(d.id);
-        const incomingScoops = Number(d.scoopsLeft);
-        const finalScoops = (!isNaN(incomingScoops) && incomingScoops > 0)
-          ? incomingScoops
-          : (existing.scoopsLeft || 30);
+        const scoops = (d.scoopsLeft !== undefined && d.scoopsLeft !== null && !isNaN(Number(d.scoopsLeft)))
+          ? Math.max(0, Number(d.scoopsLeft))
+          : (existing.scoopsLeft ?? 30);
+
+        const isAvail = d.isAvailable !== undefined && d.isAvailable !== null
+          ? Boolean(d.isAvailable)
+          : (scoops > 0);
 
         map.set(d.id, {
           ...existing,
           ...d,
-          scoopsLeft: finalScoops,
-          isAvailable: d.isAvailable !== undefined ? Boolean(d.isAvailable) : (finalScoops > 0)
+          scoopsLeft: scoops,
+          isAvailable: isAvail && scoops > 0
         });
       } else {
-        const scoops = (d.scoopsLeft !== undefined && d.scoopsLeft !== null && !isNaN(Number(d.scoopsLeft)) && Number(d.scoopsLeft) > 0)
-          ? Number(d.scoopsLeft)
+        const scoops = (d.scoopsLeft !== undefined && d.scoopsLeft !== null && !isNaN(Number(d.scoopsLeft)))
+          ? Math.max(0, Number(d.scoopsLeft))
           : 30;
+
+        const isAvail = d.isAvailable !== undefined && d.isAvailable !== null
+          ? Boolean(d.isAvailable)
+          : (scoops > 0);
 
         map.set(d.id, {
           ...d,
           scoopsLeft: scoops,
-          isAvailable: d.isAvailable !== undefined ? Boolean(d.isAvailable) : (scoops > 0)
+          isAvailable: isAvail && scoops > 0
         });
       }
     });

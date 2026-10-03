@@ -325,11 +325,18 @@ app.get(['/api/dishes', '/dishes'], async (req, res) => {
 
   if (isSupabaseConfigured && supabase) {
     try {
+      try {
+        const settingsRes = await supabase.from('settings').select('*').limit(1);
+        if (!settingsRes.error && settingsRes.data?.[0]?.deletedDishIds) {
+          db.deletedDishIds = settingsRes.data[0].deletedDishIds;
+        }
+      } catch (e) {}
+
       const { data, error } = await supabase.from('dishes').select('*');
       if (!error && Array.isArray(data)) {
         const sanitized = data.map(d => {
           const rawScoops = d.scoopsLeft !== undefined && d.scoopsLeft !== null ? d.scoopsLeft : d.scoopsleft;
-          const parsedScoops = (rawScoops !== undefined && rawScoops !== null && !isNaN(Number(rawScoops))) ? Number(rawScoops) : 30;
+          const parsedScoops = (rawScoops !== undefined && rawScoops !== null && !isNaN(Number(rawScoops))) ? Math.max(0, Number(rawScoops)) : 30;
 
           const rawAvailable = d.isAvailable !== undefined && d.isAvailable !== null ? d.isAvailable : d.isavailable;
           const parsedAvailable = rawAvailable !== undefined && rawAvailable !== null ? Boolean(rawAvailable) : (parsedScoops > 0);
@@ -341,7 +348,7 @@ app.get(['/api/dishes', '/dishes'], async (req, res) => {
             price: Number(d.price) || 500,
             scoopsLeft: parsedScoops,
             unitType: d.unitType || d.unittype || 'scoop',
-            isAvailable: parsedAvailable,
+            isAvailable: parsedAvailable && parsedScoops > 0,
             category: d.category || 'Rice Dishes',
             prepTime: d.prepTime || d.preptime || null,
             image: d.image || '/images/jollof_rice.png'
@@ -438,8 +445,10 @@ app.delete(['/api/dishes/:id', '/dishes/:id'], authenticateToken, requireAdmin, 
   const { id } = req.params;
   const db = loadDB();
 
-  const exists = db.dishes.some(d => d.id === id);
-  if (!exists) return res.status(404).json({ message: 'Dish not found' });
+  if (!db.deletedDishIds) db.deletedDishIds = [];
+  if (!db.deletedDishIds.includes(id)) {
+    db.deletedDishIds.push(id);
+  }
 
   db.dishes = db.dishes.filter(d => d.id !== id);
   saveDB(db);
@@ -447,6 +456,7 @@ app.delete(['/api/dishes/:id', '/dishes/:id'], authenticateToken, requireAdmin, 
   if (isSupabaseConfigured && supabase) {
     try {
       await supabase.from('dishes').delete().eq('id', id);
+      await saveSupabaseRecord('settings', { id: 1, deletedDishIds: db.deletedDishIds });
     } catch (e) {}
   }
 
