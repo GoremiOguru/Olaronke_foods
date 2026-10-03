@@ -364,7 +364,7 @@ app.get(['/api/dishes', '/dishes'], async (req, res) => {
         });
       }
 
-      const combinedIncoming = [...sanitized, ...cloudCustomDishes, ...(db.dishes || [])];
+      const combinedIncoming = [...sanitized, ...cloudCustomDishes];
       const mergedDishes = mergeDishesWithDefaults(combinedIncoming, db.deletedDishIds);
       db.dishes = mergedDishes;
 
