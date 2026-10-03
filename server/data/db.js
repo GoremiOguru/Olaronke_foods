@@ -524,9 +524,16 @@ export function mergeDishesWithDefaults(incomingDishes = [], deletedIds = []) {
   // 3. Exclude any explicitly deleted dish IDs or names
   if (Array.isArray(deletedIds)) {
     deletedIds.forEach(idOrName => {
+      if (!idOrName) return;
+      const lower = String(idOrName).toLowerCase();
       map.delete(idOrName);
       for (const [key, item] of map.entries()) {
-        if (item.name?.toLowerCase() === idOrName.toLowerCase() || (item.name?.toLowerCase().includes('test') && idOrName.toLowerCase().includes('test'))) {
+        if (
+          key === idOrName ||
+          item.id === idOrName ||
+          item.name?.toLowerCase() === lower ||
+          (item.name?.toLowerCase().includes('test') && lower.includes('test'))
+        ) {
           map.delete(key);
         }
       }
