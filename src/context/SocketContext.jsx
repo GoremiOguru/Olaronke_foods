@@ -201,25 +201,26 @@ export function SocketProvider({ children }) {
               if (saved) localSaved = JSON.parse(saved);
             } catch (e) {}
 
-            const existingList = Array.isArray(prevDishes) && prevDishes.length > 0 ? prevDishes : localSaved;
+            const localList = Array.isArray(prevDishes) && prevDishes.length > 0 ? prevDishes : localSaved;
             const mergedMap = new Map();
 
-            // 1. Add server dishes first
+            // 1. Add server dishes as authoritative live state
             serverData.forEach(sDish => {
               if (sDish && sDish.id) mergedMap.set(sDish.id, sDish);
             });
 
-            // 2. Overlay local existing dishes so local edits (scoops, prices, new dishes, uploaded images) take precedence
-            existingList.forEach(lDish => {
+            // 2. Preserve any newly added custom dishes or uploaded base64 photos from local state
+            localList.forEach(lDish => {
               if (!lDish || !lDish.id) return;
-              const serverMatch = mergedMap.get(lDish.id);
-              if (!serverMatch) {
+              if (!mergedMap.has(lDish.id)) {
+                // Locally created dish not yet returned by server
                 mergedMap.set(lDish.id, lDish);
               } else {
-                mergedMap.set(lDish.id, {
-                  ...serverMatch,
-                  ...lDish
-                });
+                const sDish = mergedMap.get(lDish.id);
+                // Keep base64 photo uploaded on device if server image is default
+                if (lDish.image && lDish.image.startsWith('data:')) {
+                  mergedMap.set(lDish.id, { ...sDish, image: lDish.image });
+                }
               }
             });
 
@@ -242,9 +243,11 @@ export function SocketProvider({ children }) {
     }
   };
 
-  // Run initial fetch on mount (no repetitive polling loop to avoid reverting admin edits)
+  // Initial fetch and 10-second real-time sync across all student & admin devices
   useEffect(() => {
     refreshDishes();
+    const interval = setInterval(refreshDishes, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   const addNotification = (toast) => {
