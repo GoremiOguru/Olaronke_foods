@@ -491,7 +491,7 @@ export default function CartDrawer({ onOpenAuth }) {
                             'Clock Hall',
                             'Thomas Abraham Hall',
                             'Psalm One Hall',
-                            'Maryam Abraham Hall'
+                            'Maria Abraham Hall'
                           ].map((hostel) => {
                             const isSelected = hostelAddress.startsWith(hostel);
                             return (
@@ -521,9 +521,9 @@ export default function CartDrawer({ onOpenAuth }) {
                         </label>
                         <input
                           type="text"
-                          value={hostelAddress.includes(',') ? hostelAddress.split(',')[1].trim() : (['Clock Hall', 'Thomas Abraham Hall', 'Psalm One Hall', 'Maryam Abraham Hall'].some(h => hostelAddress.startsWith(h)) ? '' : hostelAddress)}
+                          value={hostelAddress.includes(',') ? hostelAddress.split(',')[1].trim() : (['Clock Hall', 'Thomas Abraham Hall', 'Psalm One Hall', 'Maria Abraham Hall'].some(h => hostelAddress.startsWith(h)) ? '' : hostelAddress)}
                           onChange={(e) => {
-                            const selectedHostel = ['Clock Hall', 'Thomas Abraham Hall', 'Psalm One Hall', 'Maryam Abraham Hall'].find(h => hostelAddress.startsWith(h)) || 'Clock Hall';
+                            const selectedHostel = ['Clock Hall', 'Thomas Abraham Hall', 'Psalm One Hall', 'Maria Abraham Hall'].find(h => hostelAddress.startsWith(h)) || 'Clock Hall';
                             const val = e.target.value;
                             setHostelAddress(val ? `${selectedHostel}, ${val}` : selectedHostel);
                           }}

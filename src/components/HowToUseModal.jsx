@@ -62,7 +62,7 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
       image: "/images/amala_ewedu.png",
       actionText: "Select Delivery Location",
       bullets: [
-        "4 Hostels: Clock Hall, Thomas Abraham Hall, Psalm One Hall & Maryam Abraham Hall",
+        "4 Hostels: Clock Hall, Thomas Abraham Hall, Psalm One Hall & Maria Abraham Hall",
         "Specify your room number for direct room delivery",
         "Provide your WhatsApp number so delivery staff can reach you"
       ],
