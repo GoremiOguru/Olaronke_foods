@@ -1,9 +1,27 @@
-import React, { useState } from 'react';
-import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight, ShieldAlert, Package, Home, CheckSquare, Square, MapPin, AlertTriangle, Layers, Sparkles, Phone, Clock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight, ShieldAlert, Package, Home, CheckSquare, Square, MapPin, AlertTriangle, Layers, Sparkles, Phone, Clock, Building2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
 import { useSocket } from '../context/SocketContext';
+
+const FACULTY_LOCATIONS = [
+  'MASS Faculty',
+  'ENGINEERING Faculty',
+  'CHOKMAH house',
+  'COMPASS Faculty',
+  'LAW faculty',
+  'RAPHA(CURA house) Faculty'
+];
+
+const HOSTEL_LOCATIONS = [
+  'Clock Hall',
+  'Thomas Abraham Hall',
+  'Psalm One Hall',
+  'Maria Abraham Hall'
+];
+
+const ALL_DELIVERY_LOCATIONS = [...FACULTY_LOCATIONS, ...HOSTEL_LOCATIONS];
 
 export default function CartDrawer({ onOpenAuth }) {
   const {
@@ -43,6 +61,20 @@ export default function CartDrawer({ onOpenAuth }) {
   const { settings } = useSettings();
   const { dishes } = useSocket();
   const [errorMsg, setErrorMsg] = useState('');
+  const [deliveryCategory, setDeliveryCategory] = useState(() => {
+    return HOSTEL_LOCATIONS.some(h => hostelAddress && hostelAddress.startsWith(h)) ? 'hostel' : 'faculty';
+  });
+
+  // Lock background scroll when drawer is open
+  useEffect(() => {
+    if (isCartOpen) {
+      const original = window.getComputedStyle(document.body).overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = original;
+      };
+    }
+  }, [isCartOpen]);
 
   if (!isCartOpen) return null;
 
@@ -72,13 +104,13 @@ export default function CartDrawer({ onOpenAuth }) {
   const handleCheckout = async () => {
     setErrorMsg('');
     if (!user) {
-      setErrorMsg('Please log in with your Topfaith student email first.');
+      setErrorMsg('Please log in with your Topfaith campus email first.');
       onOpenAuth();
       return;
     }
 
     if (isHostelDelivery && (!hostelAddress || !hostelAddress.trim())) {
-      setErrorMsg('Please enter your hostel name & room number for delivery.');
+      setErrorMsg('Please select your Faculty building or Hostel for delivery.');
       return;
     }
 
@@ -475,61 +507,71 @@ export default function CartDrawer({ onOpenAuth }) {
                           : 'bg-slate-900 border-slate-800 text-slate-400'
                       }`}
                     >
-                      Hostel Delivery (+₦500)
+                      Campus Delivery (+₦500)
                     </button>
                   </div>
 
                   {isHostelDelivery && (
-                    <div className="space-y-2.5 pt-2 border-t border-slate-800 animate-in fade-in">
+                    <div className="space-y-3 pt-2 border-t border-slate-800 animate-in fade-in">
+                      {/* Sub-tabs: Faculty Buildings vs Student Hostels */}
                       <div>
+                        <div className="flex rounded-xl bg-slate-950 p-1 border border-slate-800 mb-2.5">
+                          <button
+                            type="button"
+                            onClick={() => setDeliveryCategory('faculty')}
+                            className={`flex-1 py-1.5 px-2 rounded-lg text-[11px] font-extrabold transition-all flex items-center justify-center gap-1.5 ${
+                              deliveryCategory === 'faculty'
+                                ? 'bg-sky-500 text-slate-950 shadow'
+                                : 'text-slate-400 hover:text-white'
+                            }`}
+                          >
+                            <Building2 className="w-3.5 h-3.5" />
+                            <span>Faculty (Staff/Lecturers)</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDeliveryCategory('hostel')}
+                            className={`flex-1 py-1.5 px-2 rounded-lg text-[11px] font-extrabold transition-all flex items-center justify-center gap-1.5 ${
+                              deliveryCategory === 'hostel'
+                                ? 'bg-sky-500 text-slate-950 shadow'
+                                : 'text-slate-400 hover:text-white'
+                            }`}
+                          >
+                            <span>🏫 Hostels (Students)</span>
+                          </button>
+                        </div>
+
                         <label className="block text-[11px] font-bold text-slate-300 flex items-center gap-1 mb-1.5">
                           <MapPin className="w-3.5 h-3.5 text-sky-400" />
-                          Select Topfaith University Hostel:
+                          {deliveryCategory === 'faculty' 
+                            ? 'Select Faculty Building / Campus House:' 
+                            : 'Select Student Hostel Hall:'}
                         </label>
+
                         <div className="grid grid-cols-2 gap-1.5">
-                          {[
-                            'Clock Hall',
-                            'Thomas Abraham Hall',
-                            'Psalm One Hall',
-                            'Maria Abraham Hall'
-                          ].map((hostel) => {
-                            const isSelected = hostelAddress.startsWith(hostel);
+                          {(deliveryCategory === 'faculty' ? FACULTY_LOCATIONS : HOSTEL_LOCATIONS).map((loc) => {
+                            const isSelected = hostelAddress === loc;
                             return (
                               <button
-                                key={hostel}
+                                key={loc}
                                 type="button"
-                                onClick={() => {
-                                  const currentRoom = hostelAddress.includes(',') ? hostelAddress.split(',')[1].trim() : '';
-                                  setHostelAddress(currentRoom ? `${hostel}, ${currentRoom}` : hostel);
-                                }}
-                                className={`p-2 rounded-xl text-[11px] font-extrabold border transition-all text-left line-clamp-1 ${
+                                onClick={() => setHostelAddress(loc)}
+                                className={`p-2.5 rounded-xl text-[11px] font-extrabold border transition-all text-left line-clamp-1 ${
                                   isSelected
                                     ? 'bg-sky-500/20 border-sky-400 text-sky-300 shadow-sm'
                                     : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
                                 }`}
                               >
-                                🏫 {hostel}
+                                {deliveryCategory === 'faculty' ? '🏢' : '🏫'} {loc}
                               </button>
                             );
                           })}
                         </div>
                       </div>
 
-                      <div>
-                        <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                          Room / Door Number (Optional):
-                        </label>
-                        <input
-                          type="text"
-                          value={hostelAddress.includes(',') ? hostelAddress.split(',')[1].trim() : (['Clock Hall', 'Thomas Abraham Hall', 'Psalm One Hall', 'Maria Abraham Hall'].some(h => hostelAddress.startsWith(h)) ? '' : hostelAddress)}
-                          onChange={(e) => {
-                            const selectedHostel = ['Clock Hall', 'Thomas Abraham Hall', 'Psalm One Hall', 'Maria Abraham Hall'].find(h => hostelAddress.startsWith(h)) || 'Clock Hall';
-                            const val = e.target.value;
-                            setHostelAddress(val ? `${selectedHostel}, ${val}` : selectedHostel);
-                          }}
-                          placeholder="e.g. Room 204 (Optional)"
-                          className="w-full bg-slate-950 border border-slate-700 text-white px-3 py-2 rounded-xl text-xs focus:outline-none focus:border-sky-400 font-medium"
-                        />
+                      <div className="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800 text-[11px] text-slate-400 flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-sky-400 shrink-0" />
+                        <span>Pickup point: Ground-floor entrance / foyer of selected building.</span>
                       </div>
                     </div>
                   )}
@@ -568,7 +610,7 @@ export default function CartDrawer({ onOpenAuth }) {
 
                 <div className="flex justify-between items-center text-sky-300">
                   <span className="truncate max-w-[210px] sm:max-w-[270px]">
-                    Delivery ({isHostelDelivery ? 'Hostel Room' : 'Cafeteria Pickup'})
+                    Fulfilment ({isHostelDelivery ? (hostelAddress && (hostelAddress.toLowerCase().includes('faculty') || hostelAddress.toLowerCase().includes('house')) ? 'Faculty Delivery' : 'Hostel Delivery') : 'Cafeteria Pickup'})
                   </span>
                   <span className="font-mono font-bold shrink-0">{isHostelDelivery ? '₦500' : 'FREE'}</span>
                 </div>

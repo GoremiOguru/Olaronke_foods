@@ -64,15 +64,26 @@ export function AuthProvider({ children }) {
   };
 
   const login = async (email, password) => {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, userVault: getUserVault() })
-    });
+    let res;
+    try {
+      res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, userVault: getUserVault() })
+      });
+    } catch (netErr) {
+      throw new Error('Could not connect to cafeteria server. Please ensure server is running.');
+    }
 
-    const data = await res.json();
+    let data;
+    try {
+      data = await res.json();
+    } catch (parseErr) {
+      throw new Error('Server returned an invalid response. Please try again.');
+    }
+
     if (!res.ok) {
-      throw new Error(data.message || 'Login failed');
+      throw new Error(data?.message || 'Login failed');
     }
 
     localStorage.setItem('olaronke_token', data.token);
@@ -84,15 +95,26 @@ export function AuthProvider({ children }) {
   };
 
   const register = async (name, email, password, role = 'student', phone = '', adminSecretKey = '') => {
-    const res = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password, role, phone, adminSecretKey })
-    });
+    let res;
+    try {
+      res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password, role, phone, adminSecretKey })
+      });
+    } catch (netErr) {
+      throw new Error('Could not connect to cafeteria server. Please check your connection.');
+    }
 
-    const data = await res.json();
+    let data;
+    try {
+      data = await res.json();
+    } catch (parseErr) {
+      throw new Error('Server returned an invalid response. Please try again.');
+    }
+
     if (!res.ok) {
-      throw new Error(data.message || 'Registration failed');
+      throw new Error(data?.message || 'Registration failed');
     }
 
     localStorage.setItem('olaronke_token', data.token);

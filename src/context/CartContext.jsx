@@ -190,6 +190,77 @@ export function CartProvider({ children }) {
     });
   };
 
+  // Auto-sync pending offline orders whenever connection is available
+  useEffect(() => {
+    const syncPendingOfflineOrders = async () => {
+      try {
+        const raw = localStorage.getItem('olaronke_pending_offline_orders');
+        if (!raw) return;
+        const pending = JSON.parse(raw);
+        if (!Array.isArray(pending) || pending.length === 0) return;
+
+        const remaining = [];
+        for (const order of pending) {
+          try {
+            const authToken = order.savedToken || token;
+            const res = await fetch('/api/orders', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
+              },
+              body: JSON.stringify({ ...order, isOfflineOrder: true })
+            });
+
+            if (res.ok) {
+              const syncedData = await res.json();
+              addNotification({
+                id: Date.now(),
+                title: '⚡ Offline Order Synced!',
+                message: `Order #${syncedData.id} (Code #${syncedData.pickupCode}) synced to cafeteria kitchen.`,
+                type: 'success'
+              });
+
+              setActiveReceiptModal(curr => {
+                if (curr && (curr.id === order.id || curr.pickupCode === order.pickupCode)) {
+                  return { ...curr, ...syncedData, isOfflineOrder: false };
+                }
+                return curr;
+              });
+            } else {
+              const errRes = await res.json().catch(() => ({}));
+              if (errRes.message && errRes.message.toLowerCase().includes('out of stock')) {
+                addNotification({
+                  id: Date.now(),
+                  title: '⚠️ Stock Sold Out',
+                  message: errRes.message,
+                  type: 'error'
+                });
+              } else {
+                remaining.push(order);
+              }
+            }
+          } catch (err) {
+            remaining.push(order);
+          }
+        }
+
+        localStorage.setItem('olaronke_pending_offline_orders', JSON.stringify(remaining));
+      } catch (e) {
+        console.error('Error during offline order synchronization:', e);
+      }
+    };
+
+    window.addEventListener('online', syncPendingOfflineOrders);
+    const interval = setInterval(syncPendingOfflineOrders, 20000);
+    syncPendingOfflineOrders();
+
+    return () => {
+      window.removeEventListener('online', syncPendingOfflineOrders);
+      clearInterval(interval);
+    };
+  }, [token]);
+
   // Get active plate numbers in cart
   const activePlatesSet = new Set(cart.map(item => item.plateNumber || 1));
   const activePlatesCount = Math.max(1, activePlatesSet.size);
@@ -219,7 +290,7 @@ export function CartProvider({ children }) {
     }
 
     if (isHostelDelivery && (!hostelAddress || !hostelAddress.trim())) {
-      throw new Error('Please enter your hostel name and room number for delivery.');
+      throw new Error('Please select your Faculty building or Hostel for delivery.');
     }
 
     setIsSubmitting(true);
@@ -239,29 +310,109 @@ export function CartProvider({ children }) {
         plateNumber: item.plateNumber || 1
       }));
 
-      const res = await fetch('/api/orders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
+      // Generate local 3-digit pickup code & offline ID
+      const offlinePickupCode = String(Math.floor(100 + Math.random() * 900));
+      const offlineOrderId = `OFFLINE-${Date.now().toString().slice(-4)}${Math.floor(10 + Math.random() * 90)}`;
+
+      const orderPayload = {
+        id: offlineOrderId,
+        pickupCode: offlinePickupCode,
+        items: formattedItems,
+        includeTakeoutPack,
+        plateSize: perPackPrice,
+        plateSizeName,
+        takeoutFee,
+        isHostelDelivery,
+        hostelAddress: hostelAddress.trim(),
+        studentPhone: finalPhone.trim(),
+        scheduledTime: scheduledTime !== 'ASAP' ? scheduledTime : null
+      };
+
+      let data = null;
+      let usedOfflinePass = false;
+
+      // If phone is disconnected from internet, generate offline pass immediately
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        usedOfflinePass = true;
+      } else {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 6000); // 6s network timeout
+
+          const res = await fetch('/api/orders', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(orderPayload),
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+
+          if (!res.ok) {
+            if (res.status >= 400 && res.status < 500) {
+              const errData = await res.json().catch(() => ({}));
+              throw new Error(errData.message || 'Failed to place order.');
+            } else {
+              usedOfflinePass = true;
+            }
+          } else {
+            data = await res.json();
+          }
+        } catch (fetchErr) {
+          if (fetchErr.message && !fetchErr.message.includes('fetch') && !fetchErr.message.includes('abort') && !fetchErr.message.includes('network') && !fetchErr.name?.includes('Abort')) {
+            throw fetchErr;
+          }
+          usedOfflinePass = true;
+        }
+      }
+
+      if (usedOfflinePass) {
+        data = {
+          id: offlineOrderId,
+          pickupCode: offlinePickupCode,
+          studentId: user?.id || 'usr-offline',
+          studentName: user?.name || 'Student (Offline)',
+          studentEmail: user?.email || '',
+          studentPhone: finalPhone.trim(),
           items: formattedItems,
-          includeTakeoutPack,
+          includeTakeoutPack: Boolean(includeTakeoutPack),
           plateSize: perPackPrice,
           plateSizeName,
           takeoutFee,
-          isHostelDelivery,
-          hostelAddress: hostelAddress.trim(),
-          studentPhone: finalPhone.trim(),
-          scheduledTime: scheduledTime !== 'ASAP' ? scheduledTime : null
-        })
-      });
+          deliveryFee,
+          isHostelDelivery: Boolean(isHostelDelivery),
+          hostelAddress: isHostelDelivery ? hostelAddress.trim() : '',
+          scheduledTime: scheduledTime !== 'ASAP' ? scheduledTime : null,
+          totalPrice: grandTotal,
+          paymentMethod: 'Bank Transfer',
+          status: 'Offline Fast-Pass (Pending Sync)',
+          isOfflineOrder: true,
+          createdAt: new Date().toISOString()
+        };
 
-      const data = await res.json();
+        try {
+          const existingPending = JSON.parse(localStorage.getItem('olaronke_pending_offline_orders') || '[]');
+          existingPending.push({ ...orderPayload, savedToken: token });
+          localStorage.setItem('olaronke_pending_offline_orders', JSON.stringify(existingPending));
+        } catch (e) {
+          console.error('Error saving pending offline order to storage:', e);
+        }
 
-      if (!res.ok) {
-        throw new Error(data.message || 'Failed to place order.');
+        addNotification({
+          id: Date.now(),
+          title: '📶 Offline Fast-Pass Active!',
+          message: `Saved on your phone! Show Code #${offlinePickupCode} at the counter. Will sync when online.`,
+          type: 'warning'
+        });
+      } else {
+        addNotification({
+          id: Date.now(),
+          title: '🎉 Order Placed Successfully!',
+          message: `Order #${data.id} created! Secret Pickup Code: #${data.pickupCode}`,
+          type: 'success'
+        });
       }
 
       clearCart();
@@ -271,13 +422,6 @@ export function CartProvider({ children }) {
       if (typeof refreshDishes === 'function') {
         refreshDishes();
       }
-
-      addNotification({
-        id: Date.now(),
-        title: '🎉 Order Placed Successfully!',
-        message: `Order #${data.id} created! Secret Pickup Code: #${data.pickupCode}`,
-        type: 'success'
-      });
 
       return data;
     } finally {

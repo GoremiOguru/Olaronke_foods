@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Tv, X, CheckCircle2, Clock, Flame, ShieldAlert, PackageCheck, Volume2, VolumeX, Maximize2, Minimize2, RefreshCw } from 'lucide-react';
+import { Tv, X, CheckCircle2, Clock, Flame, ShieldAlert, PackageCheck, Volume2, VolumeX, Maximize2, Minimize2, RefreshCw, Search, WifiOff } from 'lucide-react';
 import { useSocket } from '../context/SocketContext';
 import { useAuth } from '../context/AuthContext';
 
@@ -7,6 +7,17 @@ export default function KitchenDisplayModal({ isOpen, onClose, orders, onUpdateS
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [filterCategory, setFilterCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    if (isOpen) {
+      const originalStyle = window.getComputedStyle(document.body).overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalStyle;
+      };
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -30,22 +41,31 @@ export default function KitchenDisplayModal({ isOpen, onClose, orders, onUpdateS
     return String(100 + (num % 900));
   };
 
+  const matchesSearch = (order) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.trim().toLowerCase().replace('#', '');
+    const code = getPickupCode(order).toLowerCase();
+    const name = (order.studentName || '').toLowerCase();
+    const id = (order.id || '').toLowerCase();
+    return code.includes(q) || name.includes(q) || id.includes(q);
+  };
+
   // 3 Columns: Pending Payment, Preparing, Ready
   const pendingOrders = orders.filter(o => 
-    o.status === 'Pending Payment Verification' || o.status === 'Unverified'
+    (o.status === 'Pending Payment Verification' || o.status === 'Unverified') && matchesSearch(o)
   );
 
   const preparingOrders = orders.filter(o => 
-    o.status === 'Preparing' || o.status === 'Paid' || o.status === 'Payment Confirmed'
+    (o.status === 'Preparing' || o.status === 'Paid' || o.status === 'Payment Confirmed') && matchesSearch(o)
   );
 
   const readyOrders = orders.filter(o => 
-    o.status === 'Ready for Pickup' || o.status === 'Out for Delivery'
+    (o.status === 'Ready for Pickup' || o.status === 'Out for Delivery') && matchesSearch(o)
   );
 
   const formatTimeAgo = (isoString) => {
     if (!isoString) return 'Just now';
-    const mins = Math.floor((new Date() - new Date(isoString)) / 60000);
+    const mins = Math.floor((Date.now() - new Date(isoString).getTime()) / 60000);
     if (mins < 1) return 'Just now';
     if (mins === 1) return '1 min ago';
     return `${mins} mins ago`;
@@ -71,6 +91,26 @@ export default function KitchenDisplayModal({ isOpen, onClose, orders, onUpdateS
             </div>
             <p className="text-xs text-slate-400">High-Contrast Touch Tablet View for Cafeteria Kitchen Staff</p>
           </div>
+        </div>
+
+        {/* Fast Code / Ticket Search */}
+        <div className="relative flex-1 max-w-xs sm:max-w-sm mx-4 hidden sm:block">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Fast code search: e.g. #314"
+            className="w-full bg-slate-950 border border-slate-700 focus:border-amber-400 rounded-xl pl-9 pr-8 py-2 text-xs font-mono text-white placeholder-slate-400 focus:outline-none shadow-inner"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
 
         {/* Header Controls */}
@@ -105,6 +145,28 @@ export default function KitchenDisplayModal({ isOpen, onClose, orders, onUpdateS
         </div>
       </div>
 
+      {/* Mobile Fast Code / Ticket Search */}
+      <div className="sm:hidden px-4 py-2.5 bg-slate-900 border-b border-slate-800">
+        <div className="relative w-full">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Fast search: e.g. #314"
+            className="w-full bg-slate-950 border border-slate-700 focus:border-amber-400 rounded-xl pl-9 pr-8 py-2 text-xs font-mono text-white placeholder-slate-400 focus:outline-none"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* 3-Column Kanban Board */}
       <div className="flex-1 p-6 grid grid-cols-1 md:grid-cols-3 gap-6 overflow-hidden bg-slate-950">
         
@@ -130,9 +192,16 @@ export default function KitchenDisplayModal({ isOpen, onClose, orders, onUpdateS
                 <div key={order.id} className="bg-slate-950 border-2 border-red-500/40 rounded-2xl p-4 shadow-xl space-y-3">
                   <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                     <div>
-                      <span className="bg-red-500 text-white font-black text-lg px-2.5 py-0.5 rounded-lg">
-                        #{getPickupCode(order)}
-                      </span>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="bg-red-500 text-white font-black text-lg px-2.5 py-0.5 rounded-lg font-mono">
+                          #{getPickupCode(order)}
+                        </span>
+                        {order.isOfflineOrder && (
+                          <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1">
+                            <WifiOff className="w-2.5 h-2.5" /> Offline Token
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-slate-400 mt-1">{order.studentName}</p>
                     </div>
                     <div className="text-right">
@@ -148,6 +217,18 @@ export default function KitchenDisplayModal({ isOpen, onClose, orders, onUpdateS
                     <div className="bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-black px-3 py-1 rounded-xl flex items-center gap-1.5">
                       <Clock className="w-3.5 h-3.5 text-amber-400" />
                       <span>Pre-Order Pickup: {order.scheduledTime}</span>
+                    </div>
+                  )}
+
+                  {/* Destination / Fulfilment Badge */}
+                  {order.isHostelDelivery ? (
+                    <div className="bg-sky-500/20 border border-sky-500/40 text-sky-300 text-xs font-black px-2.5 py-1 rounded-xl flex items-center gap-1.5">
+                      <span>{order.hostelAddress?.toLowerCase().includes('faculty') || order.hostelAddress?.toLowerCase().includes('house') ? '🏢 Faculty Delivery:' : '🏫 Hostel Delivery:'}</span>
+                      <span className="text-white font-extrabold truncate">{order.hostelAddress}</span>
+                    </div>
+                  ) : (
+                    <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-bold px-2.5 py-1 rounded-xl flex items-center gap-1.5">
+                      <span>🥡 Cafeteria Counter Pickup</span>
                     </div>
                   )}
 
@@ -197,9 +278,16 @@ export default function KitchenDisplayModal({ isOpen, onClose, orders, onUpdateS
                 <div key={order.id} className="bg-slate-950 border-2 border-amber-500/40 rounded-2xl p-4 shadow-xl space-y-3">
                   <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                     <div>
-                      <span className="bg-amber-500 text-slate-950 font-black text-lg px-2.5 py-0.5 rounded-lg">
-                        #{getPickupCode(order)}
-                      </span>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="bg-amber-500 text-slate-950 font-black text-lg px-2.5 py-0.5 rounded-lg font-mono">
+                          #{getPickupCode(order)}
+                        </span>
+                        {order.isOfflineOrder && (
+                          <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1">
+                            <WifiOff className="w-2.5 h-2.5" /> Offline Token
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-slate-400 mt-1">{order.studentName}</p>
                     </div>
                     <div className="text-right">
@@ -215,6 +303,18 @@ export default function KitchenDisplayModal({ isOpen, onClose, orders, onUpdateS
                     <div className="bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-black px-3 py-1 rounded-xl flex items-center gap-1.5">
                       <Clock className="w-3.5 h-3.5 text-amber-400" />
                       <span>Scheduled Pickup: {order.scheduledTime}</span>
+                    </div>
+                  )}
+
+                  {/* Destination / Fulfilment Badge */}
+                  {order.isHostelDelivery ? (
+                    <div className="bg-sky-500/20 border border-sky-500/40 text-sky-300 text-xs font-black px-2.5 py-1 rounded-xl flex items-center gap-1.5">
+                      <span>{order.hostelAddress?.toLowerCase().includes('faculty') || order.hostelAddress?.toLowerCase().includes('house') ? '🏢 Faculty Delivery:' : '🏫 Hostel Delivery:'}</span>
+                      <span className="text-white font-extrabold truncate">{order.hostelAddress}</span>
+                    </div>
+                  ) : (
+                    <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-bold px-2.5 py-1 rounded-xl flex items-center gap-1.5">
+                      <span>🥡 Cafeteria Counter Pickup</span>
                     </div>
                   )}
 
@@ -264,9 +364,16 @@ export default function KitchenDisplayModal({ isOpen, onClose, orders, onUpdateS
                 <div key={order.id} className="bg-slate-950 border-2 border-emerald-500/40 rounded-2xl p-4 shadow-xl space-y-3">
                   <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                     <div>
-                      <span className="bg-emerald-500 text-slate-950 font-black text-xl px-3 py-1 rounded-lg">
-                        #{getPickupCode(order)}
-                      </span>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="bg-emerald-500 text-slate-950 font-black text-xl px-3 py-1 rounded-lg font-mono">
+                          #{getPickupCode(order)}
+                        </span>
+                        {order.isOfflineOrder && (
+                          <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1">
+                            <WifiOff className="w-2.5 h-2.5" /> Offline Token
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-slate-300 mt-1">{order.studentName}</p>
                     </div>
                     <div className="text-right">
@@ -274,6 +381,18 @@ export default function KitchenDisplayModal({ isOpen, onClose, orders, onUpdateS
                       <p className="text-sm font-black text-white">₦{Number(order.totalPrice).toLocaleString()}</p>
                     </div>
                   </div>
+
+                  {/* Destination / Fulfilment Badge */}
+                  {order.isHostelDelivery ? (
+                    <div className="bg-sky-500/20 border border-sky-500/40 text-sky-300 text-xs font-black px-2.5 py-1 rounded-xl flex items-center gap-1.5">
+                      <span>{order.hostelAddress?.toLowerCase().includes('faculty') || order.hostelAddress?.toLowerCase().includes('house') ? '🏢 Faculty Delivery:' : '🏫 Hostel Delivery:'}</span>
+                      <span className="text-white font-extrabold truncate">{order.hostelAddress}</span>
+                    </div>
+                  ) : (
+                    <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-bold px-2.5 py-1 rounded-xl flex items-center gap-1.5">
+                      <span>🥡 Cafeteria Counter Pickup</span>
+                    </div>
+                  )}
 
                   {/* Mark Handed Over Button */}
                   <button

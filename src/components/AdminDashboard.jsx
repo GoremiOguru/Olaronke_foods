@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Flame, Plus, Minus, ToggleLeft, ToggleRight, DollarSign, CheckCircle2, Clock, PackageCheck, AlertTriangle, RefreshCw, Search, ShieldCheck, User, MessageCircle, Trash2, Key, Users, MapPin, Package, UtensilsCrossed, Upload, Image as ImageIcon, Check, Edit3, X, Bell, BellRing, Smartphone, Printer, Calendar, Filter, HelpCircle, Bug, Tv, QrCode, Share2 } from 'lucide-react';
+import { Flame, Plus, Minus, ToggleLeft, ToggleRight, DollarSign, CheckCircle2, Clock, PackageCheck, AlertTriangle, RefreshCw, Search, ShieldCheck, User, MessageCircle, Trash2, Key, Users, MapPin, Package, UtensilsCrossed, Upload, Image as ImageIcon, Check, Edit3, X, Bell, BellRing, Smartphone, Printer, Calendar, Filter, HelpCircle, Bug, Tv, QrCode, Share2, ReceiptText, Banknote, CreditCard } from 'lucide-react';
 import { useSocket } from '../context/SocketContext';
 import { useAuth } from '../context/AuthContext';
 import OfficialReceiptModal from './OfficialReceiptModal';
@@ -27,6 +27,17 @@ export default function AdminDashboard({ onOpenHowToUse }) {
   // Editing Dish Title & Description State
   const [editingDish, setEditingDish] = useState(null);
   const [savingEdit, setSavingEdit] = useState(false);
+
+  // Walk-in POS Sale Modal State
+  const [isWalkInModalOpen, setIsWalkInModalOpen] = useState(false);
+  const [walkInCart, setWalkInCart] = useState([]);
+  const [walkInCustomerName, setWalkInCustomerName] = useState('');
+  const [walkInPaymentMethod, setWalkInPaymentMethod] = useState('Cash'); // 'Cash' | 'Bank Transfer' | 'POS'
+  const [walkInTakeoutPack, setWalkInTakeoutPack] = useState(true);
+  const [walkInDirectHandedOver, setWalkInDirectHandedOver] = useState(true);
+  const [walkInSubmitting, setWalkInSubmitting] = useState(false);
+  const [walkInError, setWalkInError] = useState('');
+  const [walkInSearch, setWalkInSearch] = useState('');
 
   // File upload state for admin
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -154,6 +165,16 @@ export default function AdminDashboard({ onOpenHowToUse }) {
     }, 3000);
     return () => clearInterval(intervalId);
   }, [token]);
+
+  useEffect(() => {
+    if (isWalkInModalOpen || editingDish || selectedPrintOrder) {
+      const originalStyle = window.getComputedStyle(document.body).overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalStyle;
+      };
+    }
+  }, [isWalkInModalOpen, editingDish, selectedPrintOrder]);
 
   useEffect(() => {
     if (!socket) return;
@@ -498,6 +519,99 @@ export default function AdminDashboard({ onOpenHowToUse }) {
     }
   };
 
+  const handleAddWalkInDish = (dish) => {
+    setWalkInCart(prev => {
+      const existing = prev.find(item => item.dishId === dish.id);
+      if (existing) {
+        if (existing.scoops >= dish.scoopsLeft) return prev;
+        return prev.map(item => item.dishId === dish.id ? { ...item, scoops: item.scoops + 1 } : item);
+      } else {
+        if (dish.scoopsLeft <= 0) return prev;
+        return [...prev, {
+          dishId: dish.id,
+          dishName: dish.name,
+          price: Number(dish.price),
+          scoops: 1,
+          unitType: dish.unitType || 'portion',
+          category: dish.category || 'Rice Dishes'
+        }];
+      }
+    });
+  };
+
+  const handleUpdateWalkInScoops = (dishId, delta) => {
+    setWalkInCart(prev => {
+      return prev.map(item => {
+        if (item.dishId === dishId) {
+          const newScoops = item.scoops + delta;
+          const dish = dishes.find(d => d.id === dishId);
+          if (newScoops <= 0) return null;
+          if (dish && newScoops > dish.scoopsLeft) return item;
+          return { ...item, scoops: newScoops };
+        }
+        return item;
+      }).filter(Boolean);
+    });
+  };
+
+  const handleRecordWalkInSale = async (e) => {
+    e.preventDefault();
+    setWalkInError('');
+
+    if (walkInCart.length === 0) {
+      setWalkInError('Please select at least one dish portion to record this sale.');
+      return;
+    }
+
+    setWalkInSubmitting(true);
+    try {
+      const perPackFee = Number(vendorSettings.takeoutPrice) || 300;
+      const takeoutFee = walkInTakeoutPack ? perPackFee : 0;
+
+      const formattedItems = walkInCart.map(item => ({
+        dishId: item.dishId,
+        dishName: `[Counter Walk-in] ${item.dishName}`,
+        price: item.price,
+        scoops: item.scoops,
+        unitType: item.unitType,
+        category: item.category
+      }));
+
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          items: formattedItems,
+          includeTakeoutPack: walkInTakeoutPack,
+          takeoutFee,
+          isHostelDelivery: false,
+          isWalkInSale: true,
+          customerName: walkInCustomerName.trim() || 'Walk-in Cash Customer',
+          paymentMethod: walkInPaymentMethod,
+          directCompleted: walkInDirectHandedOver,
+          paymentConfirmed: true
+        })
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || 'Failed to record walk-in sale');
+      }
+
+      await fetchOrdersAndStaff();
+      setIsWalkInModalOpen(false);
+      setWalkInCart([]);
+      setWalkInCustomerName('');
+    } catch (err) {
+      setWalkInError(err.message || 'Error processing sale');
+    } finally {
+      setWalkInSubmitting(false);
+    }
+  };
+
   const now = new Date();
   const isSameDay = (d1, d2) => d1.getDate() === d2.getDate() && d1.getMonth() === d2.getMonth() && d1.getFullYear() === d2.getFullYear();
 
@@ -561,6 +675,11 @@ export default function AdminDashboard({ onOpenHowToUse }) {
     const totalDeliveryFees = todayOrders.reduce((sum, o) => sum + (Number(o.deliveryFee) || 0), 0);
     const verifiedOrdersCount = todayOrders.filter(o => o.paymentConfirmed || o.status === 'Completed').length;
 
+    const cashRevenue = todayOrders
+      .filter(o => o.paymentMethod === 'Cash' || o.studentEmail === 'walkin@topfaith.edu.ng' || (o.studentName && o.studentName.toLowerCase().includes('walk-in')))
+      .reduce((sum, o) => sum + (Number(o.totalPrice) || 0), 0);
+    const transferRevenue = Math.max(0, totalRevenue - cashRevenue);
+
     // Calculate Top-Selling Dish / Drink of the Day
     const itemCounts = {};
     todayOrders.forEach(o => {
@@ -586,8 +705,10 @@ export default function AdminDashboard({ onOpenHowToUse }) {
       `--------------------------------------\n` +
       `📅 Date: ${now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}\n` +
       `🍱 Total Orders Today: ${todayOrders.length} orders (${verifiedOrdersCount} verified)\n` +
-      `🔥 Top-Selling Item Today: ${topSellingItem}\n` +
+      `🔥 Top-Selling Item: ${topSellingItem}\n` +
       `💰 Total Revenue Collected: ₦${totalRevenue.toLocaleString()}\n` +
+      `💵 Physical Cash in Drawer: ₦${cashRevenue.toLocaleString()}\n` +
+      `📱 Bank Transfers / Online: ₦${transferRevenue.toLocaleString()}\n` +
       `📦 Takeout Packaging Fees: ₦${totalTakeoutFees.toLocaleString()}\n` +
       `🚚 Delivery Fees Collected: ₦${totalDeliveryFees.toLocaleString()}\n` +
       `--------------------------------------\n` +
@@ -620,6 +741,21 @@ export default function AdminDashboard({ onOpenHowToUse }) {
           </div>
 
           <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:items-center gap-2 sm:gap-3 w-full lg:w-auto">
+            {/* Record Walk-in POS Sale Button */}
+            <button
+              onClick={() => {
+                setIsWalkInModalOpen(true);
+                setWalkInCart([]);
+                setWalkInError('');
+                setWalkInCustomerName('');
+              }}
+              className="flex items-center justify-center space-x-1.5 px-3.5 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-lg transition-all w-full sm:w-auto"
+              title="Record Walk-in Student Cash or Counter Sale"
+            >
+              <ReceiptText className="w-4 h-4 shrink-0" />
+              <span className="truncate">Record Walk-in Sale</span>
+            </button>
+
             {/* Kitchen KDS Tablet Mode Button */}
             <button
               onClick={() => setIsKdsOpen(true)}
@@ -707,7 +843,10 @@ export default function AdminDashboard({ onOpenHowToUse }) {
               <DollarSign className="w-5 h-5 text-brand-lemon-glow" />
             </div>
             <p className="text-3xl font-black text-brand-lemon-glow">₦{totalRevenue.toLocaleString()}</p>
-            <p className="text-[11px] text-slate-500 mt-1">Includes ₦300 takeout packs</p>
+            <div className="flex items-center justify-between text-[11px] text-slate-400 mt-1.5 pt-1 border-t border-slate-800 font-bold">
+              <span>💵 Cash: <strong className="text-emerald-400">₦{filteredOrders.filter(o => o.paymentMethod === 'Cash' || o.studentEmail === 'walkin@topfaith.edu.ng' || (o.studentName && o.studentName.toLowerCase().includes('walk-in'))).reduce((sum, o) => sum + (o.status !== 'Cancelled' ? o.totalPrice : 0), 0).toLocaleString()}</strong></span>
+              <span>📱 Online: <strong className="text-sky-400">₦{filteredOrders.filter(o => o.paymentMethod !== 'Cash' && o.studentEmail !== 'walkin@topfaith.edu.ng' && (!o.studentName || !o.studentName.toLowerCase().includes('walk-in'))).reduce((sum, o) => sum + (o.status !== 'Cancelled' ? o.totalPrice : 0), 0).toLocaleString()}</strong></span>
+            </div>
           </div>
 
           <div className="glass-card p-5 rounded-2xl border border-slate-800">
@@ -1092,7 +1231,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
                   type="text"
                   value={orderSearch}
                   onChange={(e) => setOrderSearch(e.target.value)}
-                  placeholder="Search name, email, code or hostel..."
+                  placeholder="Search name, email, code, faculty or hostel..."
                   className="w-full bg-slate-900 border border-slate-800 text-white pl-9 pr-3 py-2 rounded-xl text-xs focus:outline-none focus:border-brand-orange"
                 />
               </div>
@@ -1187,6 +1326,12 @@ export default function AdminDashboard({ onOpenHowToUse }) {
                             <Key className="w-3.5 h-3.5 text-brand-orange" /> Pickup Code: <strong className="text-amber-300 text-sm font-mono">#{codeDisplay}</strong>
                           </span>
 
+                          {ord.isOfflineOrder && (
+                            <span className="flex items-center gap-1 font-mono text-[10px] font-bold bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-lg border border-emerald-500/40">
+                              📶 Offline Token
+                            </span>
+                          )}
+
                           {ord.scheduledTime && (
                             <span className="flex items-center gap-1.5 font-mono text-xs font-black bg-amber-500/20 text-amber-300 px-3 py-1 rounded-lg border border-amber-500/50 shadow-inner">
                               <Clock className="w-3.5 h-3.5 text-amber-400" /> Scheduled Pickup: <strong className="text-white text-xs font-extrabold">{ord.scheduledTime}</strong>
@@ -1232,7 +1377,8 @@ export default function AdminDashboard({ onOpenHowToUse }) {
                             {ord.isHostelDelivery ? (
                               <>
                                 <MapPin className="w-3.5 h-3.5 text-sky-400" />
-                                Hostel Delivery: <span className="text-white font-bold">{ord.hostelAddress}</span>
+                                <span>{ord.hostelAddress?.toLowerCase().includes('faculty') || ord.hostelAddress?.toLowerCase().includes('house') ? '🏢 Faculty Delivery: ' : '🏫 Hostel Delivery: '}</span>
+                                <span className="text-white font-bold">{ord.hostelAddress}</span>
                               </>
                             ) : (
                               <>
@@ -1727,6 +1873,224 @@ export default function AdminDashboard({ onOpenHowToUse }) {
           isOpen={isQrModalOpen}
           onClose={() => setIsQrModalOpen(false)}
         />
+
+        {/* Walk-in Cash / Counter Sale POS Modal */}
+        {isWalkInModalOpen && (
+          <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-200">
+            <div className="relative w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden text-slate-100 flex flex-col max-h-[90vh]">
+              {/* Modal Header */}
+              <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-5 text-white flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center font-bold">
+                    <ReceiptText className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black">Record Walk-in / Cash Counter Sale</h3>
+                    <p className="text-xs text-emerald-100">Instantly reconciles physical cash sales with digital kitchen & stock</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsWalkInModalOpen(false)}
+                  className="p-2 rounded-xl bg-black/20 hover:bg-black/40 text-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-6 overflow-y-auto space-y-5 flex-1">
+                {walkInError && (
+                  <div className="p-3 bg-red-500/20 border border-red-500/40 text-red-200 text-xs font-bold rounded-xl flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 shrink-0 text-red-400" />
+                    <span>{walkInError}</span>
+                  </div>
+                )}
+
+                {/* Customer Name & Payment Method Row */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-extrabold text-slate-300 mb-1">
+                      Customer Identifier / Name:
+                    </label>
+                    <input
+                      type="text"
+                      value={walkInCustomerName}
+                      onChange={(e) => setWalkInCustomerName(e.target.value)}
+                      placeholder="e.g. Student in Blue / Chisom (Walk-in)"
+                      className="w-full bg-slate-950 border border-slate-700 focus:border-emerald-500 text-white px-3.5 py-2.5 rounded-xl text-xs focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-extrabold text-slate-300 mb-1">
+                      Payment Channel:
+                    </label>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {['Cash', 'Bank Transfer', 'POS'].map(method => (
+                        <button
+                          key={method}
+                          type="button"
+                          onClick={() => setWalkInPaymentMethod(method)}
+                          className={`py-2 px-2 rounded-xl text-xs font-black border transition-all text-center ${
+                            walkInPaymentMethod === method
+                              ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-sm'
+                              : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                          }`}
+                        >
+                          {method === 'Cash' ? '💵 Cash' : method === 'POS' ? '💳 POS' : '📱 Transfer'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Dish Selector Section */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-extrabold text-slate-300 flex items-center gap-1.5">
+                      <Flame className="w-4 h-4 text-brand-orange" /> Tap Dishes to Add to Sale:
+                    </label>
+                    <input
+                      type="text"
+                      value={walkInSearch}
+                      onChange={(e) => setWalkInSearch(e.target.value)}
+                      placeholder="Filter dishes..."
+                      className="bg-slate-950 border border-slate-800 text-white px-2.5 py-1 rounded-lg text-[11px] focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-1 bg-slate-950/60 rounded-2xl border border-slate-800">
+                    {dishes
+                      .filter(d => !walkInSearch || d.name.toLowerCase().includes(walkInSearch.toLowerCase()))
+                      .map(dish => {
+                        const inCart = walkInCart.find(i => i.dishId === dish.id);
+                        const isOutOfStock = dish.scoopsLeft <= 0;
+                        return (
+                          <button
+                            key={dish.id}
+                            type="button"
+                            disabled={isOutOfStock}
+                            onClick={() => handleAddWalkInDish(dish)}
+                            className={`p-2 rounded-xl border text-left transition-all relative ${
+                              isOutOfStock
+                                ? 'opacity-40 border-slate-800 bg-slate-950 cursor-not-allowed'
+                                : inCart
+                                ? 'bg-emerald-500/20 border-emerald-500 text-white'
+                                : 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-300'
+                            }`}
+                          >
+                            <p className="text-xs font-bold line-clamp-1">{dish.name}</p>
+                            <div className="flex items-center justify-between mt-1 text-[11px]">
+                              <span className="font-mono text-emerald-400 font-extrabold">₦{Number(dish.price).toLocaleString()}</span>
+                              <span className={`text-[10px] font-bold ${dish.scoopsLeft < 5 ? 'text-red-400' : 'text-slate-500'}`}>
+                                {dish.scoopsLeft} left
+                              </span>
+                            </div>
+                            {inCart && (
+                              <span className="absolute -top-1.5 -right-1.5 bg-emerald-500 text-slate-950 font-black text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-slate-900">
+                                {inCart.scoops}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                  </div>
+                </div>
+
+                {/* Items in Cart Summary Table */}
+                {walkInCart.length > 0 && (
+                  <div className="space-y-2 bg-slate-950 p-3.5 rounded-2xl border border-slate-800">
+                    <p className="text-[11px] font-black uppercase text-slate-400 tracking-wider">
+                      Selected Items ({walkInCart.reduce((sum, i) => sum + i.scoops, 0)} portions):
+                    </p>
+                    <div className="space-y-1.5 max-h-36 overflow-y-auto">
+                      {walkInCart.map(item => (
+                        <div key={item.dishId} className="flex items-center justify-between text-xs bg-slate-900/80 p-2 rounded-xl">
+                          <span className="font-bold text-white truncate max-w-[200px]">{item.dishName}</span>
+                          <div className="flex items-center gap-3">
+                            <span className="font-mono text-emerald-300 font-bold">₦{(item.price * item.scoops).toLocaleString()}</span>
+                            <div className="flex items-center gap-1.5 bg-slate-950 rounded-lg p-0.5 border border-slate-800">
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateWalkInScoops(item.dishId, -1)}
+                                className="w-5 h-5 flex items-center justify-center text-slate-400 hover:text-white"
+                              >
+                                -
+                              </button>
+                              <span className="text-xs font-mono font-black text-white px-1">{item.scoops}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateWalkInScoops(item.dishId, 1)}
+                                className="w-5 h-5 flex items-center justify-center text-slate-400 hover:text-white"
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Options: Takeout Pack & Handover */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <label className="flex items-center gap-2 p-3 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer text-xs font-bold text-slate-300">
+                    <input
+                      type="checkbox"
+                      checked={walkInTakeoutPack}
+                      onChange={(e) => setWalkInTakeoutPack(e.target.checked)}
+                      className="rounded accent-emerald-500 w-4 h-4"
+                    />
+                    <span>Add Takeout Pack (+₦{vendorSettings.takeoutPrice || 300})</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 p-3 bg-slate-950 rounded-xl border border-slate-800 cursor-pointer text-xs font-bold text-slate-300">
+                    <input
+                      type="checkbox"
+                      checked={walkInDirectHandedOver}
+                      onChange={(e) => setWalkInDirectHandedOver(e.target.checked)}
+                      className="rounded accent-emerald-500 w-4 h-4"
+                    />
+                    <span>Immediately Handed Over (Complete)</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Modal Footer with Total & Submit */}
+              <div className="p-5 bg-slate-950 border-t border-slate-800 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Grand Total:</span>
+                  <span className="text-2xl font-black text-emerald-400">
+                    ₦{(
+                      walkInCart.reduce((sum, i) => sum + (i.price * i.scoops), 0) +
+                      (walkInTakeoutPack ? (Number(vendorSettings.takeoutPrice) || 300) : 0)
+                    ).toLocaleString()}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsWalkInModalOpen(false)}
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    disabled={walkInSubmitting || walkInCart.length === 0}
+                    onClick={handleRecordWalkInSale}
+                    className="px-6 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 shadow-lg transition-all disabled:opacity-50 flex items-center gap-2"
+                  >
+                    <ReceiptText className="w-4 h-4" />
+                    <span>{walkInSubmitting ? 'Recording...' : 'Confirm Sale & Deduct'}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>

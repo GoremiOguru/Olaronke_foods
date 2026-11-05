@@ -232,6 +232,22 @@
       "role": "student",
       "lastLogin": "2026-10-01T23:23:02.000Z",
       "createdAt": "2026-10-01T23:23:02.000Z"
+    },
+    {
+      "id": "usr-student-walkin",
+      "name": "Walk-in Cash Counter (Dummy Student)",
+      "email": "walkin@topfaith.edu.ng",
+      "passwordHash": "",
+      "role": "student",
+      "createdAt": "2026-10-30T19:03:55.219Z"
+    },
+    {
+      "id": "usr-student-dummy",
+      "name": "Mrs. Olaronke (Test Dummy Student)",
+      "email": "dummy@topfaith.edu.ng",
+      "passwordHash": "",
+      "role": "student",
+      "createdAt": "2026-10-30T19:03:55.221Z"
     }
   ],
   "dishes": [

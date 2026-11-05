@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, User, Lock, Mail, ShieldCheck, AlertCircle, CheckCircle2, Phone, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -15,6 +15,17 @@ export default function AuthModal({ isOpen, onClose }) {
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Disable background scrolling when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      const originalStyle = window.getComputedStyle(document.body).overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalStyle;
+      };
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -68,7 +79,7 @@ export default function AuthModal({ isOpen, onClose }) {
     if (isStudentRegister) {
       const cleanEmail = email.trim().toLowerCase();
       if (!cleanEmail.endsWith('@topfaith.edu.ng')) {
-        setError('Student registration is restricted to @topfaith.edu.ng emails.');
+        setError('Campus registration is restricted to @topfaith.edu.ng emails (Students & Lecturers).');
         return;
       }
     }
@@ -111,8 +122,8 @@ export default function AuthModal({ isOpen, onClose }) {
           </div>
 
           <h3 className="text-xl font-black">
-            {mode === 'login' && "B'feastas Student Sign In"}
-            {mode === 'register' && "B'feastas Student Registration"}
+            {mode === 'login' && "Campus Sign In"}
+            {mode === 'register' && "Campus Registration"}
             {mode === 'admin-login' && "Vendor Staff Sign In"}
             {mode === 'admin-register' && "New Admin Staff Signup"}
             {mode === 'reset-password' && "Reset Account Password"}
@@ -122,7 +133,7 @@ export default function AuthModal({ isOpen, onClose }) {
               ? 'Enter registered email & new password'
               : mode.startsWith('admin')
               ? 'Gmail address permitted for Vendor Staff'
-              : 'Domain Requirement: @topfaith.edu.ng'}
+              : 'Domain Requirement: @topfaith.edu.ng (Students & Lecturers)'}
           </p>
         </div>
 
@@ -135,7 +146,7 @@ export default function AuthModal({ isOpen, onClose }) {
               mode === 'login' ? 'border-brand-orange text-white bg-slate-900' : 'border-transparent hover:text-slate-200'
             }`}
           >
-            Student Sign In
+            Campus Sign In
           </button>
           <button
             type="button"
@@ -144,7 +155,7 @@ export default function AuthModal({ isOpen, onClose }) {
               mode === 'register' ? 'border-brand-orange text-white bg-slate-900' : 'border-transparent hover:text-slate-200'
             }`}
           >
-            Student Join
+            Campus Join
           </button>
           <button
             type="button"
@@ -183,7 +194,7 @@ export default function AuthModal({ isOpen, onClose }) {
           {(mode === 'register' || mode === 'admin-register') && (
             <div>
               <label className="block text-xs font-extrabold text-slate-300 mb-1">
-                {mode === 'admin-register' ? 'Staff Full Name' : 'Student Full Name'}
+                {mode === 'admin-register' ? 'Staff Full Name' : 'Full Name (Student / Lecturer)'}
               </label>
               <div className="relative">
                 <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -192,7 +203,7 @@ export default function AuthModal({ isOpen, onClose }) {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder={mode === 'admin-register' ? 'e.g. Isaac Bfeastas Staff' : 'e.g. Chisom Okafor'}
+                  placeholder={mode === 'admin-register' ? 'e.g. Isaac Bfeastas Staff' : 'e.g. Dr. Okafor / Chisom Okafor'}
                   className="w-full bg-slate-950 border border-slate-700 focus:border-brand-orange text-white pl-10 pr-4 py-3 rounded-xl text-sm focus:outline-none"
                 />
               </div>
@@ -310,6 +321,22 @@ export default function AuthModal({ isOpen, onClose }) {
               mode.includes('register') ? 'Create Account' : 'Log In'
             )}
           </button>
+
+          {mode === 'admin-login' && (
+            <div className="pt-3 border-t border-slate-800 text-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('login');
+                  setEmail('walkin@topfaith.edu.ng');
+                  setPassword('bfeastas123');
+                }}
+                className="text-[11px] font-extrabold text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 px-3 py-1.5 rounded-xl border border-amber-500/30 transition-all inline-flex items-center gap-1.5"
+              >
+                <span>⚡ Staff Tool: Test Login as Walk-in Student</span>
+              </button>
+            </div>
+          )}
         </form>
 
       </div>

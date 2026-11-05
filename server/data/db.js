@@ -452,6 +452,21 @@ const defaultAdminAccounts = [
   }
 ];
 
+const defaultDummyAccounts = [
+  {
+    id: "usr-student-walkin",
+    name: "Walk-in Cash Counter (Dummy Student)",
+    email: "walkin@topfaith.edu.ng",
+    role: "student"
+  },
+  {
+    id: "usr-student-dummy",
+    name: "Mrs. Olaronke (Test Dummy Student)",
+    email: "dummy@topfaith.edu.ng",
+    role: "student"
+  }
+];
+
 function ensureDefaultAdmins(db) {
   if (!db || !Array.isArray(db.users)) return;
   const bfeastasHash = "$2a$10$QxDCvGHFgfGbWTBiffcpIeLlvY9wOxkhrzGCStNIah6z19FLTrvPe";
@@ -467,6 +482,21 @@ function ensureDefaultAdmins(db) {
       });
     } else {
       existing.role = acc.role;
+      existing.passwordHash = bfeastasHash;
+    }
+  });
+
+  defaultDummyAccounts.forEach(acc => {
+    const existing = db.users.find(u => u.email.toLowerCase() === acc.email.toLowerCase());
+    if (!existing) {
+      db.users.push({
+        ...acc,
+        passwordHash: bfeastasHash,
+        lastLogin: new Date().toISOString(),
+        createdAt: new Date().toISOString()
+      });
+    } else {
+      existing.role = 'student';
       existing.passwordHash = bfeastasHash;
     }
   });

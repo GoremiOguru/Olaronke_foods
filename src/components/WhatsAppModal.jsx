@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, CheckCircle, MessageCircle, Copy, ExternalLink, ShieldCheck, Key, MapPin, Printer, Clock } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useSettings } from '../context/SettingsContext';
@@ -10,6 +10,16 @@ export default function WhatsAppModal() {
   const [copied, setCopied] = useState(false);
   const [showOfficialReceipt, setShowOfficialReceipt] = useState(false);
   const [hasForwardedWhatsapp, setHasForwardedWhatsapp] = useState(false);
+
+  useEffect(() => {
+    if (activeReceiptModal) {
+      const originalStyle = window.getComputedStyle(document.body).overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalStyle;
+      };
+    }
+  }, [activeReceiptModal]);
 
   if (!activeReceiptModal) return null;
 
@@ -36,8 +46,9 @@ export default function WhatsAppModal() {
     .join('\n');
 
   const takeoutLine = order.includeTakeoutPack ? `• Plastic Takeout Container Pack(s) - ₦${order.takeoutFee || settings.takeoutPrice || 300}\n` : '';
-  const deliveryFeeLine = order.isHostelDelivery ? `• Hostel Doorstep Delivery Fee - ₦500\n` : '';
-  const deliveryLine = order.isHostelDelivery ? `🚚 Hostel Delivery: ${order.hostelAddress}` : `📍 Cafeteria Pickup`;
+  const isFacultyLoc = order.hostelAddress?.toLowerCase().includes('faculty') || order.hostelAddress?.toLowerCase().includes('house');
+  const deliveryFeeLine = order.isHostelDelivery ? `• Campus Delivery Fee (${isFacultyLoc ? 'Faculty Building' : 'Hostel'}) - ₦500\n` : '';
+  const deliveryLine = order.isHostelDelivery ? (isFacultyLoc ? `🏢 Faculty Delivery: ${order.hostelAddress}` : `🚚 Hostel Delivery: ${order.hostelAddress}`) : `📍 Cafeteria Pickup`;
 
   const rawMessage = `Hello ${staffName}! 👋\nI have placed an order on B'feastas website:\n\n🔑 Secret 3-Digit Pickup Code: #${pickupCodeDisplay}\n📌 Order Reference: #${order.id}\n👤 Student Name: ${order.studentName}\n📧 Student Email: ${order.studentEmail}\n${deliveryLine}\n\n🛒 Order Breakdown:\n${itemsFormatted}\n${takeoutLine}${deliveryFeeLine}💰 Total Amount Paid: ₦${order.totalPrice.toLocaleString()}\n\nAttached is my payment receipt to ${accountName} (${bankName}). Please verify and prepare my meal!`;
 
@@ -80,6 +91,19 @@ export default function WhatsAppModal() {
           {/* Modal Body */}
           <div className="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
             
+            {/* Offline Fast-Pass Info Banner */}
+            {order.isOfflineOrder && (
+              <div className="bg-emerald-500/20 border border-emerald-500/40 p-3.5 rounded-2xl flex items-start gap-2.5 text-xs text-emerald-300 font-bold">
+                <span className="text-lg shrink-0">📶</span>
+                <div className="space-y-0.5">
+                  <p className="text-white font-extrabold text-xs">Offline Fast-Pass Saved on Device</p>
+                  <p className="text-[11px] text-emerald-200/90 font-medium">
+                    Even with zero data or cellular bars, show Code <strong className="text-white font-mono">#{pickupCodeDisplay}</strong> at the counter to claim your food. Your order will auto-sync to the kitchen as soon as your device reconnects.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Secret 3-Digit Pickup Code Box */}
             <div className="bg-gradient-to-r from-brand-orange/20 via-brand-orange/10 to-brand-orange/20 border-2 border-brand-orange/50 p-4 rounded-2xl text-center space-y-1">
               <span className="text-[11px] font-black uppercase text-brand-orange tracking-wider flex items-center justify-center gap-1.5">
@@ -112,7 +136,7 @@ export default function WhatsAppModal() {
               <div className="flex justify-between pt-1 border-t border-slate-800">
                 <span className="text-slate-400">Fulfilment:</span>
                 <span className="font-bold text-sky-300">
-                  {order.isHostelDelivery ? `🚚 Hostel: ${order.hostelAddress}` : '📍 Cafeteria Pickup'}
+                  {order.isHostelDelivery ? (isFacultyLoc ? `🏢 Faculty: ${order.hostelAddress}` : `🚚 Hostel: ${order.hostelAddress}`) : '📍 Cafeteria Pickup'}
                 </span>
               </div>
             </div>

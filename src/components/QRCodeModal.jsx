@@ -5,6 +5,16 @@ export default function QRCodeModal({ isOpen, onClose, restaurantName = "B'feast
   const [copied, setCopied] = React.useState(false);
   const printRef = useRef(null);
 
+  React.useEffect(() => {
+    if (isOpen) {
+      const original = window.getComputedStyle(document.body).overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = original;
+      };
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const currentUrl = typeof window !== 'undefined' ? window.location.origin : 'https://b-feastas.vercel.app';

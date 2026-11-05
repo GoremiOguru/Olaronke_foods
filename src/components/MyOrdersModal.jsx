@@ -28,7 +28,7 @@ export default function MyOrdersModal({ isOpen, onClose }) {
           const map = new Map();
           prev.forEach(o => map.set(o.id, o));
           studentOrders.forEach(o => map.set(o.id, { ...map.get(o.id), ...o }));
-          return Array.from(map.values()).sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+          return Array.from(map.values()).sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
         });
       })
       .catch(err => console.error('Failed to fetch student order history:', err))
@@ -121,7 +121,9 @@ export default function MyOrdersModal({ isOpen, onClose }) {
                     <div className="text-xs text-slate-400">
                       {ord.isHostelDelivery ? (
                         <p className="flex items-center gap-1.5 text-sky-300">
-                          <MapPin className="w-3.5 h-3.5" /> Hostel Delivery: <strong className="text-white">{ord.hostelAddress}</strong>
+                          <MapPin className="w-3.5 h-3.5" /> 
+                          {ord.hostelAddress?.toLowerCase().includes('faculty') || ord.hostelAddress?.toLowerCase().includes('house') ? '🏢 Faculty Delivery: ' : '🏫 Hostel Delivery: '}
+                          <strong className="text-white">{ord.hostelAddress}</strong>
                         </p>
                       ) : (
                         <p className="flex items-center gap-1.5 text-slate-300">

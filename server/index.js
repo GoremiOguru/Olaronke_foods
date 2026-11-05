@@ -410,12 +410,12 @@ app.delete('/api/dishes/:id', authenticateToken, requireAdmin, (req, res) => {
 app.get('/api/orders', authenticateToken, (req, res) => {
   const db = loadDB();
   if (req.user.role === 'admin' || req.user.role === 'superadmin') {
-    const sorted = [...db.orders].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const sorted = [...db.orders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     return res.json(sorted);
   } else {
     const studentOrders = db.orders
       .filter(o => o.studentId === req.user.id || o.studentEmail === req.user.email)
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     return res.json(studentOrders);
   }
 });
@@ -428,10 +428,19 @@ app.post('/api/orders', authenticateToken, (req, res) => {
   }
 
   if (isHostelDelivery && (!hostelAddress || !hostelAddress.trim())) {
-    return res.status(400).json({ message: 'Please specify your hostel name and room number for delivery.' });
+    return res.status(400).json({ message: 'Please specify your faculty building or hostel address for delivery.' });
   }
 
   const db = loadDB();
+
+  // Idempotent check for offline orders re-synced by client
+  const incomingId = req.body.id || req.body.orderId;
+  if (incomingId) {
+    const existingOrder = db.orders.find(o => o.id === incomingId);
+    if (existingOrder) {
+      return res.status(200).json(existingOrder);
+    }
+  }
 
   const sanitizedItems = [];
   let mealsTotal = 0;
@@ -485,16 +494,28 @@ app.post('/api/orders', authenticateToken, (req, res) => {
   const deliveryFee = isHostelDelivery ? 500 : 0;
   const totalPrice = mealsTotal + takeoutFee + deliveryFee;
 
-  const pickupCode = String(Math.floor(100 + Math.random() * 900));
-  const orderId = `ORD-${Math.floor(1000 + Math.random() * 9000)}`;
+  const pickupCode = req.body.pickupCode ? String(req.body.pickupCode) : String(Math.floor(100 + Math.random() * 900));
+  const orderId = incomingId || `ORD-${Math.floor(1000 + Math.random() * 9000)}`;
   const finalScheduledTime = scheduledTime || pickupTime || scheduledPickupTime || null;
+
+  const isAdminUser = req.user.role === 'admin' || req.user.role === 'superadmin';
+  const isWalkInSale = Boolean(req.body.isWalkInSale || (isAdminUser && (req.body.paymentMethod === 'Cash' || req.body.paymentMethod === 'POS')));
+
+  const studentId = isWalkInSale ? 'usr-student-walkin' : req.user.id;
+  const studentName = (isWalkInSale && req.body.customerName) 
+    ? req.body.customerName.trim() 
+    : (isWalkInSale ? 'Walk-in Cash Customer' : req.user.name);
+  const studentEmail = isWalkInSale ? 'walkin@topfaith.edu.ng' : req.user.email;
+  const paymentMethod = req.body.paymentMethod || (isWalkInSale ? 'Cash' : 'Bank Transfer');
+  const paymentConfirmed = isWalkInSale ? true : Boolean(req.body.paymentConfirmed);
+  const status = isWalkInSale ? (req.body.directCompleted ? 'Completed' : 'Preparing') : 'Pending Payment Verification';
 
   const newOrder = {
     id: orderId,
     pickupCode,
-    studentId: req.user.id,
-    studentName: req.user.name,
-    studentEmail: req.user.email,
+    studentId,
+    studentName,
+    studentEmail,
     studentPhone: (studentPhone || req.user.phone || '').trim(),
     items: sanitizedItems,
     includeTakeoutPack: includeTakeoutPack !== false,
@@ -506,8 +527,11 @@ app.post('/api/orders', authenticateToken, (req, res) => {
     hostelAddress: isHostelDelivery ? hostelAddress.trim() : '',
     scheduledTime: finalScheduledTime,
     totalPrice,
-    status: 'Pending Payment Verification',
-    paymentConfirmed: false,
+    paymentMethod,
+    status,
+    paymentConfirmed,
+    confirmedByAdmin: isWalkInSale ? req.user.name : null,
+    isOfflineOrder: Boolean(req.body.isOfflineOrder),
     isCancelled: false,
     createdAt: new Date().toISOString()
   };
@@ -595,8 +619,6 @@ app.delete('/api/orders/:id', authenticateToken, requireAdmin, (req, res) => {
   io.emit('orders:deleted', { orderId: id });
   io.emit('orders:update', db.orders);
 
-  return res.json({ message: `Order #${id} deleted successfully.` });
-});
   return res.json({ message: `Order #${id} deleted successfully.` });
 });
 

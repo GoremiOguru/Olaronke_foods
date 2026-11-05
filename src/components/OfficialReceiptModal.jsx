@@ -1,8 +1,16 @@
-import React from 'react';
-import { X, Printer, ShieldCheck, Key, MapPin, UtensilsCrossed, Calendar, Clock, Download, AlertTriangle, Phone } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { X, Printer, ShieldCheck, Key, MapPin, UtensilsCrossed, Calendar, Clock, Download, AlertTriangle, Phone, WifiOff } from 'lucide-react';
 
 export default function OfficialReceiptModal({ order, onClose }) {
   if (!order) return null;
+
+  useEffect(() => {
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalStyle;
+    };
+  }, []);
 
   const getPickupCode = (ord) => {
     if (ord?.pickupCode) return String(ord.pickupCode);
@@ -62,6 +70,17 @@ export default function OfficialReceiptModal({ order, onClose }) {
           </button>
         </div>
 
+        {/* Offline Fast-Pass Banner */}
+        {order.isOfflineOrder && (
+          <div className="bg-emerald-600 text-white px-6 py-2.5 print:px-4 print:py-1.5 flex items-center justify-between text-xs print:text-[10px] font-black">
+            <div className="flex items-center gap-1.5">
+              <WifiOff className="w-4 h-4 print:w-3.5 print:h-3.5 shrink-0" />
+              <span>OFFLINE FAST-PASS (SAVED ON PHONE STORAGE)</span>
+            </div>
+            <span className="bg-slate-950 text-emerald-300 px-2 py-0.5 rounded text-[10px] uppercase font-mono">Offline</span>
+          </div>
+        )}
+
         {/* Unverified Payment Notice Header if not confirmed */}
         {!isPaymentVerified && (
           <div className="bg-amber-500 text-slate-950 px-6 py-2.5 print:px-4 print:py-1.5 flex items-center justify-between text-xs print:text-[10px] font-black">
@@ -83,8 +102,8 @@ export default function OfficialReceiptModal({ order, onClose }) {
               <p className="font-mono text-sm print:text-xs font-black text-slate-900">#{order.id}</p>
             </div>
             <div className="text-right">
-              <span className="text-[10px] uppercase font-bold text-amber-600 tracking-wider block">Secret Pickup Code</span>
-              <span className="font-mono text-xl print:text-lg font-black text-amber-600">#{pickupCode}</span>
+              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider block">Secret Pickup Code</span>
+              <span className="font-mono text-2xl sm:text-3xl print:text-xl font-black text-emerald-600 tracking-wider">#{pickupCode}</span>
             </div>
           </div>
 
@@ -115,7 +134,7 @@ export default function OfficialReceiptModal({ order, onClose }) {
             <div className="flex justify-between border-b border-slate-100 pb-2 print:pb-1">
               <span className="text-slate-500 font-medium">Fulfillment Mode:</span>
               <span className="font-bold text-amber-600">
-                {order.isHostelDelivery ? `🚚 Hostel Delivery: ${order.hostelAddress}` : '📍 Cafeteria Pickup'}
+                {order.isHostelDelivery ? (order.hostelAddress?.toLowerCase().includes('faculty') || order.hostelAddress?.toLowerCase().includes('house') ? `🏢 Faculty Delivery: ${order.hostelAddress}` : `🚚 Hostel Delivery: ${order.hostelAddress}`) : '📍 Cafeteria Pickup'}
               </span>
             </div>
             {order.scheduledTime && (
@@ -159,7 +178,7 @@ export default function OfficialReceiptModal({ order, onClose }) {
 
               {order.isHostelDelivery && (
                 <div className="pt-2 print:pt-1 grid grid-cols-12 gap-2 items-center text-sky-700 font-semibold">
-                  <span className="col-span-6">Hostel Doorstep Delivery Fee</span>
+                  <span className="col-span-6">{order.hostelAddress?.toLowerCase().includes('faculty') || order.hostelAddress?.toLowerCase().includes('house') ? 'Faculty Campus Delivery Fee' : 'Hostel Doorstep Delivery Fee'}</span>
                   <span className="col-span-2 text-center font-mono">1 delivery</span>
                   <span className="col-span-4 text-right font-mono font-bold text-slate-900">₦500</span>
                 </div>
