@@ -84,26 +84,21 @@ export default function AdminDashboard({ onOpenHowToUse }) {
         window.dispatchEvent(new Event('olaronke_settings_updated'));
       } catch (e) {}
 
-      const res = await fetch('/api/settings', {
+      const action = {
+        id: `settings-save-${Date.now()}`,
+        endpoint: '/api/settings',
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(vendorSettings)
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Failed to update settings');
+        payload: vendorSettings
+      };
 
-      const merged = { ...vendorSettings, ...(data || {}) };
-      setVendorSettings(merged);
-      try {
-        localStorage.setItem('olaronke_settings', JSON.stringify(merged));
-        window.dispatchEvent(new Event('olaronke_settings_updated'));
-      } catch (e) {}
-      setSettingsSuccessMsg('🎉 Vendor Bank Account & Payment Settings saved successfully!');
+      const success = await executeAdminAction(action);
+      if (!success) {
+        queueAdminAction(action);
+      }
+      setSettingsSuccessMsg('✓ Cafeteria settings saved! Active immediately on device and will sync to all devices.');
     } catch (err) {
-      alert(err.message || 'Error saving settings');
+      console.warn('Settings save fallback notice:', err);
+      setSettingsSuccessMsg('✓ Saved on this phone! Will sync across devices when internet connects.');
     } finally {
       setSavingSettings(false);
     }
@@ -137,64 +132,146 @@ export default function AdminDashboard({ onOpenHowToUse }) {
     if (!token) return;
     try {
       const [resOrders, resStaff] = await Promise.all([
-        fetch('/api/orders', { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch('/api/admin/staff', { headers: { 'Authorization': `Bearer ${token}` } })
+        fetch('/api/orders', { headers: { 'Authorization': `Bearer ${token}` } }).catch(() => null),
+        fetch('/api/admin/staff', { headers: { 'Authorization': `Bearer ${token}` } }).catch(() => null)
       ]);
 
-      if (resOrders.ok) {
-        const dataOrders = await resOrders.json();
-        if (Array.isArray(dataOrders)) {
-          // Detect newly synced offline orders or live online orders via polling
-          if (!isFirstLoadRef.current && knownOrderIdsRef.current) {
-            const newArrivals = dataOrders.filter(o => !knownOrderIdsRef.current.has(o.id));
-            if (newArrivals.length > 0) {
-              try {
-                const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-                audio.play().catch(() => {});
-              } catch (e) {}
+      if (resOrders && resOrders.ok) {
+        try {
+          const dataOrders = await resOrders.json();
+          if (Array.isArray(dataOrders)) {
+            // Detect newly synced offline orders or live online orders via polling
+            if (!isFirstLoadRef.current && knownOrderIdsRef.current) {
+              const newArrivals = dataOrders.filter(o => !knownOrderIdsRef.current.has(o.id));
+              if (newArrivals.length > 0) {
+                try {
+                  const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+                  audio.play().catch(() => {});
+                } catch (e) {}
 
-              newArrivals.forEach(o => {
-                if (typeof addNotification === 'function') {
-                  addNotification({
-                    id: Date.now() + Math.random(),
-                    title: `🚨 New Order #${o.id}${o.isOfflineOrder ? ' (📶 Offline Synced)' : ''}!`,
-                    message: `${o.studentName} • Code #${getPickupCode(o)} • ₦${Number(o.totalPrice || 0).toLocaleString()}`,
-                    type: 'success'
-                  });
-                }
-
-                if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-                  try {
-                    new Notification(`🚨 B'feastas Order #${o.id}`, {
-                      body: `${o.studentName} • Code #${getPickupCode(o)}\nTotal: ₦${Number(o.totalPrice || 0).toLocaleString()}`,
-                      icon: '/images/compay logo.jpeg'
+                newArrivals.forEach(o => {
+                  if (typeof addNotification === 'function') {
+                    addNotification({
+                      id: Date.now() + Math.random(),
+                      title: `🚨 New Order #${o.id}${o.isOfflineOrder ? ' (From Student Phone)' : ''}!`,
+                      message: `${o.studentName} • Code #${getPickupCode(o)} • ₦${Number(o.totalPrice || 0).toLocaleString()}`,
+                      type: 'success'
                     });
-                  } catch (e) {}
-                }
-              });
+                  }
+
+                  if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+                    try {
+                      new Notification(`🚨 B'feastas Order #${o.id}`, {
+                        body: `${o.studentName} • Code #${getPickupCode(o)}\nTotal: ₦${Number(o.totalPrice || 0).toLocaleString()}`,
+                        icon: '/images/compay logo.jpeg'
+                      });
+                    } catch (e) {}
+                  }
+                });
+              }
             }
+            isFirstLoadRef.current = false;
+            knownOrderIdsRef.current = new Set(dataOrders.map(o => o.id));
+            setOrders(dataOrders);
           }
-          isFirstLoadRef.current = false;
-          knownOrderIdsRef.current = new Set(dataOrders.map(o => o.id));
-          setOrders(dataOrders);
-        }
-      } else if (resOrders.status === 401 || resOrders.status === 403) {
+        } catch (e) {}
+      } else if (resOrders && (resOrders.status === 401 || resOrders.status === 403)) {
         console.warn('Admin session token expired or invalid');
       }
 
-      if (resStaff.ok) {
-        const dataStaff = await resStaff.json();
-        setStaffList(prev => {
-          const map = new Map();
-          prev.forEach(s => map.set(s.id || s.email, s));
-          dataStaff.forEach(s => map.set(s.id || s.email, { ...map.get(s.id || s.email), ...s }));
-          return Array.from(map.values());
-        });
+      if (resStaff && resStaff.ok) {
+        try {
+          const dataStaff = await resStaff.json();
+          if (Array.isArray(dataStaff)) {
+            setStaffList(prev => {
+              const map = new Map();
+              (prev || []).forEach(s => map.set(s.id || s.email, s));
+              dataStaff.forEach(s => map.set(s.id || s.email, { ...map.get(s.id || s.email), ...s }));
+              return Array.from(map.values());
+            });
+          }
+        } catch (e) {}
       }
     } catch (err) {
-      console.error('Error fetching admin data:', err);
+      console.warn('Error fetching admin data:', err);
     }
   };
+
+  // Helper to execute an admin action (dish update, add, delete, or settings change)
+  const executeAdminAction = async (action) => {
+    try {
+      const res = await fetch(action.endpoint, {
+        method: action.method || 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: action.payload ? JSON.stringify(action.payload) : undefined
+      });
+      return res.ok;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  // Helper to queue an admin action into local storage if offline
+  const queueAdminAction = (action) => {
+    try {
+      const raw = localStorage.getItem('olaronke_pending_admin_actions');
+      const queue = raw ? JSON.parse(raw) : [];
+      queue.push({ ...action, queuedAt: Date.now() });
+      localStorage.setItem('olaronke_pending_admin_actions', JSON.stringify(queue));
+    } catch (e) {}
+  };
+
+  // Background auto-sync for Mrs. Olaronke and Admin offline menu edits
+  useEffect(() => {
+    const syncPendingAdminActions = async () => {
+      try {
+        const raw = localStorage.getItem('olaronke_pending_admin_actions');
+        if (!raw) return;
+        const queue = JSON.parse(raw);
+        if (!Array.isArray(queue) || queue.length === 0) return;
+
+        const remaining = [];
+        let anySynced = false;
+
+        for (const action of queue) {
+          const success = await executeAdminAction(action);
+          if (success) {
+            anySynced = true;
+          } else {
+            remaining.push(action);
+          }
+        }
+
+        localStorage.setItem('olaronke_pending_admin_actions', JSON.stringify(remaining));
+
+        if (anySynced && remaining.length === 0) {
+          if (typeof refreshDishes === 'function') refreshDishes();
+          if (typeof addNotification === 'function') {
+            addNotification({
+              id: Date.now(),
+              title: '✓ Menu Updated Everywhere!',
+              message: 'Your food changes have been sent to all student phones and kitchen screens.',
+              type: 'success'
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Error syncing pending admin actions:', err);
+      }
+    };
+
+    window.addEventListener('online', syncPendingAdminActions);
+    const syncInterval = setInterval(syncPendingAdminActions, 4000);
+    syncPendingAdminActions();
+
+    return () => {
+      window.removeEventListener('online', syncPendingAdminActions);
+      clearInterval(syncInterval);
+    };
+  }, [token]);
 
   useEffect(() => {
     fetchOrdersAndStaff();
@@ -339,54 +416,62 @@ export default function AdminDashboard({ onOpenHowToUse }) {
     if (!editingDish) return;
     setSavingEdit(true);
 
-    try {
-      const res = await fetch(`/api/dishes/${editingDish.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          name: editingDish.name,
-          description: editingDish.description,
-          price: Number(editingDish.price),
-          scoopsLeft: Number(editingDish.scoopsLeft),
-          unitType: editingDish.unitType,
-          category: editingDish.category,
-          image: editingDish.image,
-          isAvailable: editingDish.isAvailable
-        })
-      });
+    const editedPayload = {
+      name: editingDish.name,
+      description: editingDish.description,
+      price: Number(editingDish.price),
+      scoopsLeft: Number(editingDish.scoopsLeft),
+      unitType: editingDish.unitType,
+      category: editingDish.category,
+      image: editingDish.image,
+      isAvailable: editingDish.isAvailable
+    };
 
-      if (res.ok) {
-        const updated = await res.json();
-        setDishes(prev => prev.map(d => d.id === updated.id ? updated : d));
-        setEditingDish(null);
-      }
-    } catch (err) {
-      console.error('Failed to save dish edits:', err);
-      alert('Error saving dish edits');
-    } finally {
-      setSavingEdit(false);
+    setDishes(prev => {
+      const updated = prev.map(d => d.id === editingDish.id ? { ...d, ...editedPayload } : d);
+      try {
+        localStorage.setItem('olaronke_custom_dishes', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+
+    const action = {
+      id: `dish-edit-${editingDish.id}-${Date.now()}`,
+      endpoint: `/api/dishes/${editingDish.id}`,
+      method: 'PATCH',
+      payload: editedPayload
+    };
+
+    const success = await executeAdminAction(action);
+    if (!success) {
+      queueAdminAction(action);
     }
+
+    setEditingDish(null);
+    setSavingEdit(false);
   };
 
   const handleScoopChange = async (dishId, newScoops) => {
     const validScoops = Math.max(0, newScoops);
     const isAvail = validScoops > 0;
-    setDishes(prev => prev.map(d => d.id === dishId ? { ...d, scoopsLeft: validScoops, isAvailable: isAvail } : d));
+    setDishes(prev => {
+      const updated = prev.map(d => d.id === dishId ? { ...d, scoopsLeft: validScoops, isAvailable: isAvail } : d);
+      try {
+        localStorage.setItem('olaronke_custom_dishes', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
 
-    try {
-      await fetch(`/api/dishes/${dishId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ scoopsLeft: validScoops, isAvailable: isAvail })
-      });
-    } catch (err) {
-      console.error('Failed to update stock:', err);
+    const action = {
+      id: `dish-scoop-${dishId}-${Date.now()}`,
+      endpoint: `/api/dishes/${dishId}`,
+      method: 'PATCH',
+      payload: { scoopsLeft: validScoops, isAvailable: isAvail }
+    };
+
+    const success = await executeAdminAction(action);
+    if (!success) {
+      queueAdminAction(action);
     }
   };
 
@@ -395,42 +480,52 @@ export default function AdminDashboard({ onOpenHowToUse }) {
     const nextState = !currentAvailability;
     const updatedScoops = nextState ? (targetDish && targetDish.scoopsLeft > 0 ? targetDish.scoopsLeft : 30) : 0;
 
-    setDishes(prev => prev.map(d => d.id === dishId ? { ...d, isAvailable: nextState, scoopsLeft: updatedScoops } : d));
+    setDishes(prev => {
+      const updated = prev.map(d => d.id === dishId ? { ...d, isAvailable: nextState, scoopsLeft: updatedScoops } : d);
+      try {
+        localStorage.setItem('olaronke_custom_dishes', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
 
-    try {
-      await fetch(`/api/dishes/${dishId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ isAvailable: nextState, scoopsLeft: updatedScoops })
-      });
-    } catch (err) {
-      console.error('Failed to toggle availability:', err);
+    const action = {
+      id: `dish-avail-${dishId}-${Date.now()}`,
+      endpoint: `/api/dishes/${dishId}`,
+      method: 'PATCH',
+      payload: { isAvailable: nextState, scoopsLeft: updatedScoops }
+    };
+
+    const success = await executeAdminAction(action);
+    if (!success) {
+      queueAdminAction(action);
     }
   };
 
   const handlePriceChange = async (dishId, newPrice) => {
     const priceNum = Math.max(0, Number(newPrice));
-    setDishes(prev => prev.map(d => d.id === dishId ? { ...d, price: priceNum } : d));
+    setDishes(prev => {
+      const updated = prev.map(d => d.id === dishId ? { ...d, price: priceNum } : d);
+      try {
+        localStorage.setItem('olaronke_custom_dishes', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
 
-    try {
-      await fetch(`/api/dishes/${dishId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ price: priceNum })
-      });
-    } catch (err) {
-      console.error('Failed to update price:', err);
+    const action = {
+      id: `dish-price-${dishId}-${Date.now()}`,
+      endpoint: `/api/dishes/${dishId}`,
+      method: 'PATCH',
+      payload: { price: priceNum }
+    };
+
+    const success = await executeAdminAction(action);
+    if (!success) {
+      queueAdminAction(action);
     }
   };
 
   const handleDeleteDish = async (dishId, dishName) => {
-    if (!window.confirm(`Are you sure you want to delete "${dishName}" from B'feastas catalog?`)) {
+    if (!window.confirm(`Are you sure you want to remove "${dishName}" from the cafeteria menu?`)) {
       return;
     }
 
@@ -443,16 +538,17 @@ export default function AdminDashboard({ onOpenHowToUse }) {
       return updated;
     });
 
-    try {
-      await fetch(`/api/dishes/${dishId}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-    } catch (err) {
-      console.warn('Failed backend sync for delete dish:', err);
-    } finally {
-      setDeletingDishId(null);
+    const action = {
+      id: `dish-del-${dishId}-${Date.now()}`,
+      endpoint: `/api/dishes/${dishId}`,
+      method: 'DELETE'
+    };
+
+    const success = await executeAdminAction(action);
+    if (!success) {
+      queueAdminAction(action);
     }
+    setDeletingDishId(null);
   };
 
   const handleOrderStatusChange = async (orderId, newStatus) => {
@@ -524,7 +620,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
       return updated;
     });
 
-    setDishSuccessMsg(`🎉 "${newDishItem.name}" published to live B'feastas catalog!`);
+    setDishSuccessMsg(`✓ "${newDishItem.name}" added to menu!`);
     setNewDish({
       name: '',
       description: '',
@@ -535,26 +631,20 @@ export default function AdminDashboard({ onOpenHowToUse }) {
       image: ''
     });
 
-    try {
-      const res = await fetch('/api/dishes', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(newDishItem)
-      });
+    const action = {
+      id: `dish-create-${newDishItem.id}-${Date.now()}`,
+      endpoint: '/api/dishes',
+      method: 'POST',
+      payload: newDishItem
+    };
 
-      if (res.ok) {
-        const createdDish = await res.json();
-        setDishes(prev => prev.map(d => d.id === newDishItem.id ? createdDish : d));
-      }
-    } catch (err) {
-      console.warn('Backend server sync notice for new dish:', err);
-    } finally {
-      setAddingDish(false);
-      setTimeout(() => setActiveTab('inventory'), 800);
+    const success = await executeAdminAction(action);
+    if (!success) {
+      queueAdminAction(action);
     }
+
+    setAddingDish(false);
+    setTimeout(() => setActiveTab('inventory'), 800);
   };
 
   const handleAddWalkInDish = (dish) => {
@@ -677,7 +767,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
           createdAt: new Date().toISOString()
         };
 
-        setOrders(prev => [localOrder, ...prev]);
+        setOrders(prev => [localOrder, ...(Array.isArray(prev) ? prev : [])]);
 
         try {
           const pending = JSON.parse(localStorage.getItem('olaronke_pending_offline_orders') || '[]');
@@ -688,8 +778,8 @@ export default function AdminDashboard({ onOpenHowToUse }) {
         if (typeof addNotification === 'function') {
           addNotification({
             id: Date.now(),
-            title: '💵 Walk-in Sale Recorded Locally!',
-            message: `Sale #${offlineOrderId} saved to offline register. Will sync to cloud automatically.`,
+            title: '💵 Counter Sale Saved!',
+            message: `Recorded on this device! Will update cafeteria records when internet connects.`,
             type: 'success'
           });
         }
@@ -697,16 +787,16 @@ export default function AdminDashboard({ onOpenHowToUse }) {
         if (typeof addNotification === 'function') {
           addNotification({
             id: Date.now(),
-            title: '✓ Walk-in Sale Confirmed!',
+            title: '✓ Counter Sale Confirmed!',
             message: `Recorded ${walkInPaymentMethod} sale of ₦${walkInTotal.toLocaleString()}.`,
             type: 'success'
           });
         }
       }
 
-      // Deduct inventory immediately in UI
+      // Deduct inventory immediately in UI & local storage
       setDishes(prev => {
-        return prev.map(d => {
+        const updated = (Array.isArray(prev) ? prev : []).map(d => {
           const inCart = formattedItems.find(it => it.dishId === d.id);
           if (inCart) {
             const left = Math.max(0, d.scoopsLeft - inCart.scoops);
@@ -714,6 +804,10 @@ export default function AdminDashboard({ onOpenHowToUse }) {
           }
           return d;
         });
+        try {
+          localStorage.setItem('olaronke_custom_dishes', JSON.stringify(updated));
+        } catch (e) {}
+        return updated;
       });
 
       setIsWalkInModalOpen(false);
@@ -870,34 +964,34 @@ export default function AdminDashboard({ onOpenHowToUse }) {
               <span className="truncate">Record Walk-in Sale</span>
             </button>
 
-            {/* Kitchen KDS Tablet Mode Button */}
+            {/* Kitchen Screen Tablet Mode Button */}
             <button
               onClick={() => setIsKdsOpen(true)}
               className="flex items-center justify-center space-x-1.5 px-3.5 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-brand-orange to-amber-600 hover:from-orange-500 hover:to-amber-700 text-white shadow-orange-glow transition-all w-full sm:w-auto"
-              title="Launch Full-Screen Kitchen Display System for Wall Tablet"
+              title="Launch Kitchen Orders Screen"
             >
               <Tv className="w-4 h-4 shrink-0" />
-              <span className="truncate">Kitchen KDS Tablet</span>
+              <span className="truncate">Kitchen Screen</span>
             </button>
 
             {/* Table & Counter QR Code Generator */}
             <button
               onClick={() => setIsQrModalOpen(true)}
               className="flex items-center justify-center space-x-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 transition-all shadow-md w-full sm:w-auto"
-              title="Print Branded Table QR Cards for Cafeteria"
+              title="Print Table QR Codes for Cafeteria"
             >
               <QrCode className="w-4 h-4 text-brand-orange shrink-0" />
-              <span className="truncate">Table QR Cards</span>
+              <span className="truncate">Print QR Codes</span>
             </button>
 
             {/* WhatsApp Financial Summary Button */}
             <button
               onClick={handleSendDailyWhatsAppSummary}
               className="flex items-center justify-center space-x-1.5 px-3.5 py-2.5 rounded-xl text-xs font-extrabold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 transition-all shadow-md w-full sm:w-auto"
-              title="Send Daily Cashflow Summary to Owner's WhatsApp"
+              title="Send Daily Cash Summary to Mrs. Olaronke on WhatsApp"
             >
               <MessageCircle className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span className="truncate">Cashflow Summary</span>
+              <span className="truncate">WhatsApp Summary</span>
             </button>
 
             {/* How to Use Staff Guide Button */}
@@ -907,7 +1001,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
                 className="flex items-center justify-center space-x-1.5 px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 transition-all shadow-md w-full sm:w-auto"
               >
                 <HelpCircle className="w-4 h-4 text-brand-lemon-glow shrink-0" />
-                <span className="truncate">Staff Manual</span>
+                <span className="truncate">Staff Guide</span>
               </button>
             )}
 
@@ -993,7 +1087,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
             }`}
           >
             <Flame className="w-4 h-4" />
-            <span>Portion & Inventory ({dishes.length})</span>
+            <span>Food & Stock ({dishes.length})</span>
           </button>
 
           <button
@@ -1020,7 +1114,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
             }`}
           >
             <Users className="w-4 h-4" />
-            <span>Vendor Staff Roster ({staffList.length})</span>
+            <span>Staff Team ({staffList.length})</span>
           </button>
 
           <button
@@ -1999,8 +2093,8 @@ export default function AdminDashboard({ onOpenHowToUse }) {
                     <ReceiptText className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-black">Record Walk-in / Cash Counter Sale</h3>
-                    <p className="text-xs text-emerald-100">Instantly reconciles physical cash sales with digital kitchen & stock</p>
+                    <h3 className="text-lg font-black">Record Counter Sale</h3>
+                    <p className="text-xs text-emerald-100">Sell food directly at the counter and deduct portions automatically</p>
                   </div>
                 </div>
                 <button
@@ -2024,20 +2118,20 @@ export default function AdminDashboard({ onOpenHowToUse }) {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-extrabold text-slate-300 mb-1">
-                      Customer Identifier / Name:
+                      Customer Name or Note (Optional):
                     </label>
                     <input
                       type="text"
                       value={walkInCustomerName}
                       onChange={(e) => setWalkInCustomerName(e.target.value)}
-                      placeholder="e.g. Student in Blue / Chisom (Walk-in)"
+                      placeholder="e.g. Student in Blue / Chisom"
                       className="w-full bg-slate-950 border border-slate-700 focus:border-emerald-500 text-white px-3.5 py-2.5 rounded-xl text-xs focus:outline-none"
                     />
                   </div>
 
                   <div>
                     <label className="block text-xs font-extrabold text-slate-300 mb-1">
-                      Payment Channel:
+                      Payment Method:
                     </label>
                     <div className="grid grid-cols-3 gap-1.5">
                       {['Cash', 'Bank Transfer', 'POS'].map(method => (

@@ -194,10 +194,19 @@ export function SocketProvider({ children }) {
         setIsOnline(true);
         const serverData = await res.json();
         if (Array.isArray(serverData) && serverData.length > 0) {
-          setDishes(serverData);
+          // Do not overwrite dishes if admin (Mrs. Olaronke) has pending offline edits waiting to sync
+          let hasPendingAdminActions = false;
           try {
-            localStorage.setItem('olaronke_custom_dishes', JSON.stringify(serverData));
+            const rawPending = localStorage.getItem('olaronke_pending_admin_actions');
+            hasPendingAdminActions = rawPending && JSON.parse(rawPending)?.length > 0;
           } catch (e) {}
+
+          if (!hasPendingAdminActions) {
+            setDishes(serverData);
+            try {
+              localStorage.setItem('olaronke_custom_dishes', JSON.stringify(serverData));
+            } catch (e) {}
+          }
         }
       }
     } catch (err) {
@@ -218,7 +227,12 @@ export function SocketProvider({ children }) {
   }, []);
 
   const addNotification = (toast) => {
-    setNotifications(prev => [toast, ...prev]);
+    const toastId = toast.id || Date.now() + Math.random();
+    const newToast = { ...toast, id: toastId };
+    setNotifications(prev => [newToast, ...prev.slice(0, 2)]);
+    setTimeout(() => {
+      removeNotification(toastId);
+    }, 4000);
   };
 
   const removeNotification = (id) => {

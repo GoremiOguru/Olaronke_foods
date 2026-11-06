@@ -26,7 +26,7 @@ export default function MyOrdersModal({ isOpen, onClose }) {
           : [];
         setOrders(prev => {
           const map = new Map();
-          prev.forEach(o => map.set(o.id, o));
+          (Array.isArray(prev) ? prev : []).forEach(o => map.set(o.id, o));
           studentOrders.forEach(o => map.set(o.id, { ...map.get(o.id), ...o }));
           return Array.from(map.values()).sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
         });

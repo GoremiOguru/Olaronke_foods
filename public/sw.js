@@ -72,7 +72,17 @@ self.addEventListener('fetch', (event) => {
         .catch(() => {
           return caches.match(req).then((cached) => {
             if (cached) return cached;
+            // For endpoints where the frontend code expects an array (orders, staff, dishes), return [] so UI never crashes on .forEach / .map
+            const isArrayEndpoint = url.pathname.includes('/orders') || url.pathname.includes('/staff') || url.pathname.includes('/dishes');
+            if (isArrayEndpoint) {
+              return new Response('[]', {
+                status: 200,
+                headers: { 'Content-Type': 'application/json' }
+              });
+            }
             return new Response(JSON.stringify({ offline: true, message: 'Offline mode active' }), {
+              status: 503,
+              statusText: 'Service Unavailable (Offline)',
               headers: { 'Content-Type': 'application/json' }
             });
           });

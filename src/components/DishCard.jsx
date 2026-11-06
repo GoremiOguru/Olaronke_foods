@@ -104,7 +104,7 @@ export default function DishCard({ dish }) {
           {isRiceDish && !isOutOfStock && (
             <div className="mt-2 text-[11px] text-amber-300 font-semibold flex items-center gap-1 bg-amber-950/40 p-2 rounded-xl border border-amber-500/30">
               <Package className="w-3.5 h-3.5 text-amber-400" />
-              <span>Max 5 scoops per plate • Multi-plate cart arranger active</span>
+              <span>Max 5 scoops per plate</span>
             </div>
           )}
 

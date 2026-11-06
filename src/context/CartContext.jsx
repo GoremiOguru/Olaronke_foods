@@ -268,7 +268,13 @@ export function CartProvider({ children }) {
   const perPackPrice = Number(plateSize) || 200;
   const mealsTotal = cart.reduce((sum, item) => sum + (item.price * item.scoops), 0);
   const takeoutFee = includeTakeoutPack ? (activePlatesCount * perPackPrice) : 0;
-  const deliveryFee = isHostelDelivery ? 500 : 0;
+
+  // Mass Faculty and Engineering Faculty delivery price is ₦700; other hostels and faculties are ₦500
+  const isSpecialFacultyDelivery = isHostelDelivery && hostelAddress && (
+    hostelAddress.toLowerCase().includes('mass') || 
+    hostelAddress.toLowerCase().includes('engineering')
+  );
+  const deliveryFee = isHostelDelivery ? (isSpecialFacultyDelivery ? 700 : 500) : 0;
   const grandTotal = mealsTotal + takeoutFee + deliveryFee;
   const totalQuantityCount = cart.reduce((sum, item) => sum + item.scoops, 0);
 
@@ -392,7 +398,7 @@ export function CartProvider({ children }) {
           scheduledTime: scheduledTime !== 'ASAP' ? scheduledTime : null,
           totalPrice: grandTotal,
           paymentMethod: 'Bank Transfer',
-          status: 'Offline Fast-Pass (Pending Sync)',
+          status: 'Pending Pickup (Saved on Phone)',
           isOfflineOrder: true,
           createdAt: new Date().toISOString()
         };
@@ -407,15 +413,15 @@ export function CartProvider({ children }) {
 
         addNotification({
           id: Date.now(),
-          title: '📶 Offline Fast-Pass Active!',
-          message: `Saved on your phone! Show Code #${offlinePickupCode} at the counter. Will sync when online.`,
+          title: '📱 Order Saved on Phone!',
+          message: `Show Code #${offlinePickupCode} at the counter. Will send to kitchen automatically when internet connects.`,
           type: 'warning'
         });
       } else {
         addNotification({
           id: Date.now(),
           title: '🎉 Order Placed Successfully!',
-          message: `Order #${data.id} created! Secret Pickup Code: #${data.pickupCode}`,
+          message: `Order #${data.id} created! Pickup Code: #${data.pickupCode}`,
           type: 'success'
         });
       }

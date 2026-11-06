@@ -45,12 +45,13 @@ export default function WhatsAppModal() {
     .map(i => `• ${i.dishName} (${i.scoops} ${i.unitType || 'portion'}${i.scoops > 1 ? 's' : ''}) - ₦${(i.price * i.scoops).toLocaleString()}`)
     .join('\n');
 
-  const takeoutLine = order.includeTakeoutPack ? `• Plastic Takeout Container Pack(s) - ₦${order.takeoutFee || settings.takeoutPrice || 300}\n` : '';
+  const takeoutLine = order.includeTakeoutPack ? `• Takeout Container Pack(s) - ₦${order.takeoutFee || settings.takeoutPrice || 300}\n` : '';
   const isFacultyLoc = order.hostelAddress?.toLowerCase().includes('faculty') || order.hostelAddress?.toLowerCase().includes('house');
-  const deliveryFeeLine = order.isHostelDelivery ? `• Campus Delivery Fee (${isFacultyLoc ? 'Faculty Building' : 'Hostel'}) - ₦500\n` : '';
+  const deliveryFeeNum = Number(order.deliveryFee || (order.hostelAddress && (order.hostelAddress.toLowerCase().includes('mass') || order.hostelAddress.toLowerCase().includes('engineering')) ? 700 : 500));
+  const deliveryFeeLine = order.isHostelDelivery ? `• Campus Delivery Fee (${isFacultyLoc ? 'Faculty Building' : 'Hostel'}) - ₦${deliveryFeeNum.toLocaleString()}\n` : '';
   const deliveryLine = order.isHostelDelivery ? (isFacultyLoc ? `🏢 Faculty Delivery: ${order.hostelAddress}` : `🚚 Hostel Delivery: ${order.hostelAddress}`) : `📍 Cafeteria Pickup`;
 
-  const rawMessage = `Hello ${staffName}! 👋\nI have placed an order on B'feastas website:\n\n🔑 Secret 3-Digit Pickup Code: #${pickupCodeDisplay}\n📌 Order Reference: #${order.id}\n👤 Student Name: ${order.studentName}\n📧 Student Email: ${order.studentEmail}\n${deliveryLine}\n\n🛒 Order Breakdown:\n${itemsFormatted}\n${takeoutLine}${deliveryFeeLine}💰 Total Amount Paid: ₦${order.totalPrice.toLocaleString()}\n\nAttached is my payment receipt to ${accountName} (${bankName}). Please verify and prepare my meal!`;
+  const rawMessage = `Hello ${staffName}! 👋\nI have placed an order on B'feastas website:\n\n🔑 Pickup Code: #${pickupCodeDisplay}\n📌 Order Reference: #${order.id}\n👤 Student Name: ${order.studentName}\n📧 Student Email: ${order.studentEmail}\n${deliveryLine}\n\n🛒 Order Breakdown:\n${itemsFormatted}\n${takeoutLine}${deliveryFeeLine}💰 Total Amount Paid: ₦${order.totalPrice.toLocaleString()}\n\nAttached is my payment receipt to ${accountName} (${bankName}). Please verify and prepare my meal!`;
 
   const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(rawMessage)}`;
 
@@ -94,11 +95,11 @@ export default function WhatsAppModal() {
             {/* Offline Fast-Pass Info Banner */}
             {order.isOfflineOrder && (
               <div className="bg-emerald-500/20 border border-emerald-500/40 p-3.5 rounded-2xl flex items-start gap-2.5 text-xs text-emerald-300 font-bold">
-                <span className="text-lg shrink-0">📶</span>
+                <span className="text-lg shrink-0">📱</span>
                 <div className="space-y-0.5">
-                  <p className="text-white font-extrabold text-xs">Offline Fast-Pass Saved on Device</p>
+                  <p className="text-white font-extrabold text-xs">Order Saved on Your Phone</p>
                   <p className="text-[11px] text-emerald-200/90 font-medium">
-                    Even with zero data or cellular bars, show Code <strong className="text-white font-mono">#{pickupCodeDisplay}</strong> at the counter to claim your food. Your order will auto-sync to the kitchen as soon as your device reconnects.
+                    Even without internet, show Code <strong className="text-white font-mono">#{pickupCodeDisplay}</strong> at the counter to get your food. Your order is saved on your phone and will send to the kitchen automatically.
                   </p>
                 </div>
               </div>
@@ -107,13 +108,13 @@ export default function WhatsAppModal() {
             {/* Secret 3-Digit Pickup Code Box */}
             <div className="bg-gradient-to-r from-brand-orange/20 via-brand-orange/10 to-brand-orange/20 border-2 border-brand-orange/50 p-4 rounded-2xl text-center space-y-1">
               <span className="text-[11px] font-black uppercase text-brand-orange tracking-wider flex items-center justify-center gap-1.5">
-                <Key className="w-4 h-4" /> Secret Pickup Verification Code
+                <Key className="w-4 h-4" /> Pickup Verification Code
               </span>
               <p className="text-4xl font-black text-amber-300 font-mono tracking-widest">
                 #{pickupCodeDisplay}
               </p>
               <p className="text-[11px] text-slate-300">
-                Only you and B'feastas staff know this code. Mention <strong className="text-white">#{pickupCodeDisplay}</strong> during pickup or delivery!
+                Show or say Code <strong className="text-white font-mono">#{pickupCodeDisplay}</strong> when collecting your food!
               </p>
             </div>
 
@@ -134,7 +135,7 @@ export default function WhatsAppModal() {
                 </div>
               )}
               <div className="flex justify-between pt-1 border-t border-slate-800">
-                <span className="text-slate-400">Fulfilment:</span>
+                <span className="text-slate-400">Delivery / Pickup:</span>
                 <span className="font-bold text-sky-300">
                   {order.isHostelDelivery ? (isFacultyLoc ? `🏢 Faculty: ${order.hostelAddress}` : `🚚 Hostel: ${order.hostelAddress}`) : '📍 Cafeteria Pickup'}
                 </span>

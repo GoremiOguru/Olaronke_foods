@@ -132,7 +132,7 @@ export default function OfficialReceiptModal({ order, onClose }) {
               </span>
             </div>
             <div className="flex justify-between border-b border-slate-100 pb-2 print:pb-1">
-              <span className="text-slate-500 font-medium">Fulfillment Mode:</span>
+              <span className="text-slate-500 font-medium">Delivery / Pickup:</span>
               <span className="font-bold text-amber-600">
                 {order.isHostelDelivery ? (order.hostelAddress?.toLowerCase().includes('faculty') || order.hostelAddress?.toLowerCase().includes('house') ? `🏢 Faculty Delivery: ${order.hostelAddress}` : `🚚 Hostel Delivery: ${order.hostelAddress}`) : '📍 Cafeteria Pickup'}
               </span>
@@ -180,7 +180,9 @@ export default function OfficialReceiptModal({ order, onClose }) {
                 <div className="pt-2 print:pt-1 grid grid-cols-12 gap-2 items-center text-sky-700 font-semibold">
                   <span className="col-span-6">{order.hostelAddress?.toLowerCase().includes('faculty') || order.hostelAddress?.toLowerCase().includes('house') ? 'Faculty Campus Delivery Fee' : 'Hostel Doorstep Delivery Fee'}</span>
                   <span className="col-span-2 text-center font-mono">1 delivery</span>
-                  <span className="col-span-4 text-right font-mono font-bold text-slate-900">₦500</span>
+                  <span className="col-span-4 text-right font-mono font-bold text-slate-900">
+                    ₦{Number(order.deliveryFee !== undefined ? order.deliveryFee : (order.hostelAddress && (order.hostelAddress.toLowerCase().includes('mass') || order.hostelAddress.toLowerCase().includes('engineering')) ? 700 : 500)).toLocaleString()}
+                  </span>
                 </div>
               )}
             </div>

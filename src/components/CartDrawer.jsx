@@ -482,7 +482,7 @@ export default function CartDrawer({ onOpenAuth }) {
                 <div className="glass-card p-4 rounded-2xl border border-slate-800 space-y-3">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-extrabold text-white flex items-center gap-2">
-                      <Home className="w-4 h-4 text-sky-400" /> Fulfilment Method
+                      <Home className="w-4 h-4 text-sky-400" /> Delivery or Pickup
                     </span>
                   </div>
 
@@ -496,7 +496,7 @@ export default function CartDrawer({ onOpenAuth }) {
                           : 'bg-slate-900 border-slate-800 text-slate-400'
                       }`}
                     >
-                      Cafeteria Pickup
+                      Cafeteria Pickup (Free)
                     </button>
                     <button
                       type="button"
@@ -507,7 +507,7 @@ export default function CartDrawer({ onOpenAuth }) {
                           : 'bg-slate-900 border-slate-800 text-slate-400'
                       }`}
                     >
-                      Campus Delivery (+₦500)
+                      Campus Delivery
                     </button>
                   </div>
 
@@ -551,18 +551,21 @@ export default function CartDrawer({ onOpenAuth }) {
                         <div className="grid grid-cols-2 gap-1.5">
                           {(deliveryCategory === 'faculty' ? FACULTY_LOCATIONS : HOSTEL_LOCATIONS).map((loc) => {
                             const isSelected = hostelAddress === loc;
+                            const isSpecialFee = loc.toLowerCase().includes('mass') || loc.toLowerCase().includes('engineering');
+                            const feeTag = isSpecialFee ? '₦700' : '₦500';
                             return (
                               <button
                                 key={loc}
                                 type="button"
                                 onClick={() => setHostelAddress(loc)}
-                                className={`p-2.5 rounded-xl text-[11px] font-extrabold border transition-all text-left line-clamp-1 ${
+                                className={`p-2.5 rounded-xl text-[11px] font-extrabold border transition-all text-left line-clamp-1 flex items-center justify-between gap-1 ${
                                   isSelected
                                     ? 'bg-sky-500/20 border-sky-400 text-sky-300 shadow-sm'
                                     : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
                                 }`}
                               >
-                                {deliveryCategory === 'faculty' ? '🏢' : '🏫'} {loc}
+                                <span>{deliveryCategory === 'faculty' ? '🏢' : '🏫'} {loc}</span>
+                                <span className={`text-[10px] px-1.5 py-0.5 rounded font-black shrink-0 ${isSelected ? 'bg-sky-400 text-slate-950' : 'bg-slate-800 text-slate-300'}`}>{feeTag}</span>
                               </button>
                             );
                           })}
@@ -587,7 +590,7 @@ export default function CartDrawer({ onOpenAuth }) {
               
               <div className="space-y-2 text-xs text-slate-300 bg-slate-950 p-3.5 rounded-2xl border border-slate-800">
                 <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-1">
-                  Itemized Price Breakdown:
+                  Order Summary:
                 </p>
 
                 {cart.map((item) => (
@@ -603,16 +606,16 @@ export default function CartDrawer({ onOpenAuth }) {
 
                 {takeoutFee > 0 && (
                   <div className="flex justify-between items-center text-brand-orange">
-                    <span>Plastic Takeout Containers ({activePlatesCount} plate{activePlatesCount === 1 ? '' : 's'})</span>
+                    <span>Takeout Food Containers ({activePlatesCount} plate{activePlatesCount === 1 ? '' : 's'})</span>
                     <span className="font-mono font-bold shrink-0">₦{takeoutFee.toLocaleString()}</span>
                   </div>
                 )}
 
                 <div className="flex justify-between items-center text-sky-300">
                   <span className="truncate max-w-[210px] sm:max-w-[270px]">
-                    Fulfilment ({isHostelDelivery ? (hostelAddress && (hostelAddress.toLowerCase().includes('faculty') || hostelAddress.toLowerCase().includes('house')) ? 'Faculty Delivery' : 'Hostel Delivery') : 'Cafeteria Pickup'})
+                    {isHostelDelivery ? (hostelAddress && (hostelAddress.toLowerCase().includes('faculty') || hostelAddress.toLowerCase().includes('house')) ? 'Faculty Delivery' : 'Hostel Delivery') : 'Cafeteria Pickup'}
                   </span>
-                  <span className="font-mono font-bold shrink-0">{isHostelDelivery ? '₦500' : 'FREE'}</span>
+                  <span className="font-mono font-bold shrink-0">{deliveryFee > 0 ? `₦${deliveryFee.toLocaleString()}` : 'FREE'}</span>
                 </div>
 
                 <div className="flex justify-between items-center pt-2 border-t border-slate-800 text-base font-black text-white">

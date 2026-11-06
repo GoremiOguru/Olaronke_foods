@@ -4,13 +4,12 @@ import { useSocket } from '../context/SocketContext';
 
 function ToastItem({ notification, onRemove }) {
   React.useEffect(() => {
-    // Quick auto-dismiss: 2.5s for normal/success toasts, 4s for errors
-    const duration = notification.type === 'error' ? 4000 : 2500;
+    // Dismiss after 4 seconds as requested
     const timer = setTimeout(() => {
       onRemove(notification.id);
-    }, duration);
+    }, 4000);
     return () => clearTimeout(timer);
-  }, [notification.id, notification.type, onRemove]);
+  }, [notification.id, onRemove]);
 
   return (
     <div

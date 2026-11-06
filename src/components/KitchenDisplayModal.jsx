@@ -83,13 +83,13 @@ export default function KitchenDisplayModal({ isOpen, onClose, orders, onUpdateS
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                B'feastas Kitchen Display System (KDS)
+                B'feastas Kitchen Orders Screen
               </h1>
               <span className="bg-brand-lemon/20 text-brand-lemon-glow border border-brand-lemon/40 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                Live Kitchen Sync
+                Live Kitchen Screen
               </span>
             </div>
-            <p className="text-xs text-slate-400">High-Contrast Touch Tablet View for Cafeteria Kitchen Staff</p>
+            <p className="text-xs text-slate-400">Touch Screen Order Display for Cafeteria Staff</p>
           </div>
         </div>
 
