@@ -321,22 +321,6 @@ export default function AuthModal({ isOpen, onClose }) {
               mode.includes('register') ? 'Create Account' : 'Log In'
             )}
           </button>
-
-          {mode === 'admin-login' && (
-            <div className="pt-3 border-t border-slate-800 text-center">
-              <button
-                type="button"
-                onClick={() => {
-                  setMode('login');
-                  setEmail('walkin@topfaith.edu.ng');
-                  setPassword('bfeastas123');
-                }}
-                className="text-[11px] font-extrabold text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 px-3 py-1.5 rounded-xl border border-amber-500/30 transition-all inline-flex items-center gap-1.5"
-              >
-                <span>⚡ Staff Tool: Test Login as Walk-in Student</span>
-              </button>
-            </div>
-          )}
         </form>
 
       </div>
