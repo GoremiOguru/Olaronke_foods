@@ -25,8 +25,17 @@ export function AuthProvider({ children }) {
         'Authorization': `Bearer ${token}`
       }
     })
-      .then(res => {
-        if (!res.ok) throw new Error('Session expired');
+      .then(async res => {
+        if (!res.ok) {
+          if (res.status === 401 || res.status === 403) {
+            // Token is invalid or expired: clear from storage so app does not attempt requests with dead credentials
+            localStorage.removeItem('olaronke_token');
+            localStorage.removeItem('olaronke_user');
+            setToken(null);
+            setUser(null);
+          }
+          throw new Error('Session expired');
+        }
         return res.json();
       })
       .then(data => {

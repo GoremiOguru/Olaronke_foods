@@ -4,15 +4,19 @@ import { useSocket } from '../context/SocketContext';
 
 function ToastItem({ notification, onRemove }) {
   React.useEffect(() => {
+    // Quick auto-dismiss: 2.5s for normal/success toasts, 4s for errors
+    const duration = notification.type === 'error' ? 4000 : 2500;
     const timer = setTimeout(() => {
       onRemove(notification.id);
-    }, 6000); // Auto-dismiss after 6.0 seconds for mobile visibility
+    }, duration);
     return () => clearTimeout(timer);
-  }, [notification.id, onRemove]);
+  }, [notification.id, notification.type, onRemove]);
 
   return (
     <div
-      className={`pointer-events-auto p-3 sm:p-4 rounded-2xl shadow-2xl border backdrop-blur-md flex items-start space-x-3 transition-all duration-300 animate-in slide-in-from-bottom-5 ${
+      onClick={() => onRemove(notification.id)}
+      role="alert"
+      className={`pointer-events-auto cursor-pointer p-3 sm:p-3.5 rounded-2xl shadow-2xl border backdrop-blur-md flex items-start space-x-3 transition-all duration-300 animate-in slide-in-from-bottom-5 hover:scale-[1.02] active:scale-[0.98] ${
         notification.type === 'error'
           ? 'bg-rose-950/95 text-rose-100 border-rose-800'
           : notification.type === 'warning'

@@ -252,7 +252,7 @@ export function CartProvider({ children }) {
     };
 
     window.addEventListener('online', syncPendingOfflineOrders);
-    const interval = setInterval(syncPendingOfflineOrders, 20000);
+    const interval = setInterval(syncPendingOfflineOrders, 4000);
     syncPendingOfflineOrders();
 
     return () => {
@@ -317,14 +317,19 @@ export function CartProvider({ children }) {
       const orderPayload = {
         id: offlineOrderId,
         pickupCode: offlinePickupCode,
+        studentId: user?.id || 'usr-student-offline',
+        studentName: user?.name || 'Student (Offline)',
+        studentEmail: user?.email || '',
+        studentPhone: finalPhone.trim(),
         items: formattedItems,
         includeTakeoutPack,
         plateSize: perPackPrice,
         plateSizeName,
         takeoutFee,
+        deliveryFee,
+        totalPrice: grandTotal,
         isHostelDelivery,
         hostelAddress: hostelAddress.trim(),
-        studentPhone: finalPhone.trim(),
         scheduledTime: scheduledTime !== 'ASAP' ? scheduledTime : null
       };
 

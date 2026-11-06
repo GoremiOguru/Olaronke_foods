@@ -16,3 +16,4 @@
   "include": ["src/**/*", "server/**/*", "api/**/*", "public/**/*", "*.js"],
   "exclude": ["node_modules", "dist", "scratch"]
 }
+

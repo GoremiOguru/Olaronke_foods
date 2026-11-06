@@ -7,12 +7,12 @@ const SUPABASE_URL = process.env.SUPABASE_URL
   || process.env.POSTGRES_URL
   || 'https://duutoxkwogvmhsaawuai.supabase.co';
 
-const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
+  || process.env.SUPABASE_SECRET_KEY
+  || process.env.SUPABASE_ANON_KEY
   || process.env.VITE_SUPABASE_ANON_KEY
   || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  || process.env.SUPABASE_SERVICE_ROLE_KEY
   || process.env.SUPABASE_KEY
-  || process.env.SUPABASE_SECRET_KEY
   || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR1dXRveGt3b2d2bWhzYWF3dWFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA4ODg4OTIsImV4cCI6MjEwNjQ2NDg5Mn0.hqM4BuUto50Au8-O1_epXwpl29JjAdE_WeO_-HXUuyI';
 
 export const isSupabaseConfigured = Boolean(SUPABASE_URL && SUPABASE_KEY);

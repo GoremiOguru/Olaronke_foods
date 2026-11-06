@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Flame, Plus, Minus, ToggleLeft, ToggleRight, DollarSign, CheckCircle2, Clock, PackageCheck, AlertTriangle, RefreshCw, Search, ShieldCheck, User, MessageCircle, Trash2, Key, Users, MapPin, Package, UtensilsCrossed, Upload, Image as ImageIcon, Check, Edit3, X, Bell, BellRing, Smartphone, Printer, Calendar, Filter, HelpCircle, Bug, Tv, QrCode, Share2, ReceiptText, Banknote, CreditCard } from 'lucide-react';
 import { useSocket } from '../context/SocketContext';
 import { useAuth } from '../context/AuthContext';
@@ -7,7 +7,7 @@ import KitchenDisplayModal from './KitchenDisplayModal';
 import QRCodeModal from './QRCodeModal';
 
 export default function AdminDashboard({ onOpenHowToUse }) {
-  const { dishes, setDishes, socket, pushPermission, requestPushPermission } = useSocket();
+  const { dishes, setDishes, socket, pushPermission, requestPushPermission, addNotification } = useSocket();
   const { token, user: currentUser } = useAuth();
 
   const [orders, setOrders] = useState([]);
@@ -130,6 +130,9 @@ export default function AdminDashboard({ onOpenHowToUse }) {
     return String(100 + (num % 900));
   };
 
+  const knownOrderIdsRef = useRef(null);
+  const isFirstLoadRef = useRef(true);
+
   const fetchOrdersAndStaff = async () => {
     if (!token) return;
     try {
@@ -141,9 +144,44 @@ export default function AdminDashboard({ onOpenHowToUse }) {
       if (resOrders.ok) {
         const dataOrders = await resOrders.json();
         if (Array.isArray(dataOrders)) {
+          // Detect newly synced offline orders or live online orders via polling
+          if (!isFirstLoadRef.current && knownOrderIdsRef.current) {
+            const newArrivals = dataOrders.filter(o => !knownOrderIdsRef.current.has(o.id));
+            if (newArrivals.length > 0) {
+              try {
+                const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+                audio.play().catch(() => {});
+              } catch (e) {}
+
+              newArrivals.forEach(o => {
+                if (typeof addNotification === 'function') {
+                  addNotification({
+                    id: Date.now() + Math.random(),
+                    title: `🚨 New Order #${o.id}${o.isOfflineOrder ? ' (📶 Offline Synced)' : ''}!`,
+                    message: `${o.studentName} • Code #${getPickupCode(o)} • ₦${Number(o.totalPrice || 0).toLocaleString()}`,
+                    type: 'success'
+                  });
+                }
+
+                if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+                  try {
+                    new Notification(`🚨 B'feastas Order #${o.id}`, {
+                      body: `${o.studentName} • Code #${getPickupCode(o)}\nTotal: ₦${Number(o.totalPrice || 0).toLocaleString()}`,
+                      icon: '/images/compay logo.jpeg'
+                    });
+                  } catch (e) {}
+                }
+              });
+            }
+          }
+          isFirstLoadRef.current = false;
+          knownOrderIdsRef.current = new Set(dataOrders.map(o => o.id));
           setOrders(dataOrders);
         }
+      } else if (resOrders.status === 401 || resOrders.status === 403) {
+        console.warn('Admin session token expired or invalid');
       }
+
       if (resStaff.ok) {
         const dataStaff = await resStaff.json();
         setStaffList(prev => {
@@ -577,31 +615,107 @@ export default function AdminDashboard({ onOpenHowToUse }) {
         category: item.category
       }));
 
-      const res = await fetch('/api/orders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          items: formattedItems,
-          includeTakeoutPack: walkInTakeoutPack,
-          takeoutFee,
-          isHostelDelivery: false,
-          isWalkInSale: true,
-          customerName: walkInCustomerName.trim() || 'Walk-in Cash Customer',
-          paymentMethod: walkInPaymentMethod,
-          directCompleted: walkInDirectHandedOver,
-          paymentConfirmed: true
-        })
-      });
+      const payload = {
+        items: formattedItems,
+        includeTakeoutPack: walkInTakeoutPack,
+        takeoutFee,
+        isHostelDelivery: false,
+        isWalkInSale: true,
+        customerName: walkInCustomerName.trim() || 'Walk-in Cash Customer',
+        paymentMethod: walkInPaymentMethod,
+        directCompleted: walkInDirectHandedOver,
+        paymentConfirmed: true
+      };
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message || 'Failed to record walk-in sale');
+      let recordedOnline = false;
+      try {
+        const res = await fetch('/api/orders', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          recordedOnline = true;
+          await fetchOrdersAndStaff();
+        } else {
+          console.warn('Online walk-in order response status:', res.status);
+        }
+      } catch (netErr) {
+        console.warn('Network issue while recording walk-in sale:', netErr);
       }
 
-      await fetchOrdersAndStaff();
+      // Offline resilience: if server was unreachable or session token lapsed, save locally so cashier is never blocked!
+      if (!recordedOnline) {
+        const offlinePickupCode = String(Math.floor(100 + Math.random() * 900));
+        const offlineOrderId = `WALK-${Date.now().toString().slice(-4)}${Math.floor(10 + Math.random() * 90)}`;
+        const localOrder = {
+          id: offlineOrderId,
+          pickupCode: offlinePickupCode,
+          studentId: 'usr-student-walkin',
+          studentName: walkInCustomerName.trim() || 'Walk-in Cash Customer',
+          studentEmail: 'walkin@topfaith.edu.ng',
+          studentPhone: '',
+          items: formattedItems,
+          includeTakeoutPack: walkInTakeoutPack,
+          plateSize: perPackFee,
+          plateSizeName: `₦${perPackFee} Plate`,
+          takeoutFee,
+          deliveryFee: 0,
+          isHostelDelivery: false,
+          hostelAddress: '',
+          totalPrice: walkInTotal,
+          paymentMethod: walkInPaymentMethod,
+          status: walkInDirectHandedOver ? 'Completed' : 'Preparing',
+          paymentConfirmed: true,
+          confirmedByAdmin: user?.name || 'Counter Staff',
+          isWalkInSale: true,
+          isOfflineOrder: true,
+          createdAt: new Date().toISOString()
+        };
+
+        setOrders(prev => [localOrder, ...prev]);
+
+        try {
+          const pending = JSON.parse(localStorage.getItem('olaronke_pending_offline_orders') || '[]');
+          pending.push({ ...localOrder, savedToken: token });
+          localStorage.setItem('olaronke_pending_offline_orders', JSON.stringify(pending));
+        } catch (e) {}
+
+        if (typeof addNotification === 'function') {
+          addNotification({
+            id: Date.now(),
+            title: '💵 Walk-in Sale Recorded Locally!',
+            message: `Sale #${offlineOrderId} saved to offline register. Will sync to cloud automatically.`,
+            type: 'success'
+          });
+        }
+      } else {
+        if (typeof addNotification === 'function') {
+          addNotification({
+            id: Date.now(),
+            title: '✓ Walk-in Sale Confirmed!',
+            message: `Recorded ${walkInPaymentMethod} sale of ₦${walkInTotal.toLocaleString()}.`,
+            type: 'success'
+          });
+        }
+      }
+
+      // Deduct inventory immediately in UI
+      setDishes(prev => {
+        return prev.map(d => {
+          const inCart = formattedItems.find(it => it.dishId === d.id);
+          if (inCart) {
+            const left = Math.max(0, d.scoopsLeft - inCart.scoops);
+            return { ...d, scoopsLeft: left, isAvailable: left > 0 };
+          }
+          return d;
+        });
+      });
+
       setIsWalkInModalOpen(false);
       setWalkInCart([]);
       setWalkInCustomerName('');
