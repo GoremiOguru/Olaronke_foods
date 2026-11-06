@@ -54,7 +54,7 @@ export default function NotificationToast() {
   if (!notifications || notifications.length === 0) return null;
 
   return (
-    <div className="fixed bottom-3 left-3 right-3 sm:left-auto sm:right-5 sm:bottom-5 sm:max-w-sm z-50 space-y-2 pointer-events-none">
+    <div className="fixed bottom-20 left-3 right-3 sm:left-auto sm:right-6 sm:bottom-24 sm:max-w-sm z-50 space-y-2 pointer-events-none">
       {notifications.slice(0, 3).map((n) => (
         <ToastItem key={n.id} notification={n} onRemove={removeNotification} />
       ))}

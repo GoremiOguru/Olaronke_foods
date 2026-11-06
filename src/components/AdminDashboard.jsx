@@ -695,6 +695,8 @@ export default function AdminDashboard({ onOpenHowToUse }) {
     try {
       const perPackFee = Number(vendorSettings.takeoutPrice) || 300;
       const takeoutFee = walkInTakeoutPack ? perPackFee : 0;
+      const walkInItemsTotal = walkInCart.reduce((sum, i) => sum + (Number(i.price) * Number(i.scoops)), 0);
+      const walkInTotal = walkInItemsTotal + takeoutFee;
 
       const formattedItems = walkInCart.map(item => ({
         dishId: item.dishId,

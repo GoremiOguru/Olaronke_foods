@@ -12,6 +12,17 @@ export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdmi
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // Disable background scrolling when mobile hamburger menu is open
+  React.useEffect(() => {
+    if (mobileMenuOpen) {
+      const originalStyle = window.getComputedStyle(document.body).overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalStyle;
+      };
+    }
+  }, [mobileMenuOpen]);
+
   return (
     <header className="sticky top-0 z-40 w-full bg-slate-950/95 backdrop-blur-md border-b border-slate-800 shadow-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

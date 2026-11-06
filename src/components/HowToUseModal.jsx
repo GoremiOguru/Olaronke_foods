@@ -1,11 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight, HelpCircle, Sparkles, UtensilsCrossed, ShieldCheck, Flame, Package, MapPin, Key, Printer, Phone, CheckCircle2, Play, Pause, Eye, ArrowRight, Zap, MousePointer, Bug } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
   const { setIsCartOpen } = useCart();
+  const { isAdmin } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+
+  // Disable background scrolling when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      const originalStyle = window.getComputedStyle(document.body).overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalStyle;
+      };
+    }
+  }, [isOpen]);
 
   // Sync mode on open
   useEffect(() => {
@@ -205,7 +218,8 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
     }
   ];
 
-  const isStaffMode = mode === 'admin';
+  // Only actual admins can see staff mode; verified students always get student guide
+  const isStaffMode = Boolean(isAdmin) && mode === 'admin';
   const steps = isStaffMode ? adminSteps : studentSteps;
 
   // Auto-play timer

@@ -29,8 +29,10 @@ export default function App() {
   const [isHowToUseOpen, setIsHowToUseOpen] = useState(false);
   const [howToUseMode, setHowToUseMode] = useState('student');
 
-  const openHowToUse = (mode = 'student') => {
-    setHowToUseMode(mode);
+  const openHowToUse = (requestedMode = 'student') => {
+    // Only administrators currently in admin view can open the staff guide; students always see student guide
+    const effectiveMode = (isAdmin && isAdminView && requestedMode === 'admin') ? 'admin' : 'student';
+    setHowToUseMode(effectiveMode);
     setIsHowToUseOpen(true);
   };
 
