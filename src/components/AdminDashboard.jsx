@@ -8,7 +8,7 @@ import QRCodeModal from './QRCodeModal';
 
 export default function AdminDashboard({ onOpenHowToUse }) {
   const { dishes, setDishes, socket, pushPermission, requestPushPermission, addNotification } = useSocket();
-  const { token, user: currentUser } = useAuth();
+  const { token, user, user: currentUser } = useAuth();
 
   const [orders, setOrders] = useState([]);
   const [staffList, setStaffList] = useState([]);
@@ -763,7 +763,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
           paymentMethod: walkInPaymentMethod,
           status: walkInDirectHandedOver ? 'Completed' : 'Preparing',
           paymentConfirmed: true,
-          confirmedByAdmin: user?.name || 'Counter Staff',
+          confirmedByAdmin: currentUser?.name || user?.name || 'Counter Staff',
           isWalkInSale: true,
           isOfflineOrder: true,
           createdAt: new Date().toISOString()
