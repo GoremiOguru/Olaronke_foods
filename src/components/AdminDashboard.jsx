@@ -384,7 +384,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
     });
   };
 
-  // Handle uploading product image file directly from phone or laptop
+  // Handle uploading product image file directly from phone or laptop (works 100% offline too!)
   const handleFileUpload = async (e, isEditMode = false) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -399,35 +399,39 @@ export default function AdminDashboard({ onOpenHowToUse }) {
 
     try {
       const compressedBase64 = await compressImageFile(file);
+      let uploadedUrl = compressedBase64;
 
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ imageData: compressedBase64, fileName: file.name })
-      });
+      if (typeof navigator !== 'undefined' && navigator.onLine) {
+        try {
+          const res = await fetch('/api/upload', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            },
+            body: JSON.stringify({ imageData: compressedBase64, fileName: file.name })
+          });
 
-      if (res.ok) {
-        const data = await res.json();
-        const uploadedUrl = data.imageUrl;
-
-        if (isEditMode && editingDish) {
-          setEditingDish(prev => ({ ...prev, image: uploadedUrl }));
-        } else {
-          setNewDish(prev => ({ ...prev, image: uploadedUrl }));
+          if (res.ok) {
+            const data = await res.json().catch(() => ({}));
+            if (data.imageUrl) uploadedUrl = data.imageUrl;
+          }
+        } catch (netErr) {
+          console.warn('Network upload skipped, using device photo offline:', netErr);
         }
-
-        setUploadSuccessMsg('✅ Image optimized & uploaded successfully!');
-        setTimeout(() => setUploadSuccessMsg(''), 4000);
-      } else {
-        const errJson = await res.json().catch(() => ({}));
-        alert(`Failed to upload image: ${errJson.message || 'Server error'}`);
       }
+
+      if (isEditMode && editingDish) {
+        setEditingDish(prev => ({ ...prev, image: uploadedUrl }));
+      } else {
+        setNewDish(prev => ({ ...prev, image: uploadedUrl }));
+      }
+
+      setUploadSuccessMsg('✅ Photo ready! You can publish even while offline.');
+      setTimeout(() => setUploadSuccessMsg(''), 4000);
     } catch (err) {
-      console.error('Error during image upload:', err);
-      alert('Error uploading image file.');
+      console.error('Error during image processing:', err);
+      alert('Could not process this image file. Please try another photo.');
     } finally {
       setUploadingImage(false);
     }

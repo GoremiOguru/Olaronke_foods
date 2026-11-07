@@ -302,7 +302,7 @@ export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdmi
             className="w-full flex items-center justify-center space-x-2 bg-slate-900 border border-slate-700 text-white font-extrabold py-2.5 rounded-xl text-xs shadow"
           >
             <HelpCircle className="w-4 h-4 text-brand-lemon-glow" />
-            <span>How to Order Guide</span>
+            <span>How to Order</span>
           </button>
 
           {isAdmin && (
