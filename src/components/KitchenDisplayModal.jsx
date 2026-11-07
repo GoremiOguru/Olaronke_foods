@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Tv, X, CheckCircle2, Clock, Flame, ShieldAlert, PackageCheck, Volume2, VolumeX, Maximize2, Minimize2, RefreshCw, Search, WifiOff } from 'lucide-react';
 import { useSocket } from '../context/SocketContext';
 import { useAuth } from '../context/AuthContext';
@@ -49,6 +49,11 @@ export default function KitchenDisplayModal({ isOpen, onClose, orders, onUpdateS
     const id = (order.id || '').toLowerCase();
     return code.includes(q) || name.includes(q) || id.includes(q);
   };
+
+  const cleanSearchCode = searchQuery.trim().replace(/^#/, '');
+  const matchedExactOrder = cleanSearchCode.length >= 2 
+    ? orders.find(o => (getPickupCode(o) === cleanSearchCode || getPickupCode(o).endsWith(cleanSearchCode) || String(o.id).toLowerCase() === cleanSearchCode.toLowerCase()) && o.status !== 'Cancelled')
+    : null;
 
   // 3 Columns: Pending Payment, Preparing, Ready
   const pendingOrders = orders.filter(o => 
@@ -166,6 +171,56 @@ export default function KitchenDisplayModal({ isOpen, onClose, orders, onUpdateS
           )}
         </div>
       </div>
+
+      {/* 1-Second Instant Dispense Banner */}
+      {matchedExactOrder && (
+        <div className="mx-4 sm:mx-6 my-2 p-3.5 bg-slate-900 border-2 border-emerald-500 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-2xl shrink-0">
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <span className="bg-emerald-500 text-slate-950 font-black text-xl px-3 py-1 rounded-xl font-mono shrink-0">
+              #{getPickupCode(matchedExactOrder)}
+            </span>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-extrabold text-white text-sm">{matchedExactOrder.studentName}</span>
+                <span className="text-xs text-amber-400 font-bold">₦{Number(matchedExactOrder.totalPrice || 0).toLocaleString()}</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded font-black uppercase ${
+                  matchedExactOrder.status === 'Completed' ? 'bg-slate-800 text-slate-400' :
+                  matchedExactOrder.status === 'Ready for Pickup' ? 'bg-emerald-500/20 text-emerald-300' :
+                  'bg-amber-500/20 text-amber-300'
+                }`}>
+                  {matchedExactOrder.status}
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 line-clamp-1 mt-0.5">
+                {matchedExactOrder.items?.map(it => `${it.scoops}x ${it.dishName?.replace(/^\[(Counter Walk-in|Plate #\d+)\]\s*/i, '')}`).join(' • ')}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end shrink-0">
+            {matchedExactOrder.status !== 'Completed' ? (
+              <button
+                onClick={() => {
+                  onUpdateStatus(matchedExactOrder.id, 'Completed');
+                  setSearchQuery('');
+                }}
+                className="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs rounded-xl shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-1.5 transition-all active:scale-95"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Dispense & Hand Over ✓</span>
+              </button>
+            ) : (
+              <span className="text-xs text-slate-400 font-bold px-3 py-2 bg-slate-800 rounded-xl">Order Already Completed</span>
+            )}
+            <button
+              onClick={() => setSearchQuery('')}
+              className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 3-Column Kanban Board */}
       <div className="flex-1 p-6 grid grid-cols-1 md:grid-cols-3 gap-6 overflow-hidden bg-slate-950">

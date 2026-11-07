@@ -14,6 +14,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
   const [staffList, setStaffList] = useState([]);
   const [activeTab, setActiveTab] = useState('inventory');
   const [orderSearch, setOrderSearch] = useState('');
+  const [quickCodeInput, setQuickCodeInput] = useState('');
   const [dateFilter, setDateFilter] = useState('all'); // 'all', 'today', 'week', 'month'
   const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'Pending Payment Verification', 'Preparing', 'Ready for Pickup', 'Completed', 'Cancelled'
   const [selectedPrintOrder, setSelectedPrintOrder] = useState(null);
@@ -149,7 +150,8 @@ export default function AdminDashboard({ onOpenHowToUse }) {
                   audio.play().catch(() => {});
                 } catch (e) {}
 
-                newArrivals.forEach(o => {
+                if (newArrivals.length === 1) {
+                  const o = newArrivals[0];
                   if (typeof addNotification === 'function') {
                     addNotification({
                       id: Date.now() + Math.random(),
@@ -158,16 +160,28 @@ export default function AdminDashboard({ onOpenHowToUse }) {
                       type: 'success'
                     });
                   }
-
-                  if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-                    try {
-                      new Notification(`🚨 B'feastas Order #${o.id}`, {
-                        body: `${o.studentName} • Code #${getPickupCode(o)}\nTotal: ₦${Number(o.totalPrice || 0).toLocaleString()}`,
-                        icon: '/images/compay logo.jpeg'
-                      });
-                    } catch (e) {}
+                } else if (newArrivals.length > 1) {
+                  // Batch de-bouncing: prevent audio/toast flooding when multiple offline orders sync together
+                  if (typeof addNotification === 'function') {
+                    const sampleCodes = newArrivals.slice(0, 3).map(o => '#' + getPickupCode(o)).join(', ');
+                    addNotification({
+                      id: Date.now() + Math.random(),
+                      title: `🚨 ${newArrivals.length} New Orders Received!`,
+                      message: `Pickup Codes: ${sampleCodes}${newArrivals.length > 3 ? '...' : ''} (Synced from students)`,
+                      type: 'success'
+                    });
                   }
-                });
+                }
+
+                if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+                  try {
+                    const first = newArrivals[0];
+                    new Notification(`🚨 B'feastas Orders (${newArrivals.length} new)`, {
+                      body: `${first.studentName} • Code #${getPickupCode(first)}\n${newArrivals.length > 1 ? `+ ${newArrivals.length - 1} more order(s)` : ''}`,
+                      icon: '/images/compay logo.jpeg'
+                    });
+                  } catch (e) {}
+                }
               }
             }
             isFirstLoadRef.current = false;
@@ -185,8 +199,17 @@ export default function AdminDashboard({ onOpenHowToUse }) {
           if (Array.isArray(dataStaff)) {
             setStaffList(prev => {
               const map = new Map();
-              (prev || []).forEach(s => map.set(s.id || s.email, s));
-              dataStaff.forEach(s => map.set(s.id || s.email, { ...map.get(s.id || s.email), ...s }));
+              if (Array.isArray(prev)) {
+                prev.forEach(s => {
+                  if (s && (s.id || s.email)) map.set(s.id || s.email, s);
+                });
+              }
+              dataStaff.forEach(s => {
+                if (s && (s.id || s.email)) {
+                  const key = s.id || s.email;
+                  map.set(key, { ...(map.get(key) || {}), ...s });
+                }
+              });
               return Array.from(map.values());
             });
           }
@@ -866,6 +889,11 @@ export default function AdminDashboard({ onOpenHowToUse }) {
     );
   });
 
+  const cleanQuickCode = quickCodeInput.trim().replace(/^#/, '');
+  const matchedQuickOrder = cleanQuickCode.length >= 2 
+    ? orders.find(o => getPickupCode(o) === cleanQuickCode || getPickupCode(o).endsWith(cleanQuickCode) || String(o.id).toLowerCase().includes(cleanQuickCode.toLowerCase()))
+    : null;
+
   const totalRevenue = filteredOrders.reduce((sum, o) => sum + (o.status !== 'Cancelled' ? o.totalPrice : 0), 0);
   const pendingCount = filteredOrders.filter(o => o.status === 'Pending Payment Verification').length;
   const preparingCount = filteredOrders.filter(o => o.status === 'Preparing' || o.status === 'Payment Confirmed & Preparing').length;
@@ -1445,6 +1473,96 @@ export default function AdminDashboard({ onOpenHowToUse }) {
                   className="w-full bg-slate-900 border border-slate-800 text-white pl-9 pr-3 py-2 rounded-xl text-xs focus:outline-none focus:border-brand-orange"
                 />
               </div>
+            </div>
+
+            {/* 1-Second Counter Quick-Code Lookup & Handover */}
+            <div className="p-4 bg-gradient-to-r from-emerald-950/70 via-slate-900 to-emerald-950/70 border border-emerald-500/30 rounded-3xl shadow-lg space-y-3">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-black">
+                    <Key className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-white flex items-center gap-2">
+                      <span>Counter 1-Second Code Handover</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold uppercase">Rush Fast-Pass</span>
+                    </h3>
+                    <p className="text-[11px] text-slate-400">Type customer's 3-digit code to instantly dispense food & complete order.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <div className="relative flex-1 sm:w-48">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-400 font-mono font-black text-sm">#</span>
+                    <input
+                      type="text"
+                      maxLength={4}
+                      value={quickCodeInput}
+                      onChange={(e) => setQuickCodeInput(e.target.value.replace(/\D/g, ''))}
+                      placeholder="e.g. 582"
+                      className="w-full bg-slate-950 border-2 border-emerald-500/50 focus:border-emerald-400 text-amber-300 font-mono text-base font-black pl-8 pr-3 py-2 rounded-2xl focus:outline-none tracking-widest text-center"
+                    />
+                  </div>
+                  {quickCodeInput && (
+                    <button
+                      type="button"
+                      onClick={() => setQuickCodeInput('')}
+                      className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Matched Order Fast Handover Card */}
+              {matchedQuickOrder && (
+                <div className="p-3.5 bg-slate-950 border-2 border-emerald-500/70 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono font-black text-lg text-amber-300 bg-amber-500/10 px-2.5 py-0.5 rounded-lg border border-amber-500/30">
+                        #{getPickupCode(matchedQuickOrder)}
+                      </span>
+                      <span className="font-extrabold text-white text-sm">{matchedQuickOrder.studentName}</span>
+                      <span className="text-xs text-emerald-400 font-bold">₦{matchedQuickOrder.totalPrice.toLocaleString()} ({matchedQuickOrder.paymentMethod})</span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${matchedQuickOrder.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}`}>
+                        {matchedQuickOrder.status}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-300 line-clamp-1">
+                      {matchedQuickOrder.items?.map(it => `${it.scoops}x ${it.dishName?.replace(/^\[(Counter Walk-in|Plate #\d+)\]\s*/i, '')}`).join(' • ')}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleOrderStatusChange(matchedQuickOrder.id, 'Completed');
+                        setQuickCodeInput('');
+                      }}
+                      disabled={matchedQuickOrder.status === 'Completed'}
+                      className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-lg ${
+                        matchedQuickOrder.status === 'Completed'
+                          ? 'bg-slate-800 text-slate-400 cursor-not-allowed'
+                          : 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 shadow-emerald-500/20'
+                      }`}
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>{matchedQuickOrder.status === 'Completed' ? 'Already Handed Over' : 'Mark Handed Over'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPrintOrder(matchedQuickOrder)}
+                      className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700"
+                      title="Print Thermal Receipt"
+                    >
+                      <Printer className="w-4 h-4 text-emerald-400" />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Filter Bar 1: Date Range Tabs */}

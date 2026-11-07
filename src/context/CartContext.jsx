@@ -43,6 +43,17 @@ export function CartProvider({ children }) {
   }, [cart]);
 
   const addToCart = (dish, scoops = 1, targetPlate = 1) => {
+    // Safety buffer: prevent offline reservation on critical low stock to prevent kitchen shortages
+    if (typeof navigator !== 'undefined' && !navigator.onLine && dish.scoopsLeft <= 2) {
+      addNotification({
+        id: Date.now(),
+        title: '⚠️ Low Kitchen Stock',
+        message: `Only ${dish.scoopsLeft} portion(s) left of ${dish.name}. Please connect to internet or order at the counter!`,
+        type: 'warning'
+      });
+      return;
+    }
+
     if (!dish.isAvailable || dish.scoopsLeft <= 0) {
       addNotification({
         id: Date.now(),

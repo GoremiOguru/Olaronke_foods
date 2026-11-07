@@ -358,6 +358,8 @@ app.get(['/api/admin/staff', '/admin/staff'], authenticateToken, requireAdmin, (
 // DISHES & INVENTORY ROUTES
 // -------------------------------------------------------------
 app.get(['/api/dishes', '/dishes'], async (req, res) => {
+  // Edge CDN cache: 5s fresh, 10s stale-while-revalidate for high-concurrency campus rushes
+  res.setHeader('Cache-Control', 'public, s-maxage=5, stale-while-revalidate=10');
   let db = await syncCloudDB();
 
   if (isSupabaseConfigured && supabase) {
@@ -636,6 +638,30 @@ app.post(['/api/orders', '/orders'], authenticateOrderRequest, async (req, res) 
     });
   }
 
+  // Live Supabase atomic stock check to prevent race conditions during high-volume campus rushes
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const dishIds = sanitizedItems.map(i => i.dishId);
+      const { data: liveDishes } = await supabase.from('dishes').select('*').in('id', dishIds);
+      if (Array.isArray(liveDishes) && liveDishes.length > 0) {
+        for (const item of sanitizedItems) {
+          const live = liveDishes.find(d => d.id === item.dishId);
+          if (live) {
+            const rawScoops = live.scoopsLeft !== undefined && live.scoopsLeft !== null ? live.scoopsLeft : live.scoopsleft;
+            const liveScoops = (rawScoops !== undefined && rawScoops !== null) ? Number(rawScoops) : 30;
+            if (liveScoops < item.scoops) {
+              return res.status(400).json({
+                message: `Insufficient quantity for "${live.name || item.dishName}". Only ${liveScoops} portion(s) remaining!`
+              });
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Live stock verification fallback:', e.message);
+    }
+  }
+
   for (const item of sanitizedItems) {
     const dish = db.dishes.find(d => d.id === item.dishId);
     if (dish) {
@@ -652,7 +678,15 @@ app.post(['/api/orders', '/orders'], authenticateOrderRequest, async (req, res) 
   const activePlatesCount = Math.max(1, new Set(sanitizedItems.map(i => i.plateNumber || 1)).size);
   const perPackPrice = Number(plateSize) || db.settings.takeoutPrice || 300;
   const takeoutFee = includeTakeoutPack !== false ? (reqTakeoutFee !== undefined ? reqTakeoutFee : (activePlatesCount * perPackPrice)) : 0;
-  const deliveryFee = isHostelDelivery ? 500 : 0;
+  
+  // Faculty Delivery: MASS Faculty & ENGINEERING Faculty are ₦700; other hostels and faculties are ₦500
+  const isSpecialFaculty = isHostelDelivery && hostelAddress && (
+    hostelAddress.toLowerCase().includes('mass') || 
+    hostelAddress.toLowerCase().includes('engineering')
+  );
+  const deliveryFee = isHostelDelivery 
+    ? (req.body.deliveryFee !== undefined ? Number(req.body.deliveryFee) : (isSpecialFaculty ? 700 : 500)) 
+    : 0;
   const totalPrice = mealsTotal + takeoutFee + deliveryFee;
 
   const pickupCode = req.body.pickupCode ? String(req.body.pickupCode) : String(Math.floor(100 + Math.random() * 900));
@@ -793,6 +827,7 @@ app.delete(['/api/orders/:id', '/orders/:id'], authenticateToken, requireAdmin, 
 });
 
 app.get(['/api/settings', '/settings'], async (req, res) => {
+  res.setHeader('Cache-Control', 'public, s-maxage=10, stale-while-revalidate=30');
   if (isSupabaseConfigured && supabase) {
     try {
       const { data, error } = await supabase.from('settings').select('*').limit(1);

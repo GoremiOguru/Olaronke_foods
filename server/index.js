@@ -526,7 +526,8 @@ app.post('/api/orders', authenticateOrderRequest, (req, res) => {
   const activePlatesCount = Math.max(1, new Set(sanitizedItems.map(i => i.plateNumber || 1)).size);
   const perPackPrice = Number(plateSize) || db.settings.takeoutPrice || 300;
   const takeoutFee = includeTakeoutPack !== false ? (reqTakeoutFee !== undefined ? reqTakeoutFee : (activePlatesCount * perPackPrice)) : 0;
-  const deliveryFee = isHostelDelivery ? 500 : 0;
+  const isSpecialFaculty = isHostelDelivery && hostelAddress && (hostelAddress.toLowerCase().includes('mass') || hostelAddress.toLowerCase().includes('engineering'));
+  const deliveryFee = isHostelDelivery ? (req.body.deliveryFee !== undefined ? Number(req.body.deliveryFee) : (isSpecialFaculty ? 700 : 500)) : 0;
   const totalPrice = mealsTotal + takeoutFee + deliveryFee;
 
   const pickupCode = req.body.pickupCode ? String(req.body.pickupCode) : String(Math.floor(100 + Math.random() * 900));

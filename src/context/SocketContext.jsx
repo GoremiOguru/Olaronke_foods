@@ -219,11 +219,33 @@ export function SocketProvider({ children }) {
     }
   };
 
-  // Initial fetch and 5-second real-time sync across all student & admin devices
+  // Adaptive Polling: 5s when tab is active, 45s when phone screen is locked or tab is hidden
   useEffect(() => {
     refreshDishes();
-    const interval = setInterval(refreshDishes, 5000);
-    return () => clearInterval(interval);
+    let intervalId = setInterval(refreshDishes, 5000);
+
+    const handleVisibilityChange = () => {
+      clearInterval(intervalId);
+      if (typeof document !== 'undefined' && document.hidden) {
+        // Tab backgrounded or phone locked: throttle to 45s to preserve battery & edge quota
+        intervalId = setInterval(refreshDishes, 45000);
+      } else {
+        // User returned to screen: refresh immediately and resume 5s interval
+        refreshDishes();
+        intervalId = setInterval(refreshDishes, 5000);
+      }
+    };
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+    }
+
+    return () => {
+      clearInterval(intervalId);
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      }
+    };
   }, []);
 
   const addNotification = (toast) => {
