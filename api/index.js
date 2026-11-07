@@ -552,7 +552,8 @@ app.delete(['/api/dishes/:id', '/dishes/:id'], authenticateToken, requireAdmin, 
 app.get(['/api/orders', '/orders'], authenticateToken, async (req, res) => {
   if (isSupabaseConfigured && supabase) {
     try {
-      let query = supabase.from('orders').select('*').order('createdAt', { ascending: false });
+      const orderLimit = (req.user.role === 'admin' || req.user.role === 'superadmin') ? 250 : 50;
+      let query = supabase.from('orders').select('*').order('createdAt', { ascending: false }).limit(orderLimit);
       if (req.user.role !== 'admin' && req.user.role !== 'superadmin') {
         query = query.or(`studentId.eq.${req.user.id},studentEmail.eq.${req.user.email}`);
       }
@@ -593,12 +594,20 @@ app.post(['/api/orders', '/orders'], authenticateOrderRequest, async (req, res) 
 
   const db = loadDB();
 
-  // Idempotent check for offline orders re-synced by client
+  // Idempotent check for offline orders re-synced by client to prevent duplicate inventory deductions
   const incomingId = req.body.id || req.body.orderId;
   if (incomingId) {
     const existingOrder = db.orders.find(o => o.id === incomingId);
     if (existingOrder) {
       return res.status(200).json(existingOrder);
+    }
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data: supaExisting } = await supabase.from('orders').select('*').eq('id', incomingId).maybeSingle();
+        if (supaExisting) {
+          return res.status(200).json(supaExisting);
+        }
+      } catch (e) {}
     }
   }
 
@@ -702,7 +711,7 @@ app.post(['/api/orders', '/orders'], authenticateOrderRequest, async (req, res) 
     : (isWalkInSale ? 'Walk-in Cash Customer' : (req.body.studentName || req.user.name));
   const studentEmail = isWalkInSale ? 'walkin@topfaith.edu.ng' : (req.body.studentEmail || req.user.email);
   const paymentMethod = req.body.paymentMethod || (isWalkInSale ? 'Cash' : 'Bank Transfer');
-  const paymentConfirmed = isWalkInSale ? true : Boolean(req.body.paymentConfirmed);
+  const paymentConfirmed = isWalkInSale ? true : (isAdminUser ? Boolean(req.body.paymentConfirmed) : false);
   const status = isWalkInSale ? (req.body.directCompleted ? 'Completed' : 'Preparing') : 'Pending Payment Verification';
 
   const newOrder = {

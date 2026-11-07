@@ -543,7 +543,7 @@ app.post('/api/orders', authenticateOrderRequest, (req, res) => {
     : (isWalkInSale ? 'Walk-in Cash Customer' : (req.body.studentName || req.user.name));
   const studentEmail = isWalkInSale ? 'walkin@topfaith.edu.ng' : (req.body.studentEmail || req.user.email);
   const paymentMethod = req.body.paymentMethod || (isWalkInSale ? 'Cash' : 'Bank Transfer');
-  const paymentConfirmed = isWalkInSale ? true : Boolean(req.body.paymentConfirmed);
+  const paymentConfirmed = isWalkInSale ? true : (isAdminUser ? Boolean(req.body.paymentConfirmed) : false);
   const status = isWalkInSale ? (req.body.directCompleted ? 'Completed' : 'Preparing') : 'Pending Payment Verification';
 
   const newOrder = {
