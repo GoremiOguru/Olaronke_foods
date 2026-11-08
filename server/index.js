@@ -527,7 +527,10 @@ app.post('/api/orders', authenticateOrderRequest, (req, res) => {
   const perPackPrice = Number(plateSize) || db.settings.takeoutPrice || 300;
   const takeoutFee = includeTakeoutPack !== false ? (reqTakeoutFee !== undefined ? reqTakeoutFee : (activePlatesCount * perPackPrice)) : 0;
   const isSpecialFaculty = isHostelDelivery && hostelAddress && (hostelAddress.toLowerCase().includes('mass') || hostelAddress.toLowerCase().includes('engineering'));
-  const deliveryFee = isHostelDelivery ? (req.body.deliveryFee !== undefined ? Number(req.body.deliveryFee) : (isSpecialFaculty ? 700 : 500)) : 0;
+  const baseDeliveryFee = isSpecialFaculty ? 700 : 500;
+  const deliveryDiscount = activePlatesCount >= 2 ? 100 : 0;
+  const calculatedDeliveryFee = Math.max(0, baseDeliveryFee - deliveryDiscount);
+  const deliveryFee = isHostelDelivery ? (req.body.deliveryFee !== undefined ? Number(req.body.deliveryFee) : calculatedDeliveryFee) : 0;
   const totalPrice = mealsTotal + takeoutFee + deliveryFee;
 
   let pickupCode = req.body.pickupCode ? String(req.body.pickupCode) : null;

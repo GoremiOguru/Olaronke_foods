@@ -282,11 +282,14 @@ export function CartProvider({ children }) {
   const takeoutFee = includeTakeoutPack ? (activePlatesCount * perPackPrice) : 0;
 
   // Mass Faculty and Engineering Faculty delivery price is ₦700; other hostels and faculties are ₦500
+  // Multi-Plate Discount: ₦100 off delivery fees when a student orders 2 or more plates! (e.g. ₦400 or ₦600)
   const isSpecialFacultyDelivery = isHostelDelivery && hostelAddress && (
     hostelAddress.toLowerCase().includes('mass') || 
     hostelAddress.toLowerCase().includes('engineering')
   );
-  const deliveryFee = isHostelDelivery ? (isSpecialFacultyDelivery ? 700 : 500) : 0;
+  const baseDeliveryFee = isSpecialFacultyDelivery ? 700 : 500;
+  const deliveryDiscount = activePlatesCount >= 2 ? 100 : 0;
+  const deliveryFee = isHostelDelivery ? Math.max(0, baseDeliveryFee - deliveryDiscount) : 0;
   const grandTotal = mealsTotal + takeoutFee + deliveryFee;
   const totalQuantityCount = cart.reduce((sum, item) => sum + item.scoops, 0);
 

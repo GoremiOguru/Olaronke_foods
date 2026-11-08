@@ -689,12 +689,16 @@ app.post(['/api/orders', '/orders'], authenticateOrderRequest, async (req, res) 
   const takeoutFee = includeTakeoutPack !== false ? (reqTakeoutFee !== undefined ? reqTakeoutFee : (activePlatesCount * perPackPrice)) : 0;
   
   // Faculty Delivery: MASS Faculty & ENGINEERING Faculty are ₦700; other hostels and faculties are ₦500
+  // Multi-Plate Delivery Discount: ₦100 discount when ordering 2 or more plates (e.g. ₦400 or ₦600)
   const isSpecialFaculty = isHostelDelivery && hostelAddress && (
     hostelAddress.toLowerCase().includes('mass') || 
     hostelAddress.toLowerCase().includes('engineering')
   );
+  const baseDeliveryFee = isSpecialFaculty ? 700 : 500;
+  const deliveryDiscount = activePlatesCount >= 2 ? 100 : 0;
+  const calculatedDeliveryFee = Math.max(0, baseDeliveryFee - deliveryDiscount);
   const deliveryFee = isHostelDelivery 
-    ? (req.body.deliveryFee !== undefined ? Number(req.body.deliveryFee) : (isSpecialFaculty ? 700 : 500)) 
+    ? (req.body.deliveryFee !== undefined ? Number(req.body.deliveryFee) : calculatedDeliveryFee) 
     : 0;
   const totalPrice = mealsTotal + takeoutFee + deliveryFee;
 

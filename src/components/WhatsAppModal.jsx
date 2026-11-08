@@ -50,8 +50,12 @@ export default function WhatsAppModal() {
 
   const takeoutLine = order.includeTakeoutPack ? `• Takeout Container Pack(s) - ₦${order.takeoutFee || settings.takeoutPrice || 300}\n` : '';
   const isFacultyLoc = order.hostelAddress?.toLowerCase().includes('faculty') || order.hostelAddress?.toLowerCase().includes('house');
-  const deliveryFeeNum = Number(order.deliveryFee || (order.hostelAddress && (order.hostelAddress.toLowerCase().includes('mass') || order.hostelAddress.toLowerCase().includes('engineering')) ? 700 : 500));
-  const deliveryFeeLine = order.isHostelDelivery ? `• Campus Delivery Fee (${isFacultyLoc ? 'Faculty Building' : 'Hostel'}) - ₦${deliveryFeeNum.toLocaleString()}\n` : '';
+  const activePlatesCount = Math.max(1, new Set((order.items || []).map(i => i.plateNumber || 1)).size);
+  const isSpecialFee = order.hostelAddress && (order.hostelAddress.toLowerCase().includes('mass') || order.hostelAddress.toLowerCase().includes('engineering'));
+  const fallbackFee = (isSpecialFee ? 700 : 500) - (activePlatesCount >= 2 ? 100 : 0);
+  const deliveryFeeNum = Number(order.deliveryFee !== undefined ? order.deliveryFee : fallbackFee);
+  const deliveryDiscountText = (order.isHostelDelivery && activePlatesCount >= 2) ? ' (₦100 2-Plate Discount Applied!)' : '';
+  const deliveryFeeLine = order.isHostelDelivery ? `• Campus Delivery Fee (${isFacultyLoc ? 'Faculty Building' : 'Hostel'})${deliveryDiscountText} - ₦${deliveryFeeNum.toLocaleString()}\n` : '';
   const deliveryLine = order.isHostelDelivery ? (isFacultyLoc ? `🏢 Faculty Delivery: ${order.hostelAddress}` : `🚚 Hostel Delivery: ${order.hostelAddress}`) : `📍 Cafeteria Pickup`;
 
   const rawMessage = `Hello ${staffName}! 👋\nI have placed an order on B'feastas website:\n\n🔑 Pickup Code: #${pickupCodeDisplay}\n📌 Order Reference: #${order.id}\n👤 Student Name: ${order.studentName}\n📧 Student Email: ${order.studentEmail}\n${deliveryLine}\n\n🛒 Order Breakdown:\n${itemsFormatted}\n${takeoutLine}${deliveryFeeLine}💰 Total Amount Paid: ₦${order.totalPrice.toLocaleString()}\n\nAttached is my payment receipt to ${accountName} (${bankName}). Please verify and prepare my meal!`;

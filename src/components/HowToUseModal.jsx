@@ -76,8 +76,9 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
       actionText: "Select Delivery Location",
       bullets: [
         "🥡 Cafeteria Counter Pickup: 100% FREE with fast lane handover",
-        "🏫 4 Hostels (₦500): Clock Hall, Thomas Abraham Hall, Psalm One Hall, Maria Abraham Hall (room number required)",
-        "🏢 Faculty Buildings (₦700): Mass Communication & Engineering Faculty",
+        "🏫 4 Hostels (₦500): Clock Hall, Thomas Abraham Hall, Psalm One Hall, Maria Abraham Hall (₦400 when ordering 2+ plates!)",
+        "🏢 Faculty Buildings (₦700): Mass Communication & Engineering Faculty (₦600 when ordering 2+ plates!)",
+        "🎁 Multi-Plate Discount: Get ₦100 off delivery automatically whenever you order 2 or more plates of food!",
         "Common Confusion: Faculty delivery is strictly at the Ground Floor Main Entrance lobby—riders do not enter lecture halls or offices"
       ],
       action: () => {
@@ -97,7 +98,7 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
       bullets: [
         "Pick your exact break time during checkout",
         "Skip the 20-minute peak lunch queue at the counter",
-        "Common Confusion: If lecture times change, send Mrs. Olaronke a WhatsApp message immediately to adjust your preparation time"
+        "Common Confusion: If lecture times change, message Isaac on WhatsApp immediately to adjust your preparation time"
       ],
       action: () => {
         onClose();

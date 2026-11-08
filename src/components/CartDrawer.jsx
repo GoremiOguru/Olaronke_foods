@@ -552,7 +552,9 @@ export default function CartDrawer({ onOpenAuth }) {
                           {(deliveryCategory === 'faculty' ? FACULTY_LOCATIONS : HOSTEL_LOCATIONS).map((loc) => {
                             const isSelected = hostelAddress === loc;
                             const isSpecialFee = loc.toLowerCase().includes('mass') || loc.toLowerCase().includes('engineering');
-                            const feeTag = isSpecialFee ? '₦700' : '₦500';
+                            const baseLocFee = isSpecialFee ? 700 : 500;
+                            const finalLocFee = activePlatesCount >= 2 ? baseLocFee - 100 : baseLocFee;
+                            const feeTag = activePlatesCount >= 2 ? `₦${finalLocFee}` : `₦${baseLocFee}`;
                             return (
                               <button
                                 key={loc}
@@ -565,7 +567,12 @@ export default function CartDrawer({ onOpenAuth }) {
                                 }`}
                               >
                                 <span>{deliveryCategory === 'faculty' ? '🏢' : '🏫'} {loc}</span>
-                                <span className={`text-[10px] px-1.5 py-0.5 rounded font-black shrink-0 ${isSelected ? 'bg-sky-400 text-slate-950' : 'bg-slate-800 text-slate-300'}`}>{feeTag}</span>
+                                <div className="flex items-center gap-1 shrink-0">
+                                  {activePlatesCount >= 2 && (
+                                    <span className="text-[9px] line-through text-slate-500 font-normal">₦{baseLocFee}</span>
+                                  )}
+                                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-black ${isSelected ? 'bg-sky-400 text-slate-950' : 'bg-slate-800 text-slate-300'}`}>{feeTag}</span>
+                                </div>
                               </button>
                             );
                           })}
@@ -612,9 +619,12 @@ export default function CartDrawer({ onOpenAuth }) {
                 )}
 
                 <div className="flex justify-between items-center text-sky-300">
-                  <span className="truncate max-w-[210px] sm:max-w-[270px]">
-                    {isHostelDelivery ? (hostelAddress && (hostelAddress.toLowerCase().includes('faculty') || hostelAddress.toLowerCase().includes('house')) ? 'Faculty Delivery' : 'Hostel Delivery') : 'Cafeteria Pickup'}
-                  </span>
+                  <div className="truncate max-w-[210px] sm:max-w-[270px]">
+                    <span>{isHostelDelivery ? (hostelAddress && (hostelAddress.toLowerCase().includes('faculty') || hostelAddress.toLowerCase().includes('house')) ? 'Faculty Delivery' : 'Hostel Delivery') : 'Cafeteria Pickup'}</span>
+                    {isHostelDelivery && activePlatesCount >= 2 && (
+                      <span className="block text-[10px] text-emerald-400 font-extrabold">🎁 ₦100 2-Plate Discount applied!</span>
+                    )}
+                  </div>
                   <span className="font-mono font-bold shrink-0">{deliveryFee > 0 ? `₦${deliveryFee.toLocaleString()}` : 'FREE'}</span>
                 </div>
 
