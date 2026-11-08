@@ -30,15 +30,15 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
       id: 'step-menu',
       targetId: 'catalog-section',
       title: "1. Live Kitchen Menu & Stock Countdown",
-      badge: "Real-Time Inventory",
+      badge: "Live Kitchen Stock",
       color: "from-brand-orange to-amber-500",
-      description: "Browse authentic Nigerian meals updated live from cafeteria pots. Scoop counters auto-deduct in real-time across student screens. Smoky Jollof starts at ₦500/scoop, and Sweet Fried Plantain Dodo is ₦100 per piece!",
+      description: "Browse authentic Nigerian meals updated in real time directly from cafeteria pots. Scoop counters auto-deduct live across all student phones as dishes are ordered.",
       image: "/images/student_guide.jpg",
       actionText: "Explore Menu Catalog",
       bullets: [
-        "Portion counters deduct live in real-time as meals are ordered",
-        "Sweet Fried Plantain Dodo available at ₦100 per piece",
-        "Chilled bottle drinks (Coke 50cl ₦600, Viju Milk ₦500, Zobo ₦500)"
+        "Portion counters count down live (e.g. '14 scoops left')",
+        "Clear pricing per scoop, portion, or bottle",
+        "Common Confusion: If a food shows '0 left' or is grayed out, the kitchen pot has finished for the day and cannot be ordered"
       ],
       action: () => {
         onClose();
@@ -49,16 +49,16 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
     {
       id: 'step-plate',
       targetId: 'catalog-section',
-      title: "2. Takeout Packs & Portion Capacity",
+      title: "2. Takeout Packs & Multi-Plate Arranger",
       badge: "Smart Packaging",
       color: "from-brand-lemon to-lime-500",
-      description: "To keep food organized, 1 Takeout Pack holds up to 5 scoops of rice. Select your desired container size: Small (₦100), Medium (₦200), or Large (₦300).",
+      description: "Keep your meals organized! One Takeout Pack holds up to 5 scoops of rice. Select your pack size: Small (₦100), Medium (₦200), or Large (₦300).",
       image: "/images/jollof_rice.png",
       actionText: "Open Order Tray",
       bullets: [
-        "Automatic multi-pack organizer splits rice into 5-scoop portions",
-        "Choose Small (₦100), Medium (₦200), or Large (₦300) takeout packs",
-        "Adjust item quantities per portion easily"
+        "Max 5 scoops per plate: Extra scoops automatically spill into Plate #2 or #3",
+        "Choose container size: Small (₦100), Medium (₦200), or Large (₦300)",
+        "Common Confusion: Takeout fee only applies if you select a plastic container; counter dining can opt out"
       ],
       action: () => {
         onClose();
@@ -68,16 +68,36 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
     {
       id: 'step-fulfillment',
       targetId: 'catalog-section',
-      title: "3. Cafeteria Pickup or Hostel Delivery",
-      badge: "Topfaith Hostels",
+      title: "3. Cafeteria Pickup or Doorstep Delivery",
+      badge: "Pickup & Hostels",
       color: "from-sky-400 to-blue-600",
-      description: "Choose between quick Cafeteria Pickup or doorstep delivery to any of the 4 Topfaith University hostels (+₦500 delivery fee).",
+      description: "Choose between FREE Cafeteria Pickup at the counter or fast doorstep delivery across campus.",
       image: "/images/amala_ewedu.png",
       actionText: "Select Delivery Location",
       bullets: [
-        "4 Hostels: Clock Hall, Thomas Abraham Hall, Psalm One Hall & Maria Abraham Hall",
-        "Specify your room number for direct room delivery",
-        "Provide your WhatsApp number so delivery staff can reach you"
+        "🥡 Cafeteria Counter Pickup: 100% FREE with fast lane handover",
+        "🏫 4 Hostels (₦500): Clock Hall, Thomas Abraham Hall, Psalm One Hall, Maria Abraham Hall (room number required)",
+        "🏢 Faculty Buildings (₦700): Mass Communication & Engineering Faculty",
+        "Common Confusion: Faculty delivery is strictly at the Ground Floor Main Entrance lobby—riders do not enter lecture halls or offices"
+      ],
+      action: () => {
+        onClose();
+        setIsCartOpen(true);
+      }
+    },
+    {
+      id: 'step-preorder',
+      targetId: 'catalog-section',
+      title: "4. Beat the Rush: Schedule Morning Pre-Orders",
+      badge: "Scheduled Pre-Orders",
+      color: "from-amber-400 to-orange-500",
+      description: "Order during morning lectures before the rush hour begins! Choose your scheduled pickup slot (12:30 PM, 1:15 PM, 2:00 PM, or 5:30 PM) so kitchen staff prep your takeout plate in advance.",
+      image: "/images/student_guide.jpg",
+      actionText: "Open Cart & Select Time Slot",
+      bullets: [
+        "Pick your exact break time during checkout",
+        "Skip the 20-minute peak lunch queue at the counter",
+        "Common Confusion: If lecture times change, send Mrs. Olaronke a WhatsApp message immediately to adjust your preparation time"
       ],
       action: () => {
         onClose();
@@ -87,16 +107,16 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
     {
       id: 'step-pickup-code',
       targetId: 'hero-section',
-      title: "4. Secret Pickup Code & WhatsApp Confirmation",
-      badge: "Secure Verification",
-      color: "from-amber-400 to-orange-500",
-      description: "Every order generates a unique secret pickup code. Forward your bank transfer payment proof to cafeteria staff via WhatsApp with one tap.",
-      image: "/images/student_guide.jpg",
-      actionText: "View WhatsApp Confirmation",
+      title: "5. Secret Pickup Code (#GEN-001) & E-Receipt",
+      badge: "Secure Handover",
+      color: "from-emerald-400 to-green-600",
+      description: "Every order gets a sequential code like #GEN-005. Show or say this code at the counter for instant food collection in under 2 seconds.",
+      image: "/images/compay logo.jpeg",
+      actionText: "View How to Collect",
       bullets: [
-        "Secret pickup code prevents unauthorized collection of your meal",
-        "Direct one-tap WhatsApp forwarding to cafeteria staff",
-        "Copy bank account details with one tap"
+        "Sequential code (e.g. #GEN-012) guarantees zero duplicate tickets",
+        "Forward payment screenshot to cafeteria staff via WhatsApp with 1 tap",
+        "Common Confusion: Receipts show UNVERIFIED until staff confirms your bank transfer, then updates to PAID & VERIFIED automatically"
       ],
       action: () => {
         onClose();
@@ -105,37 +125,18 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
       }
     },
     {
-      id: 'step-preorder',
+      id: 'step-offline',
       targetId: 'catalog-section',
-      title: "4. Off-Peak Pre-Orders & Time Slots",
-      badge: "Pre-Order Scheduled",
-      color: "from-brand-orange to-amber-500",
-      description: "Pre-order your lunch during morning lectures! Select your preferred time slot (e.g. 12:30 PM Lunch Break, 1:15 PM Afternoon, or 2:00 PM Post-Lecture) so kitchen staff prep your takeout plate in advance.",
+      title: "6. No Internet? Order Saves Offline on Your Phone",
+      badge: "100% Offline Ready",
+      color: "from-teal-400 to-emerald-600",
+      description: "If campus Wi-Fi or cellular network drops, your order and secret pickup code are saved safely on your phone with an offline pass.",
       image: "/images/student_guide.jpg",
-      actionText: "Open Cart & Select Time Slot",
+      actionText: "Learn Offline Ordering",
       bullets: [
-        "Select preferred lunch pickup time during checkout",
-        "Avoid lunch rush queues by scheduling meals in advance",
-        "Add 1-tap Cold Zobo (+₦500) or Sweet Dodo (+₦200) upsells"
-      ],
-      action: () => {
-        onClose();
-        setIsCartOpen(true);
-      }
-    },
-    {
-      id: 'step-receipt',
-      targetId: 'catalog-section',
-      title: "5. Payment Confirmation & E-Receipt",
-      badge: "Receipt Verification",
-      color: "from-emerald-400 to-green-600",
-      description: "New receipts display UNVERIFIED PAYMENT until staff verifies the bank transfer. Once approved, your receipt updates to PAID & VERIFIED for meal pickup.",
-      image: "/images/compay logo.jpeg",
-      actionText: "View Sample Receipt",
-      bullets: [
-        "Unverified watermark protects against unconfirmed payments",
-        "Real-time status updates when staff confirms bank transfer",
-        "Download or print receipt anytime from My Orders"
+        "Order is safely stored on your device storage even with zero internet",
+        "Show your offline code at the counter to claim your food",
+        "Common Confusion: Your order will sync automatically to the kitchen the instant your phone catches any network connection"
       ],
       action: () => {
         onClose();
@@ -147,52 +148,89 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
     {
       id: 'admin-kds',
       targetId: 'admin-panel',
-      title: "1. Kitchen KDS Full-Screen Tablet View",
-      badge: "Wall Tablet KDS",
+      title: "1. Kitchen KDS Tablet View & Strobe Alerts",
+      badge: "Touchscreen KDS",
       color: "from-brand-orange to-amber-600",
-      description: "Launch the full-screen Kitchen Display System (KDS) on wall tablets or kitchen TVs. Cards organize automatically into 3 columns: Awaiting Payment, Cooking, and Ready.",
+      description: "Launch the full-screen Kitchen Display System (KDS) on wall tablets or kitchen TVs. Cards organize automatically into 3 columns: Awaiting Payment, Cooking & Packing, and Ready for Pickup.",
       image: "/images/admin_guide.jpg",
       actionText: "Launch KDS Tablet View",
       bullets: [
-        "🔴 Awaiting Payment: 1-Tap 'Verify Payment & Cook'",
-        "🟡 Cooking: 1-Tap 'Mark Packed & Ready'",
-        "🟢 Ready: Large 3-digit pickup codes (#582) for counter staff"
+        "🚨 Visual Screen-Flash Strobe: Flashes neon amber for 5 seconds when new orders arrive so cooks never miss tickets in noisy kitchens",
+        "1-Second Quick Dispense: Type customer code (e.g. '005' or 'GEN-005') in the top search bar and tap 'Dispense & Hand Over ✓'",
+        "Common Confusion: Tap 'Verify Payment & Cook' only after confirming the student's bank transfer alert"
       ],
       action: () => {
         onClose();
       }
     },
     {
-      id: 'admin-stock',
+      id: 'admin-walkin',
       targetId: 'admin-panel',
-      title: "2. Portion & Stock Inventory Management",
-      badge: "Kitchen Control",
+      title: "2. Counter Walk-in POS Sales (100% Offline)",
+      badge: "Register & POS",
+      color: "from-emerald-500 to-teal-600",
+      description: "Record sales for walk-in customers paying Cash, POS, or Transfer right at the counter. Works fully offline without an internet connection!",
+      image: "/images/admin_guide.jpg",
+      actionText: "Open Walk-in Register",
+      bullets: [
+        "Tap dishes to add portions and choose payment method (Cash, Transfer, or POS)",
+        "Optional Takeout Pack checkbox (+₦300) auto-calculates total",
+        "Instant thermal receipt generation matching Benefeastas Nig Enterprise paper slips",
+        "Common Confusion: If the counter has no internet, sales save locally and sync automatically to the cloud when connected"
+      ],
+      action: () => {
+        onClose();
+      }
+    },
+    {
+      id: 'admin-delete-edit',
+      targetId: 'admin-panel',
+      title: "3. Deleting Meals vs. Marking Sold Out",
+      badge: "Menu Management",
+      color: "from-rose-500 to-amber-500",
+      description: "Maintain your live menu cleanly with separate controls for temporary sold-out dishes vs. permanently deleted items.",
+      image: "/images/admin_guide.jpg",
+      actionText: "Manage Menu Dishes",
+      bullets: [
+        "🟡 Marking Sold Out: Toggle the green switch to Gray or set scoops to 0 when today's pot finishes. The meal stays in the catalog for tomorrow!",
+        "🔴 Deleting Meals: Click the red Trash icon on any dish card and confirm to permanently remove it from the menu",
+        "✏️ Editing Food: Click the pencil icon to update title, price, scoops left, or photo"
+      ],
+      action: () => {
+        onClose();
+      }
+    },
+    {
+      id: 'admin-upload',
+      targetId: 'admin-panel',
+      title: "4. Uploading New Meals & Photos (Offline Supported)",
+      badge: "Add New Food",
       color: "from-brand-lemon to-emerald-500",
-      description: "Kitchen staff can adjust remaining scoops or toggle items Out of Stock instantly during cafeteria hours. Stock updates live across all connected screens.",
+      description: "Add new foods to the B'feastas catalog directly from your phone or laptop. Supports uploading photos directly from your device camera or gallery even while offline!",
       image: "/images/admin_guide.jpg",
-      actionText: "View Inventory Controls",
+      actionText: "Add New Food Tab",
       bullets: [
-        "One-tap Available / Out of Stock toggle switches",
-        "Edit portion quantities live as new batches are prepared",
-        "Upload custom dish and beverage photos"
+        "Enter name, price, initial stock, and select unit type (scoop, bottle, portion, wrap)",
+        "📁 Upload Photo: Photos are compressed directly on your device without needing internet",
+        "Common Confusion: You can publish new food while offline—it saves locally and updates all student screens once online"
       ],
       action: () => {
         onClose();
       }
     },
     {
-      id: 'admin-qr',
+      id: 'admin-quick-handover',
       targetId: 'admin-panel',
-      title: "3. Printable Cafeteria Table QR Cards",
-      badge: "QR Tent Cards",
+      title: "5. 1-Second Counter Lookup & Thermal Printing",
+      badge: "Speed of Service",
       color: "from-sky-400 to-blue-600",
-      description: "Generate and print branded QR code tent cards for cafeteria tables and counter stands. Students scan with their phone cameras to order without app installs.",
+      description: "Dispense meals in 1 second during peak rush hours using the Quick-Code lookup box at the top of the Orders tab.",
       image: "/images/admin_guide.jpg",
-      actionText: "Generate Table QR Cards",
+      actionText: "View Quick Handover",
       bullets: [
-        "Print high-resolution QR tent cards for cafeteria tables",
-        "Instant camera scanning opens live menu on student phones",
-        "1-Click Copy QR scan link for WhatsApp broadcasting"
+        "Type code (e.g. '001', '5', or 'GEN-005') to immediately pop up the customer's ticket",
+        "Single-tap 'Mark Handed Over' completes the order and removes it from the active kitchen queue",
+        "Click the Receipt icon next to any order to print a clean minimalist thermal paper slip with barcode"
       ],
       action: () => {
         onClose();
@@ -201,16 +239,16 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
     {
       id: 'admin-summary',
       targetId: 'admin-panel',
-      title: "4. Daily Cashflow WhatsApp Summary",
+      title: "6. Daily Cashflow Summary & WhatsApp Broadcast",
       badge: "Financial Report",
       color: "from-emerald-500 to-teal-600",
-      description: "At closing time, click 'Cashflow Summary' to auto-calculate total daily revenue, bank transfer totals, packaging fees, and delivery fees, and forward directly to the owner's WhatsApp.",
+      description: "At closing time, click 'Cashflow Summary' to calculate total daily revenue, cash vs. transfer totals, takeout fees, and delivery earnings.",
       image: "/images/admin_guide.jpg",
       actionText: "Generate Daily WhatsApp Report",
       bullets: [
         "Auto-calculates total daily revenue & verified order count",
-        "Itemizes packaging container fees & hostel delivery earnings",
-        "1-Click WhatsApp delivery to Cafeteria Owner"
+        "Separates packaging container fees and hostel delivery fees",
+        "1-Click WhatsApp report delivery directly to Cafeteria Owner"
       ],
       action: () => {
         onClose();
