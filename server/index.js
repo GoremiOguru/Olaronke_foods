@@ -530,7 +530,14 @@ app.post('/api/orders', authenticateOrderRequest, (req, res) => {
   const deliveryFee = isHostelDelivery ? (req.body.deliveryFee !== undefined ? Number(req.body.deliveryFee) : (isSpecialFaculty ? 700 : 500)) : 0;
   const totalPrice = mealsTotal + takeoutFee + deliveryFee;
 
-  const pickupCode = req.body.pickupCode ? String(req.body.pickupCode) : String(Math.floor(100 + Math.random() * 900));
+  let pickupCode = req.body.pickupCode ? String(req.body.pickupCode) : null;
+  if (!pickupCode) {
+    const todayStr = new Date().toDateString();
+    const todayCount = (db.orders || []).filter(o => o.createdAt && new Date(o.createdAt).toDateString() === todayStr).length;
+    pickupCode = `GEN-${String(todayCount + 1).padStart(3, '0')}`;
+  } else if (!pickupCode.startsWith('GEN-') && /^\d+$/.test(pickupCode)) {
+    pickupCode = `GEN-${pickupCode.padStart(3, '0')}`;
+  }
   const orderId = incomingId || `ORD-${Math.floor(1000 + Math.random() * 9000)}`;
   const finalScheduledTime = scheduledTime || pickupTime || scheduledPickupTime || null;
 

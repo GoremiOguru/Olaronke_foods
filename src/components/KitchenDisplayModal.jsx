@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Tv, X, CheckCircle2, Clock, Flame, ShieldAlert, PackageCheck, Volume2, VolumeX, Maximize2, Minimize2, RefreshCw, Search, WifiOff } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { Tv, X, CheckCircle2, Clock, Flame, ShieldAlert, PackageCheck, Volume2, VolumeX, Maximize2, Minimize2, RefreshCw, Search, WifiOff, BellRing } from 'lucide-react';
 import { useSocket } from '../context/SocketContext';
 import { useAuth } from '../context/AuthContext';
 
@@ -8,6 +8,48 @@ export default function KitchenDisplayModal({ isOpen, onClose, orders, onUpdateS
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [filterCategory, setFilterCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isStrobing, setIsStrobing] = useState(false);
+  const [strobeAlertInfo, setStrobeAlertInfo] = useState(null);
+
+  const knownKdsIdsRef = useRef(new Set());
+  const isFirstKdsLoadRef = useRef(true);
+
+  useEffect(() => {
+    if (!orders || orders.length === 0) return;
+
+    if (isFirstKdsLoadRef.current) {
+      knownKdsIdsRef.current = new Set(orders.map(o => o.id));
+      isFirstKdsLoadRef.current = false;
+      return;
+    }
+
+    const newArrivals = orders.filter(o => !knownKdsIdsRef.current.has(o.id));
+    if (newArrivals.length > 0) {
+      const first = newArrivals[0];
+      setStrobeAlertInfo({
+        code: getPickupCode(first),
+        name: first.studentName || 'Student',
+        count: newArrivals.length,
+        itemsText: first.items?.map(it => `${it.scoops}x ${it.dishName?.replace(/^\[.*?\]\s*/i, '')}`).join(', ')
+      });
+
+      setIsStrobing(true);
+
+      if (soundEnabled) {
+        try {
+          const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+          audio.play().catch(() => {});
+        } catch (e) {}
+      }
+
+      const timer = setTimeout(() => {
+        setIsStrobing(false);
+      }, 5000);
+
+      newArrivals.forEach(o => knownKdsIdsRef.current.add(o.id));
+      return () => clearTimeout(timer);
+    }
+  }, [orders, soundEnabled]);
 
   useEffect(() => {
     if (isOpen) {
@@ -34,25 +76,39 @@ export default function KitchenDisplayModal({ isOpen, onClose, orders, onUpdateS
   };
 
   const getPickupCode = (ord) => {
-    if (ord?.pickupCode) return String(ord.pickupCode);
-    if (!ord?.id) return '582';
+    if (ord?.pickupCode) {
+      const code = String(ord.pickupCode);
+      return code.startsWith('GEN-') ? code : (/^\d+$/.test(code) ? `GEN-${code.padStart(3, '0')}` : code);
+    }
+    if (!ord?.id) return 'GEN-001';
     let num = 0;
     for (let i = 0; i < ord.id.length; i++) num += ord.id.charCodeAt(i);
-    return String(100 + (num % 900));
+    return `GEN-${String(100 + (num % 900))}`;
   };
 
   const matchesSearch = (order) => {
     if (!searchQuery.trim()) return true;
-    const q = searchQuery.trim().toLowerCase().replace('#', '');
-    const code = getPickupCode(order).toLowerCase();
+    const q = searchQuery.trim().toLowerCase().replace(/^[#\s]+/, '').replace(/^gen-/, '');
+    const code = getPickupCode(order).toLowerCase().replace(/^gen-/, '');
+    const fullCode = getPickupCode(order).toLowerCase();
     const name = (order.studentName || '').toLowerCase();
     const id = (order.id || '').toLowerCase();
-    return code.includes(q) || name.includes(q) || id.includes(q);
+    return code.includes(q) || fullCode.includes(q) || name.includes(q) || id.includes(q);
   };
 
-  const cleanSearchCode = searchQuery.trim().replace(/^#/, '');
-  const matchedExactOrder = cleanSearchCode.length >= 2 
-    ? orders.find(o => (getPickupCode(o) === cleanSearchCode || getPickupCode(o).endsWith(cleanSearchCode) || String(o.id).toLowerCase() === cleanSearchCode.toLowerCase()) && o.status !== 'Cancelled')
+  const cleanSearchCode = searchQuery.trim().replace(/^[#\s]+/, '').toUpperCase();
+  const matchedExactOrder = cleanSearchCode.length >= 1 
+    ? orders.find(o => {
+        if (o.status === 'Cancelled') return false;
+        const fullCode = getPickupCode(o).toUpperCase();
+        const bareCode = fullCode.replace(/^GEN-/, '');
+        const bareInput = cleanSearchCode.replace(/^GEN-/, '');
+        return fullCode === cleanSearchCode ||
+          bareCode === bareInput ||
+          (bareInput.length >= 2 && bareCode.endsWith(bareInput)) ||
+          fullCode.endsWith(cleanSearchCode) ||
+          String(o.id).toUpperCase().includes(cleanSearchCode);
+      })
     : null;
 
   // 3 Columns: Pending Payment, Preparing, Ready
@@ -105,7 +161,7 @@ export default function KitchenDisplayModal({ isOpen, onClose, orders, onUpdateS
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Fast code search: e.g. #314"
+            placeholder="Fast code search: e.g. 001 or GEN-001"
             className="w-full bg-slate-950 border border-slate-700 focus:border-amber-400 rounded-xl pl-9 pr-8 py-2 text-xs font-mono text-white placeholder-slate-400 focus:outline-none shadow-inner"
           />
           {searchQuery && (
@@ -158,7 +214,7 @@ export default function KitchenDisplayModal({ isOpen, onClose, orders, onUpdateS
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Fast search: e.g. #314"
+            placeholder="Fast search: e.g. 001 or GEN-001"
             className="w-full bg-slate-950 border border-slate-700 focus:border-amber-400 rounded-xl pl-9 pr-8 py-2 text-xs font-mono text-white placeholder-slate-400 focus:outline-none"
           />
           {searchQuery && (
@@ -171,6 +227,35 @@ export default function KitchenDisplayModal({ isOpen, onClose, orders, onUpdateS
           )}
         </div>
       </div>
+
+      {/* Visual Screen Flash Strobe for High-Noise Kitchens */}
+      {isStrobing && strobeAlertInfo && (
+        <div className="bg-gradient-to-r from-amber-400 via-orange-500 to-amber-400 text-slate-950 px-6 py-3.5 flex items-center justify-between shadow-2xl animate-pulse font-black shrink-0 border-b-4 border-amber-300">
+          <div className="flex items-center space-x-3">
+            <span className="bg-slate-950 text-amber-300 px-3 py-1 rounded-xl font-mono text-xl shadow-md">
+              #{strobeAlertInfo.code}
+            </span>
+            <div>
+              <p className="text-base sm:text-lg tracking-tight flex items-center gap-2">
+                <span>🚨 NEW KITCHEN TICKET!</span>
+                <span className="text-slate-900 font-extrabold">{strobeAlertInfo.name}</span>
+                {strobeAlertInfo.count > 1 && (
+                  <span className="text-xs bg-slate-950/20 px-2 py-0.5 rounded-full font-bold">(+{strobeAlertInfo.count - 1} more)</span>
+                )}
+              </p>
+              <p className="text-xs text-slate-900 font-bold truncate max-w-xl">
+                {strobeAlertInfo.itemsText}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setIsStrobing(false)}
+            className="px-3.5 py-1.5 bg-slate-950 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition-all"
+          >
+            Acknowledge ✕
+          </button>
+        </div>
+      )}
 
       {/* 1-Second Instant Dispense Banner */}
       {matchedExactOrder && (

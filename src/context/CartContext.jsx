@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { useSocket } from './SocketContext';
 import { useSettings } from './SettingsContext';
+import { getNextDailyPickupCode, dbPut } from '../utils/offlineDb';
 
 const CartContext = createContext();
 
@@ -327,8 +328,8 @@ export function CartProvider({ children }) {
         plateNumber: item.plateNumber || 1
       }));
 
-      // Generate local 3-digit pickup code & offline ID
-      const offlinePickupCode = String(Math.floor(100 + Math.random() * 900));
+      // Generate sequential daily pickup code (e.g. GEN-001) & offline ID
+      const offlinePickupCode = await getNextDailyPickupCode();
       const offlineOrderId = `OFFLINE-${Date.now().toString().slice(-4)}${Math.floor(10 + Math.random() * 90)}`;
 
       const orderPayload = {
@@ -415,6 +416,7 @@ export function CartProvider({ children }) {
         };
 
         try {
+          dbPut('pending_orders', { ...orderPayload, savedToken: token });
           const existingPending = JSON.parse(localStorage.getItem('olaronke_pending_offline_orders') || '[]');
           existingPending.push({ ...orderPayload, savedToken: token });
           localStorage.setItem('olaronke_pending_offline_orders', JSON.stringify(existingPending));

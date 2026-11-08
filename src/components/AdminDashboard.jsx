@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import OfficialReceiptModal from './OfficialReceiptModal';
 import KitchenDisplayModal from './KitchenDisplayModal';
 import QRCodeModal from './QRCodeModal';
+import { getNextDailyPickupCode, dbPut } from '../utils/offlineDb';
 
 export default function AdminDashboard({ onOpenHowToUse }) {
   const { dishes, setDishes, socket, pushPermission, requestPushPermission, addNotification } = useSocket();
@@ -117,13 +118,16 @@ export default function AdminDashboard({ onOpenHowToUse }) {
   const [addingDish, setAddingDish] = useState(false);
   const [dishSuccessMsg, setDishSuccessMsg] = useState('');
 
-  // Helper for guaranteed 3-digit pickup code
+  // Helper for guaranteed sequential pickup code (e.g. GEN-001)
   const getPickupCode = (ord) => {
-    if (ord?.pickupCode) return String(ord.pickupCode);
-    if (!ord?.id) return '582';
+    if (ord?.pickupCode) {
+      const code = String(ord.pickupCode);
+      return code.startsWith('GEN-') ? code : (/^\d+$/.test(code) ? `GEN-${code.padStart(3, '0')}` : code);
+    }
+    if (!ord?.id) return 'GEN-001';
     let num = 0;
     for (let i = 0; i < ord.id.length; i++) num += ord.id.charCodeAt(i);
-    return String(100 + (num % 900));
+    return `GEN-${String(100 + (num % 900))}`;
   };
 
   const knownOrderIdsRef = useRef(null);
@@ -237,12 +241,14 @@ export default function AdminDashboard({ onOpenHowToUse }) {
     }
   };
 
-  // Helper to queue an admin action into local storage if offline
+  // Helper to queue an admin action into IndexedDB and local storage if offline
   const queueAdminAction = (action) => {
     try {
+      const payload = { ...action, queuedAt: Date.now() };
+      dbPut('pending_actions', payload);
       const raw = localStorage.getItem('olaronke_pending_admin_actions');
       const queue = raw ? JSON.parse(raw) : [];
-      queue.push({ ...action, queuedAt: Date.now() });
+      queue.push(payload);
       localStorage.setItem('olaronke_pending_admin_actions', JSON.stringify(queue));
     } catch (e) {}
   };
@@ -457,6 +463,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
     setDishes(prev => {
       const updated = prev.map(d => d.id === editingDish.id ? { ...d, ...editedPayload } : d);
       try {
+        dbPut('dishes', newDishItem);
         localStorage.setItem('olaronke_custom_dishes', JSON.stringify(updated));
       } catch (e) {}
       return updated;
@@ -484,6 +491,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
     setDishes(prev => {
       const updated = prev.map(d => d.id === dishId ? { ...d, scoopsLeft: validScoops, isAvailable: isAvail } : d);
       try {
+        dbPut('dishes', newDishItem);
         localStorage.setItem('olaronke_custom_dishes', JSON.stringify(updated));
       } catch (e) {}
       return updated;
@@ -510,6 +518,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
     setDishes(prev => {
       const updated = prev.map(d => d.id === dishId ? { ...d, isAvailable: nextState, scoopsLeft: updatedScoops } : d);
       try {
+        dbPut('dishes', newDishItem);
         localStorage.setItem('olaronke_custom_dishes', JSON.stringify(updated));
       } catch (e) {}
       return updated;
@@ -533,6 +542,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
     setDishes(prev => {
       const updated = prev.map(d => d.id === dishId ? { ...d, price: priceNum } : d);
       try {
+        dbPut('dishes', newDishItem);
         localStorage.setItem('olaronke_custom_dishes', JSON.stringify(updated));
       } catch (e) {}
       return updated;
@@ -560,6 +570,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
     setDishes(prev => {
       const updated = prev.filter(d => d.id !== dishId);
       try {
+        dbPut('dishes', newDishItem);
         localStorage.setItem('olaronke_custom_dishes', JSON.stringify(updated));
       } catch (e) {}
       return updated;
@@ -642,6 +653,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
         ? prev.map(d => d.name.toLowerCase() === newDishItem.name.toLowerCase() ? { ...d, ...newDishItem } : d) 
         : [newDishItem, ...prev];
       try {
+        dbPut('dishes', newDishItem);
         localStorage.setItem('olaronke_custom_dishes', JSON.stringify(updated));
       } catch (e) {}
       return updated;
@@ -769,7 +781,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
 
       // Offline resilience: if server was unreachable or session token lapsed, save locally so cashier is never blocked!
       if (!recordedOnline) {
-        const offlinePickupCode = String(Math.floor(100 + Math.random() * 900));
+        const offlinePickupCode = await getNextDailyPickupCode();
         const offlineOrderId = `WALK-${Date.now().toString().slice(-4)}${Math.floor(10 + Math.random() * 90)}`;
         const localOrder = {
           id: offlineOrderId,
@@ -893,9 +905,18 @@ export default function AdminDashboard({ onOpenHowToUse }) {
     );
   });
 
-  const cleanQuickCode = quickCodeInput.trim().replace(/^#/, '');
-  const matchedQuickOrder = cleanQuickCode.length >= 2 
-    ? orders.find(o => getPickupCode(o) === cleanQuickCode || getPickupCode(o).endsWith(cleanQuickCode) || String(o.id).toLowerCase().includes(cleanQuickCode.toLowerCase()))
+  const cleanQuickCode = quickCodeInput.trim().replace(/^[#\s]+/, '').toUpperCase();
+  const matchedQuickOrder = cleanQuickCode.length >= 1 
+    ? orders.find(o => {
+        const fullCode = getPickupCode(o).toUpperCase();
+        const bareCode = fullCode.replace(/^GEN-/, '');
+        const bareInput = cleanQuickCode.replace(/^GEN-/, '');
+        return fullCode === cleanQuickCode ||
+          bareCode === bareInput ||
+          (bareInput.length >= 2 && bareCode.endsWith(bareInput)) ||
+          fullCode.endsWith(cleanQuickCode) ||
+          String(o.id).toUpperCase().includes(cleanQuickCode);
+      })
     : null;
 
   const totalRevenue = filteredOrders.reduce((sum, o) => sum + (o.status !== 'Cancelled' ? o.totalPrice : 0), 0);
@@ -1500,11 +1521,11 @@ export default function AdminDashboard({ onOpenHowToUse }) {
                     <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-400 font-mono font-black text-sm">#</span>
                     <input
                       type="text"
-                      maxLength={4}
+                      maxLength={10}
                       value={quickCodeInput}
-                      onChange={(e) => setQuickCodeInput(e.target.value.replace(/\D/g, ''))}
-                      placeholder="e.g. 582"
-                      className="w-full bg-slate-950 border-2 border-emerald-500/50 focus:border-emerald-400 text-amber-300 font-mono text-base font-black pl-8 pr-3 py-2 rounded-2xl focus:outline-none tracking-widest text-center"
+                      onChange={(e) => setQuickCodeInput(e.target.value.replace(/[^a-zA-Z0-9-]/g, ''))}
+                      placeholder="e.g. 001 or GEN-001"
+                      className="w-full bg-slate-950 border-2 border-emerald-500/50 focus:border-emerald-400 text-amber-300 font-mono text-base font-black pl-8 pr-3 py-2 rounded-2xl focus:outline-none tracking-wider text-center uppercase"
                     />
                   </div>
                   {quickCodeInput && (

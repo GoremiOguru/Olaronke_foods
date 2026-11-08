@@ -32,11 +32,14 @@ export default function WhatsAppModal() {
   const accountNumber = settings.accountNumber || '8234786544';
 
   const getPickupCode = (ord) => {
-    if (ord?.pickupCode) return String(ord.pickupCode);
-    if (!ord?.id) return '582';
+    if (ord?.pickupCode) {
+      const code = String(ord.pickupCode);
+      return code.startsWith('GEN-') ? code : (/^\d+$/.test(code) ? `GEN-${code.padStart(3, '0')}` : code);
+    }
+    if (!ord?.id) return 'GEN-001';
     let num = 0;
     for (let i = 0; i < ord.id.length; i++) num += ord.id.charCodeAt(i);
-    return String(100 + (num % 900));
+    return `GEN-${String(100 + (num % 900))}`;
   };
 
   const pickupCodeDisplay = getPickupCode(order);

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import { useAuth } from './AuthContext';
 import { defaultDishes } from '../data/defaultDishes';
+import { dbGetAll, dbPut } from '../utils/offlineDb';
 
 const SocketContext = createContext();
 
@@ -19,11 +20,28 @@ export function SocketProvider({ children }) {
     return defaultDishes;
   });
 
-  // Save custom dish edits & images to localStorage for persistent state across refreshes & serverless cold starts
+  // Seed dishes from high-capacity IndexedDB on mount
+  useEffect(() => {
+    dbGetAll('dishes').then(stored => {
+      if (Array.isArray(stored) && stored.length > 0) {
+        setDishes(prev => {
+          const map = new Map();
+          (prev || []).forEach(d => map.set(d.id, d));
+          stored.forEach(d => map.set(d.id, { ...(map.get(d.id) || {}), ...d }));
+          return Array.from(map.values());
+        });
+      }
+    }).catch(() => {});
+  }, []);
+
+  // Save custom dish edits & images to IndexedDB and localStorage for persistent state across refreshes & cold starts
   useEffect(() => {
     try {
       localStorage.setItem('olaronke_custom_dishes', JSON.stringify(dishes));
     } catch (e) {}
+    if (Array.isArray(dishes)) {
+      dishes.forEach(d => dbPut('dishes', d));
+    }
   }, [dishes]);
   const [isOnline, setIsOnline] = useState(typeof window !== 'undefined' ? navigator.onLine : true);
   const [notifications, setNotifications] = useState([]);
