@@ -26,9 +26,9 @@ export default function TechSupportFloatingWidget() {
   if (isAnyModalOpen) return null;
 
   return (
-    <div className="fixed bottom-5 right-5 z-30">
+    <div className="fixed bottom-3.5 right-3.5 sm:bottom-5 sm:right-5 z-30">
       {isOpen ? (
-        <div className="bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl p-4 w-72 text-slate-100 animate-in fade-in slide-in-from-bottom-4 duration-200">
+        <div className="bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl p-4 w-72 max-w-[calc(100vw-28px)] text-slate-100 animate-in fade-in slide-in-from-bottom-4 duration-200">
           <div className="flex items-center justify-between pb-3 border-b border-slate-800">
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center">

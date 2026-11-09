@@ -98,7 +98,7 @@ export default function DishCatalog() {
   };
 
   return (
-    <section id="catalog-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <section id="catalog-section" className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-8 sm:py-10">
       
       {/* Section Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
@@ -106,7 +106,7 @@ export default function DishCatalog() {
           <div className="flex items-center gap-2 text-brand-orange font-black text-xs uppercase tracking-widest mb-1">
             <Flame className="w-4 h-4 animate-bounce" /> Live Kitchen Menu & Stock
           </div>
-          <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+          <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
             Today's B'feastas Dishes & Refreshments
           </h2>
           <p className="text-slate-400 text-xs sm:text-sm mt-1">
@@ -115,7 +115,7 @@ export default function DishCatalog() {
         </div>
 
         {/* Controls: Refresh Button, Layout Mode Switch & Sorting */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1.5 sm:space-x-2 flex-wrap gap-y-2">
 
           {/* 1-Tap Manual Refresh Button */}
           <button
@@ -338,7 +338,7 @@ export default function DishCatalog() {
                   {displayDishes.map((dish) => (
                     <div
                       key={dish.id}
-                      className="w-72 sm:w-80 shrink-0 snap-start flex flex-col"
+                      className="w-[82vw] max-w-xs sm:w-80 shrink-0 snap-start flex flex-col"
                     >
                       <DishCard dish={dish} />
                     </div>

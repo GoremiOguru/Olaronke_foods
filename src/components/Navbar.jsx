@@ -25,28 +25,28 @@ export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdmi
 
   return (
     <header className="sticky top-0 z-40 w-full bg-slate-950/95 backdrop-blur-md border-b border-slate-800 shadow-xl">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 sm:h-20">
           
           {/* Brand Logo: B'feastas */}
-          <div className="flex items-center space-x-2.5 cursor-pointer" onClick={() => setIsAdminView(false)}>
+          <div className="flex items-center space-x-2 sm:space-x-2.5 cursor-pointer shrink-0" onClick={() => setIsAdminView(false)}>
             <img
               src="/images/compay logo.jpeg"
               alt="B'feastas Logo"
-              className="w-10 h-10 rounded-xl object-cover shadow-orange-glow border border-brand-orange/30 transition-transform hover:scale-105"
+              className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl object-cover shadow-orange-glow border border-brand-orange/30 transition-transform hover:scale-105"
             />
-            <div>
-              <div className="flex items-center space-x-2">
-                <span className="font-black text-2xl tracking-tight text-white font-sans">
+            <div className="min-w-0">
+              <div className="flex items-center space-x-1.5 sm:space-x-2">
+                <span className="font-black text-xl sm:text-2xl tracking-tight text-white font-sans">
                   B'<span className="text-brand-orange">fea</span><span className="text-brand-lemon">stas</span>
                 </span>
                 <span className="hidden sm:inline-block px-2.5 py-0.5 text-[10px] uppercase tracking-wider font-extrabold bg-brand-lemon/20 text-brand-lemon-glow rounded-full border border-brand-lemon/40">
                   Topfaith Cafeteria
                 </span>
               </div>
-              <p className="text-xs text-slate-400 font-medium flex items-center gap-1.5">
-                <span className={`w-2 h-2 rounded-full ${!isOnline ? 'bg-rose-500 animate-pulse' : isConnected ? 'bg-brand-lemon-glow animate-ping' : 'bg-amber-400'}`}></span>
-                {!isOnline ? 'Offline Mode' : 'Kitchen Connected'}
+              <p className="text-[10px] sm:text-xs text-slate-400 font-medium flex items-center gap-1.5 truncate">
+                <span className={`w-2 h-2 rounded-full shrink-0 ${!isOnline ? 'bg-rose-500 animate-pulse' : isConnected ? 'bg-brand-lemon-glow animate-ping' : 'bg-amber-400'}`}></span>
+                <span className="truncate">{!isOnline ? 'Offline' : 'Kitchen Live'}</span>
               </p>
             </div>
           </div>
@@ -199,7 +199,7 @@ export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdmi
           </div>
 
           {/* Mobile Buttons */}
-          <div className="md:hidden flex items-center space-x-1.5">
+          <div className="md:hidden flex items-center space-x-1 sm:space-x-1.5 shrink-0">
             
             {/* Quick My Orders button on mobile header if user logged in */}
             {user && (
@@ -207,11 +207,12 @@ export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdmi
                 onClick={() => {
                   if (onOpenMyOrders) onOpenMyOrders();
                 }}
-                className="flex items-center space-x-1 px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-500/40 rounded-xl text-xs font-black shadow-sm"
+                className="flex items-center space-x-1 p-2 sm:px-2.5 sm:py-1.5 bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-500/40 rounded-xl text-xs font-black shadow-sm active:scale-95 transition-all"
                 title="My Orders & Receipts"
+                aria-label="My Orders"
               >
-                <ShoppingBag className="w-3.5 h-3.5 text-brand-orange" />
-                <span className="text-[10px]">Orders</span>
+                <ShoppingBag className="w-4 h-4 text-brand-orange" />
+                <span className="hidden sm:inline text-[10px]">Orders</span>
               </button>
             )}
 
@@ -219,8 +220,9 @@ export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdmi
             <div className="relative">
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
-                className="p-2 rounded-xl bg-slate-900 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors relative border border-slate-800"
+                className="p-2 rounded-xl bg-slate-900 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors relative border border-slate-800 active:scale-95"
                 title="Notifications"
+                aria-label="Notifications"
               >
                 <Bell className="w-4 h-4" />
                 {notifications.length > 0 && (
@@ -232,7 +234,7 @@ export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdmi
 
               {/* Mobile Notification Dropdown */}
               {showNotifications && (
-                <div className="absolute right-0 mt-3 w-72 max-w-[88vw] bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-3.5 z-50 animate-in fade-in duration-200">
+                <div className="absolute right-0 mt-3 w-72 max-w-[85vw] bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-3.5 z-50 animate-in fade-in duration-200">
                   <div className="flex items-center justify-between pb-2.5 border-b border-slate-800">
                     <h4 className="font-bold text-xs text-white flex items-center gap-1.5">
                       <Bell className="w-3.5 h-3.5 text-brand-orange" /> Notifications
@@ -259,7 +261,9 @@ export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdmi
             {/* Shopping Cart Drawer Trigger */}
             <button
               onClick={() => setIsCartOpen(true)}
-              className="relative p-2 bg-brand-orange text-white rounded-xl shadow-orange-glow"
+              className="relative p-2 bg-brand-orange hover:bg-orange-500 text-white rounded-xl shadow-orange-glow active:scale-95 transition-all"
+              title="Shopping Cart"
+              aria-label="Cart"
             >
               <ShoppingBag className="w-4 h-4" />
               {totalQuantityCount > 0 && (
@@ -272,9 +276,10 @@ export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdmi
             {/* Hamburger Toggle */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-slate-300 hover:text-white bg-slate-900 rounded-xl border border-slate-800"
+              className="p-2 text-slate-300 hover:text-white bg-slate-900 rounded-xl border border-slate-800 active:scale-95 transition-all"
+              aria-label="Menu"
             >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
             </button>
           </div>
 
