@@ -63,7 +63,7 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(req)
         .then((networkRes) => {
-          if (networkRes.ok && (url.pathname === '/api/dishes' || url.pathname === '/api/settings')) {
+          if (networkRes.ok && (url.pathname === '/api/dishes' || url.pathname === '/api/settings' || url.pathname.startsWith('/api/orders'))) {
             const resClone = networkRes.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(req, resClone));
           }
@@ -72,14 +72,6 @@ self.addEventListener('fetch', (event) => {
         .catch(() => {
           return caches.match(req).then((cached) => {
             if (cached) return cached;
-            // For endpoints where the frontend code expects an array (orders, staff, dishes), return [] so UI never crashes on .forEach / .map
-            const isArrayEndpoint = url.pathname.includes('/orders') || url.pathname.includes('/staff') || url.pathname.includes('/dishes');
-            if (isArrayEndpoint) {
-              return new Response('[]', {
-                status: 200,
-                headers: { 'Content-Type': 'application/json' }
-              });
-            }
             return new Response(JSON.stringify({ offline: true, message: 'Offline mode active' }), {
               status: 503,
               statusText: 'Service Unavailable (Offline)',

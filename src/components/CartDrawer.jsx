@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
 import { useSocket } from '../context/SocketContext';
+import { lockScroll, unlockScroll, forceUnlockScroll } from '../utils/scrollLock';
 
 const FACULTY_LOCATIONS = [
   'MASS Faculty',
@@ -65,13 +66,12 @@ export default function CartDrawer({ onOpenAuth }) {
     return HOSTEL_LOCATIONS.some(h => hostelAddress && hostelAddress.startsWith(h)) ? 'hostel' : 'faculty';
   });
 
-  // Lock background scroll when drawer is open
+  // Lock background scroll safely when drawer is open
   useEffect(() => {
     if (isCartOpen) {
-      const original = window.getComputedStyle(document.body).overflow;
-      document.body.style.overflow = 'hidden';
+      lockScroll();
       return () => {
-        document.body.style.overflow = original;
+        unlockScroll();
       };
     }
   }, [isCartOpen]);

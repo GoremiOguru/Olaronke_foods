@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import OfficialReceiptModal from './OfficialReceiptModal';
 import QRCodeModal from './QRCodeModal';
 import { getNextDailyPickupCode, dbPut } from '../utils/offlineDb';
+import { lockScroll, unlockScroll, forceUnlockScroll } from '../utils/scrollLock';
 
 export default function AdminDashboard({ onOpenHowToUse }) {
   const { dishes, setDishes, socket, pushPermission, requestPushPermission, addNotification } = useSocket();
@@ -193,16 +194,23 @@ export default function AdminDashboard({ onOpenHowToUse }) {
                 }
               }
             }
-            // Merge with local offline walk-in orders so they remain visible in the student order queue
+            // Merge with local offline walk-in orders AND cached orders so queue is never emptied by offline/empty response
             let localPending = [];
             try {
               const raw = localStorage.getItem('olaronke_pending_offline_orders');
               if (raw) localPending = JSON.parse(raw);
             } catch (e) {}
 
+            let cached = [];
+            try {
+              const rawCached = localStorage.getItem('olaronke_cached_orders');
+              if (rawCached) cached = JSON.parse(rawCached);
+            } catch (e) {}
+
             const mergedMap = new Map();
-            (localPending || []).forEach(o => o && o.id && mergedMap.set(o.id, o));
+            (cached || []).forEach(o => o && o.id && mergedMap.set(o.id, o));
             dataOrders.forEach(o => o && o.id && mergedMap.set(o.id, { ...(mergedMap.get(o.id) || {}), ...o }));
+            (localPending || []).forEach(o => o && o.id && mergedMap.set(o.id, { ...(mergedMap.get(o.id) || {}), ...o }));
             const mergedList = Array.from(mergedMap.values()).sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
 
             isFirstLoadRef.current = false;
@@ -210,8 +218,27 @@ export default function AdminDashboard({ onOpenHowToUse }) {
             setOrders(mergedList);
           }
         } catch (e) {}
-      } else if (resOrders && (resOrders.status === 401 || resOrders.status === 403)) {
-        console.warn('Admin session token expired or invalid');
+      } else {
+        // When server is unreachable (offline), retain full order queue from storage
+        let localPending = [];
+        try {
+          const raw = localStorage.getItem('olaronke_pending_offline_orders');
+          if (raw) localPending = JSON.parse(raw);
+        } catch (e) {}
+
+        let cached = [];
+        try {
+          const rawCached = localStorage.getItem('olaronke_cached_orders');
+          if (rawCached) cached = JSON.parse(rawCached);
+        } catch (e) {}
+
+        const mergedMap = new Map();
+        (cached || []).forEach(o => o && o.id && mergedMap.set(o.id, o));
+        (localPending || []).forEach(o => o && o.id && mergedMap.set(o.id, { ...(mergedMap.get(o.id) || {}), ...o }));
+        const mergedList = Array.from(mergedMap.values()).sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+        if (mergedList.length > 0) {
+          setOrders(mergedList);
+        }
       }
 
       if (resStaff && resStaff.ok) {
@@ -250,7 +277,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
           'Content-Type': 'application/json',
           ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         },
-        body: action.payload ? JSON.stringify(action.payload) : undefined
+        body: (action.payload || action.body) ? JSON.stringify(action.payload || action.body) : undefined
       });
       return res.ok;
     } catch (e) {
@@ -394,11 +421,12 @@ export default function AdminDashboard({ onOpenHowToUse }) {
 
   useEffect(() => {
     if (isWalkInModalOpen || editingDish || selectedPrintOrder) {
-      const originalStyle = window.getComputedStyle(document.body).overflow;
-      document.body.style.overflow = 'hidden';
+      lockScroll();
       return () => {
-        document.body.style.overflow = originalStyle;
+        unlockScroll();
       };
+    } else {
+      unlockScroll();
     }
   }, [isWalkInModalOpen, editingDish, selectedPrintOrder]);
 
@@ -672,6 +700,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
   };
 
   const handleOrderStatusChange = async (orderId, newStatus) => {
+    forceUnlockScroll();
     const isPaymentConfirmed = newStatus.includes('Confirmed') || newStatus === 'Completed' || newStatus === 'Paid' || newStatus.includes('Preparing') || newStatus.includes('Ready');
     setOrders(prev => {
       const updated = (prev || []).map(o => o.id === orderId ? {
@@ -704,9 +733,32 @@ export default function AdminDashboard({ onOpenHowToUse }) {
           } catch (e) {}
           return updated;
         });
+      } else {
+        queueAdminAction({
+          type: 'order_status',
+          endpoint: `/api/orders/${orderId}/status`,
+          method: 'PATCH',
+          payload: { status: newStatus }
+        });
       }
     } catch (err) {
-      console.error('Failed to update order status:', err);
+      console.warn('Offline status update queued for cloud sync:', err);
+      queueAdminAction({
+        type: 'order_status',
+        endpoint: `/api/orders/${orderId}/status`,
+        method: 'PATCH',
+        payload: { status: newStatus }
+      });
+      if (typeof addNotification === 'function') {
+        addNotification({
+          id: Date.now(),
+          title: '⚡ Status Saved Offline',
+          message: `Order status set to "${newStatus}". Will sync to cloud when connected.`,
+          type: 'info'
+        });
+      }
+    } finally {
+      forceUnlockScroll();
     }
   };
 
@@ -912,7 +964,20 @@ export default function AdminDashboard({ onOpenHowToUse }) {
           createdAt: new Date().toISOString()
         };
 
-        setOrders(prev => [localOrder, ...(Array.isArray(prev) ? prev : [])]);
+        setOrders(prev => {
+          let baseList = Array.isArray(prev) && prev.length > 0 ? prev : [];
+          if (baseList.length === 0) {
+            try {
+              const c = localStorage.getItem('olaronke_cached_orders');
+              if (c) baseList = JSON.parse(c);
+            } catch (e) {}
+          }
+          const updated = [localOrder, ...(Array.isArray(baseList) ? baseList.filter(o => o.id !== localOrder.id) : [])];
+          try {
+            localStorage.setItem('olaronke_cached_orders', JSON.stringify(updated));
+          } catch (e) {}
+          return updated;
+        });
 
         try {
           const pending = JSON.parse(localStorage.getItem('olaronke_pending_offline_orders') || '[]');
@@ -958,6 +1023,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
       setIsWalkInModalOpen(false);
       setWalkInCart([]);
       setWalkInCustomerName('');
+      forceUnlockScroll();
     } catch (err) {
       setWalkInError(err.message || 'Error processing sale');
     } finally {
@@ -1659,6 +1725,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
                       onClick={() => {
                         handleOrderStatusChange(matchedQuickOrder.id, 'Completed');
                         setQuickCodeInput('');
+                        forceUnlockScroll();
                       }}
                       disabled={matchedQuickOrder.status === 'Completed'}
                       className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-lg ${
@@ -1939,7 +2006,10 @@ export default function AdminDashboard({ onOpenHowToUse }) {
         {selectedPrintOrder && (
           <OfficialReceiptModal
             order={selectedPrintOrder}
-            onClose={() => setSelectedPrintOrder(null)}
+            onClose={() => {
+              setSelectedPrintOrder(null);
+              forceUnlockScroll();
+            }}
           />
         )}
 

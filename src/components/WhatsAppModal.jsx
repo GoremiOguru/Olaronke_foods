@@ -3,6 +3,7 @@ import { X, CheckCircle, MessageCircle, Copy, ExternalLink, ShieldCheck, Key, Ma
 import { useCart } from '../context/CartContext';
 import { useSettings } from '../context/SettingsContext';
 import OfficialReceiptModal from './OfficialReceiptModal';
+import { lockScroll, unlockScroll } from '../utils/scrollLock';
 
 export default function WhatsAppModal() {
   const { activeReceiptModal, setActiveReceiptModal } = useCart();
@@ -13,10 +14,9 @@ export default function WhatsAppModal() {
 
   useEffect(() => {
     if (activeReceiptModal) {
-      const originalStyle = window.getComputedStyle(document.body).overflow;
-      document.body.style.overflow = 'hidden';
+      lockScroll();
       return () => {
-        document.body.style.overflow = originalStyle;
+        unlockScroll();
       };
     }
   }, [activeReceiptModal]);

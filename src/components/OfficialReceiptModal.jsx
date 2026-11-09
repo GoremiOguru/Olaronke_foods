@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { X, Printer, Copy, Check } from 'lucide-react';
+import { lockScroll, unlockScroll, forceUnlockScroll } from '../utils/scrollLock';
 
 export default function OfficialReceiptModal({ order, onClose }) {
   const [copied, setCopied] = React.useState(false);
@@ -7,12 +8,16 @@ export default function OfficialReceiptModal({ order, onClose }) {
   if (!order) return null;
 
   useEffect(() => {
-    const originalStyle = window.getComputedStyle(document.body).overflow;
-    document.body.style.overflow = 'hidden';
+    lockScroll();
     return () => {
-      document.body.style.overflow = originalStyle;
+      unlockScroll();
     };
   }, []);
+
+  const handleClose = () => {
+    unlockScroll();
+    if (typeof onClose === 'function') onClose();
+  };
 
   const getPickupCode = (ord) => {
     if (ord?.pickupCode) {
@@ -54,6 +59,9 @@ export default function OfficialReceiptModal({ order, onClose }) {
 
   const handlePrint = () => {
     window.print();
+    setTimeout(() => {
+      forceUnlockScroll();
+    }, 400);
   };
 
   const handleCopy = () => {
@@ -66,14 +74,19 @@ export default function OfficialReceiptModal({ order, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-200 print-active-receipt">
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) handleClose();
+      }}
+      className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-200 print-active-receipt"
+    >
       
       {/* Outer Modal Container */}
       <div className="relative w-full max-w-sm bg-white text-slate-900 rounded-2xl shadow-2xl overflow-hidden border border-slate-300 p-6 print:p-0 print:border-none print:shadow-none print:w-full print:max-w-none font-mono text-xs selection:bg-slate-300">
         
         {/* Close Button (Hidden on Print) */}
         <button
-          onClick={onClose}
+          onClick={handleClose}
           className="absolute top-3 right-3 p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors print:hidden"
           title="Close Receipt"
         >
@@ -221,7 +234,7 @@ export default function OfficialReceiptModal({ order, onClose }) {
           </button>
 
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs transition-colors"
           >
             Close

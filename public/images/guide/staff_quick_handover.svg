@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#020617"/>
+      <stop offset="50%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#090d16"/>
+    </linearGradient>
+    <linearGradient id="orangeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ea580c"/>
+      <stop offset="100%" stop-color="#f97316"/>
+    </linearGradient>
+    <linearGradient id="lemonGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#65a30d"/>
+      <stop offset="100%" stop-color="#84cc16"/>
+    </linearGradient>
+    <linearGradient id="blueGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#38bdf8"/>
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  <rect width="800" height="450" fill="url(#bgGrad)"/>
+  
+  <text x="400" y="55" fill="#f8fafc" font-family="system-ui, sans-serif" font-weight="900" font-size="20" text-anchor="middle">Counter 1-Second Code Handover</text>
+  <text x="400" y="80" fill="#94a3b8" font-family="system-ui, sans-serif" font-weight="600" font-size="13" text-anchor="middle">Type customer 3-digit code to instantly dispense food in 1 second</text>
+
+  <!-- Quick Code Input Box -->
+  <rect x="140" y="105" width="520" height="65" rx="18" fill="#020617" stroke="#10b981" stroke-width="2" filter="url(#glow)"/>
+  <text x="180" y="147" fill="#10b981" font-family="monospace" font-weight="900" font-size="24">#</text>
+  <text x="210" y="148" fill="#fbbf24" font-family="monospace" font-weight="900" font-size="22">005</text>
+  <rect x="520" y="117" width="120" height="40" rx="10" fill="#10b981"/>
+  <text x="580" y="142" fill="#020617" font-family="system-ui, sans-serif" font-weight="900" font-size="12" text-anchor="middle">MATCH FOUND</text>
+
+  <!-- Instant Pop-up Order Ticket -->
+  <rect x="140" y="190" width="520" height="195" rx="20" fill="url(#cardGrad)" stroke="#10b981" stroke-width="2"/>
+  
+  <rect x="165" y="210" width="110" height="34" rx="8" fill="#020617" stroke="#fbbf24"/>
+  <text x="220" y="233" fill="#fbbf24" font-family="monospace" font-weight="900" font-size="16" text-anchor="middle">#GEN-005</text>
+
+  <text x="290" y="225" fill="#ffffff" font-family="system-ui, sans-serif" font-weight="900" font-size="15">Victor Edet (Mass Comm)</text>
+  <text x="290" y="243" fill="#10b981" font-family="system-ui, sans-serif" font-weight="800" font-size="12">₦3,900 (Transfer Verified ✓)</text>
+
+  <text x="165" y="280" fill="#cbd5e1" font-family="system-ui, sans-serif" font-size="13">Items: 2x Smoky Jollof Rice • 1x Fried Chicken • Takeout Pack</text>
+
+  <!-- Two Quick Action Buttons -->
+  <rect x="165" y="310" width="370" height="50" rx="14" fill="url(#lemonGrad)"/>
+  <text x="350" y="341" fill="#020617" font-family="system-ui, sans-serif" font-weight="900" font-size="15" text-anchor="middle">✓ Dispense &amp; Mark Handed Over (1-Sec)</text>
+
+  <rect x="550" y="310" width="85" height="50" rx="14" fill="#1e293b" stroke="#334155"/>
+  <text x="592" y="341" text-anchor="middle" font-size="20">🖨️</text>
+
+</svg>

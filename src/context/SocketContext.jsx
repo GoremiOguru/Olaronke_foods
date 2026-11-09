@@ -1,8 +1,9 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { useAuth } from './AuthContext';
 import { defaultDishes } from '../data/defaultDishes';
 import { dbGetAll, dbPut } from '../utils/offlineDb';
+import { sendNativePushNotification } from '../utils/pushNotification';
 
 const SocketContext = createContext();
 
@@ -48,7 +49,8 @@ export function SocketProvider({ children }) {
   const [pushPermission, setPushPermission] = useState(
     typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'default'
   );
-  const { user } = useAuth();
+  const { user, token } = useAuth();
+  const knownStudentStatusesRef = useRef(new Map());
 
   useEffect(() => {
     const handleOnline = () => {
@@ -153,23 +155,50 @@ export function SocketProvider({ children }) {
 
     // Listen for order status updates
     newSocket.on('order:status_updated', (updatedOrder) => {
-      if (user && (updatedOrder.studentId === user.id || user.role === 'admin' || user.role === 'superadmin')) {
+      const isStudentMatch = user && (
+        updatedOrder.studentId === user.id ||
+        updatedOrder.studentEmail?.toLowerCase() === user.email?.toLowerCase()
+      );
+
+      if (isStudentMatch || (user && (user.role === 'admin' || user.role === 'superadmin'))) {
+        let title = `Order #${updatedOrder.id} Status Updated`;
+        let desc = `Order status is now: "${updatedOrder.status}"`;
+        const s = (updatedOrder.status || '').toLowerCase();
+        const code = updatedOrder.pickupCode ? (String(updatedOrder.pickupCode).startsWith('GEN-') ? updatedOrder.pickupCode : `GEN-${String(updatedOrder.pickupCode).padStart(3, '0')}`) : 'GEN-001';
+
+        if (s.includes('preparing') || s.includes('cooking') || s.includes('confirmed')) {
+          title = `👨‍🍳 Food Cooking: Order #${updatedOrder.id}`;
+          desc = `Payment verified! Cafeteria kitchen is cooking & dishing your hot meal. Official receipt is unlocked!`;
+        } else if (s.includes('ready')) {
+          if (updatedOrder.isHostelDelivery) {
+            title = `🚴 Out for Delivery: Order #${updatedOrder.id}`;
+            desc = `Your meal is hot & on the way to your hostel/faculty! Please be ready at the entrance lobby.`;
+          } else {
+            title = `🔔 Ready for Pickup: Order #${updatedOrder.id}`;
+            desc = `Your food is ready! Show Secret Code #${code} at the cafeteria counter to collect.`;
+          }
+        } else if (s.includes('completed')) {
+          title = `✅ Meal Handed Over: Order #${updatedOrder.id}`;
+          desc = `Order completed. Thank you for dining with Benefeastas!`;
+        }
+
         const toast = {
           id: Date.now(),
-          title: `Order #${updatedOrder.id} Status Updated`,
-          message: `Order status is now: "${updatedOrder.status}"`,
+          title,
+          message: desc,
           type: 'info',
           timestamp: new Date().toLocaleTimeString()
         };
         setNotifications(prev => [toast, ...prev]);
 
-        if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted' && updatedOrder.studentId === user.id) {
-          try {
-            new Notification(`🍱 B'feastas Order #${updatedOrder.id}`, {
-              body: `Your order status is now: ${updatedOrder.status}`,
-              icon: "/images/jollof_rice.png"
-            });
-          } catch (e) {}
+        if (isStudentMatch) {
+          sendNativePushNotification(title, {
+            body: desc,
+            icon: '/images/compay logo.jpeg',
+            badge: '/images/compay logo.jpeg',
+            tag: `bfeastas-order-${updatedOrder.id}-${updatedOrder.status}`,
+            renotify: true
+          });
         }
       }
     });
@@ -265,6 +294,75 @@ export function SocketProvider({ children }) {
       }
     };
   }, []);
+
+  // Student Background Order Tracker: notifies device homescreen/lockscreen when away from page
+  useEffect(() => {
+    if (!token || !user) return;
+    if (user.role === 'admin' || user.role === 'superadmin') return;
+
+    const checkStudentOrdersStatus = async () => {
+      try {
+        const res = await fetch('/api/orders', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) return;
+        const list = await res.json();
+        if (!Array.isArray(list)) return;
+
+        const myOrders = list.filter(o => 
+          o.studentId === user.id || 
+          o.studentEmail?.toLowerCase() === user.email?.toLowerCase()
+        );
+
+        for (const ord of myOrders) {
+          const prevStatus = knownStudentStatusesRef.current.get(ord.id);
+          if (prevStatus && prevStatus !== ord.status) {
+            const pickupCode = ord.pickupCode ? (String(ord.pickupCode).startsWith('GEN-') ? ord.pickupCode : `GEN-${String(ord.pickupCode).padStart(3, '0')}`) : 'GEN-001';
+            let title = `🍱 Order #${ord.id} Updated`;
+            let desc = `Your order status is now: ${ord.status}`;
+
+            const s = (ord.status || '').toLowerCase();
+            if (s.includes('preparing') || s.includes('cooking') || s.includes('confirmed')) {
+              title = `👨‍🍳 Food Cooking: Order #${ord.id}`;
+              desc = `Payment verified! Cafeteria kitchen is cooking & dishing your hot meal. Official receipt is unlocked!`;
+            } else if (s.includes('ready')) {
+              if (ord.isHostelDelivery) {
+                title = `🚴 Out for Delivery: Order #${ord.id}`;
+                desc = `Your meal is hot & on the way to your hostel/faculty! Please be ready at the entrance lobby.`;
+              } else {
+                title = `🔔 Ready for Pickup: Order #${ord.id}`;
+                desc = `Your food is ready! Show Secret Code #${pickupCode} at the cafeteria counter to collect.`;
+              }
+            } else if (s.includes('completed')) {
+              title = `✅ Meal Handed Over: Order #${ord.id}`;
+              desc = `Order completed. Thank you for dining with Benefeastas!`;
+            }
+
+            addNotification({
+              id: Date.now() + Math.random(),
+              title,
+              message: desc,
+              type: 'success'
+            });
+
+            // Native push notification for home screen / device lockscreen
+            sendNativePushNotification(title, {
+              body: desc,
+              icon: '/images/compay logo.jpeg',
+              badge: '/images/compay logo.jpeg',
+              tag: `bfeastas-poll-${ord.id}-${ord.status}`,
+              renotify: true
+            });
+          }
+          knownStudentStatusesRef.current.set(ord.id, ord.status);
+        }
+      } catch (e) {}
+    };
+
+    checkStudentOrdersStatus();
+    const studentPollInterval = setInterval(checkStudentOrdersStatus, 4000);
+    return () => clearInterval(studentPollInterval);
+  }, [user, token]);
 
   const addNotification = (toast) => {
     const toastId = toast.id || Date.now() + Math.random();

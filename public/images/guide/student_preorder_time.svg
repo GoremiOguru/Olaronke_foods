@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#020617"/>
+      <stop offset="50%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#090d16"/>
+    </linearGradient>
+    <linearGradient id="orangeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ea580c"/>
+      <stop offset="100%" stop-color="#f97316"/>
+    </linearGradient>
+    <linearGradient id="lemonGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#65a30d"/>
+      <stop offset="100%" stop-color="#84cc16"/>
+    </linearGradient>
+    <linearGradient id="blueGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#38bdf8"/>
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  <rect width="800" height="450" fill="url(#bgGrad)"/>
+  
+  <text x="400" y="60" fill="#f8fafc" font-family="system-ui, sans-serif" font-weight="900" font-size="20" text-anchor="middle">Schedule Morning Pre-Orders</text>
+  <text x="400" y="85" fill="#94a3b8" font-family="system-ui, sans-serif" font-weight="600" font-size="13" text-anchor="middle">Order during lectures • Skip the 20-minute peak queue</text>
+
+  <!-- 4 Time Slot Buttons -->
+  <rect x="120" y="130" width="250" height="100" rx="18" fill="url(#cardGrad)" stroke="#334155" stroke-width="2"/>
+  <text x="150" y="175" text-anchor="start" font-size="28">⏰</text>
+  <text x="195" y="172" fill="#ffffff" font-family="system-ui, sans-serif" font-weight="900" font-size="18">12:30 PM Slot</text>
+  <text x="195" y="195" fill="#94a3b8" font-family="system-ui, sans-serif" font-weight="600" font-size="12">First Lunch Break</text>
+
+  <rect x="430" y="130" width="250" height="100" rx="18" fill="url(#cardGrad)" stroke="#f97316" stroke-width="2" filter="url(#glow)"/>
+  <text x="460" y="175" text-anchor="start" font-size="28">🔥</text>
+  <text x="505" y="172" fill="#ffffff" font-family="system-ui, sans-serif" font-weight="900" font-size="18">1:15 PM Slot</text>
+  <text x="505" y="195" fill="#f97316" font-family="system-ui, sans-serif" font-weight="700" font-size="12">Peak Cafeteria Rush</text>
+
+  <rect x="120" y="260" width="250" height="100" rx="18" fill="url(#cardGrad)" stroke="#334155" stroke-width="2"/>
+  <text x="150" y="305" text-anchor="start" font-size="28">⏳</text>
+  <text x="195" y="302" fill="#ffffff" font-family="system-ui, sans-serif" font-weight="900" font-size="18">2:00 PM Slot</text>
+  <text x="195" y="325" fill="#94a3b8" font-family="system-ui, sans-serif" font-weight="600" font-size="12">Afternoon Break</text>
+
+  <rect x="430" y="260" width="250" height="100" rx="18" fill="url(#cardGrad)" stroke="#334155" stroke-width="2"/>
+  <text x="460" y="305" text-anchor="start" font-size="28">🌙</text>
+  <text x="505" y="302" fill="#ffffff" font-family="system-ui, sans-serif" font-weight="900" font-size="18">5:30 PM Slot</text>
+  <text x="505" y="325" fill="#94a3b8" font-family="system-ui, sans-serif" font-weight="600" font-size="12">Evening Dinner Pack</text>
+
+</svg>

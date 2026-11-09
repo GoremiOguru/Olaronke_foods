@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Clock, CheckCircle2, PackageCheck, AlertTriangle, Key, Printer, ShoppingBag, MapPin, ChefHat, Truck, Bike, Sparkles, RefreshCw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import OfficialReceiptModal from './OfficialReceiptModal';
+import { lockScroll, unlockScroll, forceUnlockScroll } from '../utils/scrollLock';
 
 export default function MyOrdersModal({ isOpen, onClose }) {
   const { user, token } = useAuth();
@@ -19,6 +20,20 @@ export default function MyOrdersModal({ isOpen, onClose }) {
   });
   const [loading, setLoading] = useState(false);
   const [selectedReceiptOrder, setSelectedReceiptOrder] = useState(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      lockScroll();
+      return () => {
+        unlockScroll();
+      };
+    }
+  }, [isOpen]);
+
+  const handleClose = () => {
+    unlockScroll();
+    if (typeof onClose === 'function') onClose();
+  };
 
   useEffect(() => {
     if (!isOpen || !token) return;
@@ -59,9 +74,39 @@ export default function MyOrdersModal({ isOpen, onClose }) {
             });
             return Array.from(map.values()).sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
           });
+        } else if (!res.ok && isMounted) {
+          // If offline / server unavailable, load from cache
+          let cached = [];
+          try {
+            const raw = localStorage.getItem('olaronke_cached_orders');
+            if (raw) cached = JSON.parse(raw);
+          } catch (e) {}
+          let localPending = [];
+          try {
+            const raw = localStorage.getItem('olaronke_pending_offline_orders');
+            if (raw) localPending = JSON.parse(raw);
+          } catch (e) {}
+          const studentOrders = [...cached, ...localPending].filter(o => o.studentEmail?.toLowerCase() === user?.email?.toLowerCase() || o.studentId === user?.id);
+          if (studentOrders.length > 0) {
+            setOrders(studentOrders);
+          }
         }
       } catch (err) {
-        console.warn('Student orders fetch notice:', err);
+        // Fallback for offline mode
+        let cached = [];
+        try {
+          const raw = localStorage.getItem('olaronke_cached_orders');
+          if (raw) cached = JSON.parse(raw);
+        } catch (e) {}
+        let localPending = [];
+        try {
+          const raw = localStorage.getItem('olaronke_pending_offline_orders');
+          if (raw) localPending = JSON.parse(raw);
+        } catch (e) {}
+        const studentOrders = [...cached, ...localPending].filter(o => o.studentEmail?.toLowerCase() === user?.email?.toLowerCase() || o.studentId === user?.id);
+        if (studentOrders.length > 0 && isMounted) {
+          setOrders(studentOrders);
+        }
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -120,7 +165,12 @@ export default function MyOrdersModal({ isOpen, onClose }) {
 
   return (
     <>
-      <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-200">
+      <div
+        onClick={(e) => {
+          if (e.target === e.currentTarget) handleClose();
+        }}
+        className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-200"
+      >
         <div className="relative w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden text-slate-100 p-6 space-y-6">
           
           <div className="flex items-center justify-between border-b border-slate-800 pb-4">
@@ -131,7 +181,7 @@ export default function MyOrdersModal({ isOpen, onClose }) {
               <p className="text-xs text-slate-400">Track meal cooking stages in real time & print verified official receipts.</p>
             </div>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
             >
               <X className="w-5 h-5" />
@@ -333,7 +383,10 @@ export default function MyOrdersModal({ isOpen, onClose }) {
       {selectedReceiptOrder && (
         <OfficialReceiptModal
           order={selectedReceiptOrder}
-          onClose={() => setSelectedReceiptOrder(null)}
+          onClose={() => {
+            setSelectedReceiptOrder(null);
+            forceUnlockScroll();
+          }}
         />
       )}
     </>

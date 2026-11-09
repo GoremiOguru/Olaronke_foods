@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { X, QrCode, Printer, Download, Copy, Check, Sparkles, Smartphone } from 'lucide-react';
+import { lockScroll, unlockScroll } from '../utils/scrollLock';
 
 export default function QRCodeModal({ isOpen, onClose, restaurantName = "B'feastas Topfaith Cafeteria" }) {
   const [copied, setCopied] = React.useState(false);
@@ -7,10 +8,9 @@ export default function QRCodeModal({ isOpen, onClose, restaurantName = "B'feast
 
   React.useEffect(() => {
     if (isOpen) {
-      const original = window.getComputedStyle(document.body).overflow;
-      document.body.style.overflow = 'hidden';
+      lockScroll();
       return () => {
-        document.body.style.overflow = original;
+        unlockScroll();
       };
     }
   }, [isOpen]);

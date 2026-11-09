@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, User, Lock, Mail, ShieldCheck, AlertCircle, CheckCircle2, Phone, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { lockScroll, unlockScroll } from '../utils/scrollLock';
 
 export default function AuthModal({ isOpen, onClose }) {
   const { login, register } = useAuth();
@@ -16,13 +17,12 @@ export default function AuthModal({ isOpen, onClose }) {
   const [successMsg, setSuccessMsg] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Disable background scrolling when modal is open
+  // Disable background scrolling safely when modal is open
   useEffect(() => {
     if (isOpen) {
-      const originalStyle = window.getComputedStyle(document.body).overflow;
-      document.body.style.overflow = 'hidden';
+      lockScroll();
       return () => {
-        document.body.style.overflow = originalStyle;
+        unlockScroll();
       };
     }
   }, [isOpen]);
