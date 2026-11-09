@@ -54,15 +54,6 @@ export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdmi
           {/* Desktop Controls */}
           <div className="hidden md:flex items-center space-x-4">
             
-            {/* How to Use / App Guide */}
-            <button
-              onClick={onOpenHowToUse}
-              className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl font-bold text-xs bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700/80 transition-all hover:scale-105 shadow-sm"
-            >
-              <HelpCircle className="w-4 h-4 text-brand-lemon-glow" />
-              <span>How to Order</span>
-            </button>
-
             {/* Admin Switcher */}
             {isAdmin && (
               <button
