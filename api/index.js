@@ -555,7 +555,7 @@ app.get(['/api/orders', '/orders'], authenticateToken, async (req, res) => {
       const orderLimit = (req.user.role === 'admin' || req.user.role === 'superadmin') ? 250 : 50;
       let query = supabase.from('orders').select('*').order('createdAt', { ascending: false }).limit(orderLimit);
       if (req.user.role !== 'admin' && req.user.role !== 'superadmin') {
-        query = query.or(`studentId.eq.${req.user.id},studentEmail.eq.${req.user.email}`);
+        query = query.or(`studentId.eq.${req.user.id},studentEmail.ilike.${req.user.email}`);
       }
       const { data, error } = await query;
       if (!error && Array.isArray(data)) {
@@ -704,8 +704,19 @@ app.post(['/api/orders', '/orders'], authenticateOrderRequest, async (req, res) 
 
   let pickupCode = req.body.pickupCode ? String(req.body.pickupCode) : null;
   if (!pickupCode) {
-    const todayStr = new Date().toDateString();
-    const todayCount = (db.orders || []).filter(o => o.createdAt && new Date(o.createdAt).toDateString() === todayStr).length;
+    let todayCount = 0;
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        const { count } = await supabase.from('orders').select('*', { count: 'exact', head: true }).gte('createdAt', todayStart.toISOString());
+        if (Number.isInteger(count)) todayCount = count;
+      } catch (e) {}
+    }
+    if (todayCount === 0) {
+      const todayStr = new Date().toDateString();
+      todayCount = (db.orders || []).filter(o => o.createdAt && new Date(o.createdAt).toDateString() === todayStr).length;
+    }
     pickupCode = `GEN-${String(todayCount + 1).padStart(3, '0')}`;
   } else if (!pickupCode.startsWith('GEN-') && /^\d+$/.test(pickupCode)) {
     pickupCode = `GEN-${pickupCode.padStart(3, '0')}`;
@@ -768,12 +779,28 @@ app.patch(['/api/orders/:id/status', '/orders/:id/status'], authenticateToken, r
   if (!status) return res.status(400).json({ message: 'Status is required' });
 
   const db = loadDB();
-  const order = db.orders.find(o => o.id === id);
+  let order = db.orders.find(o => o.id === id);
+
+  if (!order && isSupabaseConfigured && supabase) {
+    try {
+      const { data: supaOrder } = await supabase.from('orders').select('*').eq('id', id).maybeSingle();
+      if (supaOrder) {
+        order = supaOrder;
+        db.orders.push(order);
+      }
+    } catch (e) {
+      console.warn('Supabase order lookup notice:', e.message);
+    }
+  }
 
   if (!order) return res.status(404).json({ message: 'Order not found' });
 
   order.status = status;
   order.confirmedByAdmin = req.user.name;
+
+  if (status.includes('Confirmed') || status === 'Completed' || status === 'Paid' || status.includes('Preparing') || status.includes('Ready')) {
+    order.paymentConfirmed = true;
+  }
 
   const isNewStatusCancelled = status.toLowerCase().includes('cancel') || status.toLowerCase().includes('reject') || status.toLowerCase().includes('fail');
   const wasPreviouslyCancelled = Boolean(order.isCancelled);
@@ -781,49 +808,21 @@ app.patch(['/api/orders/:id/status', '/orders/:id/status'], authenticateToken, r
   if (isNewStatusCancelled && !wasPreviouslyCancelled) {
     order.isCancelled = true;
     order.paymentConfirmed = false;
-
-    if (Array.isArray(order.items)) {
-      for (const item of order.items) {
-        const scoopsToRestore = Math.floor(Number(item.scoops) || 1);
-        const dish = db.dishes.find(d => d.id === item.dishId || (item.dishName && d.name && item.dishName.includes(d.name)));
-        if (dish) {
-          dish.scoopsLeft = Math.max(0, Number(dish.scoopsLeft || 0) + scoopsToRestore);
-          if (dish.scoopsLeft > 0) {
-            dish.isAvailable = true;
-          }
-          if (isSupabaseConfigured) {
-            await saveSupabaseRecord('dishes', dish);
-          }
-        }
-      }
-    }
   } else if (!isNewStatusCancelled && wasPreviouslyCancelled) {
     order.isCancelled = false;
-
-    if (Array.isArray(order.items)) {
-      for (const item of order.items) {
-        const scoopsToDeduct = Math.floor(Number(item.scoops) || 1);
-        const dish = db.dishes.find(d => d.id === item.dishId || (item.dishName && d.name && item.dishName.includes(d.name)));
-        if (dish) {
-          dish.scoopsLeft = Math.max(0, Number(dish.scoopsLeft || 0) - scoopsToDeduct);
-          if (dish.scoopsLeft === 0) {
-            dish.isAvailable = false;
-          }
-          if (isSupabaseConfigured) {
-            await saveSupabaseRecord('dishes', dish);
-          }
-        }
-      }
-    }
-  }
-
-  if (status.includes('Confirmed') || status === 'Completed' || status === 'Paid' || status.includes('Preparing') || status.includes('Ready')) {
-    order.paymentConfirmed = true;
   }
 
   saveDB(db);
 
-  if (isSupabaseConfigured) {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      await supabase.from('orders').update({
+        status: order.status,
+        paymentConfirmed: order.paymentConfirmed
+      }).eq('id', id);
+    } catch (supaErr) {
+      console.warn('Supabase direct status update notice:', supaErr.message);
+    }
     await saveSupabaseRecord('orders', order);
   }
 

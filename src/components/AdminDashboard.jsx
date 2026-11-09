@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Flame, Plus, Minus, ToggleLeft, ToggleRight, DollarSign, CheckCircle2, Clock, PackageCheck, AlertTriangle, RefreshCw, Search, ShieldCheck, User, MessageCircle, Trash2, Key, Users, MapPin, Package, UtensilsCrossed, Upload, Image as ImageIcon, Check, Edit3, X, Bell, BellRing, Smartphone, Printer, Calendar, Filter, HelpCircle, Bug, Tv, QrCode, Share2, ReceiptText, Banknote, CreditCard } from 'lucide-react';
+import { Flame, Plus, Minus, ToggleLeft, ToggleRight, DollarSign, CheckCircle2, Clock, PackageCheck, AlertTriangle, RefreshCw, Search, ShieldCheck, User, MessageCircle, Trash2, Key, Users, MapPin, Package, UtensilsCrossed, Upload, Image as ImageIcon, Check, Edit3, X, Bell, BellRing, Smartphone, Printer, Calendar, Filter, HelpCircle, Bug, QrCode, Share2, ReceiptText, Banknote, CreditCard } from 'lucide-react';
 import { useSocket } from '../context/SocketContext';
 import { useAuth } from '../context/AuthContext';
 import OfficialReceiptModal from './OfficialReceiptModal';
-import KitchenDisplayModal from './KitchenDisplayModal';
 import QRCodeModal from './QRCodeModal';
 import { getNextDailyPickupCode, dbPut } from '../utils/offlineDb';
 
@@ -11,7 +10,14 @@ export default function AdminDashboard({ onOpenHowToUse }) {
   const { dishes, setDishes, socket, pushPermission, requestPushPermission, addNotification } = useSocket();
   const { token, user, user: currentUser } = useAuth();
 
-  const [orders, setOrders] = useState([]);
+  const [orders, setOrders] = useState(() => {
+    try {
+      const cached = localStorage.getItem('olaronke_cached_orders');
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
   const [staffList, setStaffList] = useState([]);
   const [activeTab, setActiveTab] = useState('inventory');
   const [orderSearch, setOrderSearch] = useState('');
@@ -22,8 +28,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
   const [dishSearch, setDishSearch] = useState('');
   const [deletingDishId, setDeletingDishId] = useState(null);
 
-  // KDS & QR Code Modal States
-  const [isKdsOpen, setIsKdsOpen] = useState(false);
+  // QR Code Modal State
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
 
   // Editing Dish Title & Description State
@@ -188,9 +193,21 @@ export default function AdminDashboard({ onOpenHowToUse }) {
                 }
               }
             }
+            // Merge with local offline walk-in orders so they remain visible in the student order queue
+            let localPending = [];
+            try {
+              const raw = localStorage.getItem('olaronke_pending_offline_orders');
+              if (raw) localPending = JSON.parse(raw);
+            } catch (e) {}
+
+            const mergedMap = new Map();
+            (localPending || []).forEach(o => o && o.id && mergedMap.set(o.id, o));
+            dataOrders.forEach(o => o && o.id && mergedMap.set(o.id, { ...(mergedMap.get(o.id) || {}), ...o }));
+            const mergedList = Array.from(mergedMap.values()).sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+
             isFirstLoadRef.current = false;
             knownOrderIdsRef.current = new Set(dataOrders.map(o => o.id));
-            setOrders(dataOrders);
+            setOrders(mergedList);
           }
         } catch (e) {}
       } else if (resOrders && (resOrders.status === 401 || resOrders.status === 403)) {
@@ -282,7 +299,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
             addNotification({
               id: Date.now(),
               title: '✓ Menu Updated Everywhere!',
-              message: 'Your food changes have been sent to all student phones and kitchen screens.',
+              message: 'Your food changes have been sent to all student phones and cafeteria counters.',
               type: 'success'
             });
           }
@@ -299,6 +316,71 @@ export default function AdminDashboard({ onOpenHowToUse }) {
     return () => {
       window.removeEventListener('online', syncPendingAdminActions);
       clearInterval(syncInterval);
+    };
+  }, [token]);
+
+  // Cache orders locally so offline reload immediately shows walk-in sales & student orders
+  useEffect(() => {
+    try {
+      if (Array.isArray(orders) && orders.length > 0) {
+        localStorage.setItem('olaronke_cached_orders', JSON.stringify(orders));
+      }
+    } catch (e) {}
+  }, [orders]);
+
+  // Background auto-sync for offline walk-in sales recorded by counter staff
+  useEffect(() => {
+    const syncWalkInOrders = async () => {
+      try {
+        const raw = localStorage.getItem('olaronke_pending_offline_orders');
+        if (!raw) return;
+        const pending = JSON.parse(raw);
+        if (!Array.isArray(pending) || pending.length === 0) return;
+
+        const remaining = [];
+        for (const order of pending) {
+          try {
+            const authToken = order.savedToken || token;
+            const res = await fetch('/api/orders', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
+              },
+              body: JSON.stringify({ ...order, isOfflineOrder: true })
+            });
+
+            if (res.ok) {
+              const synced = await res.json();
+              if (typeof addNotification === 'function') {
+                addNotification({
+                  id: Date.now() + Math.random(),
+                  title: '⚡ Offline Sale Synced!',
+                  message: `Walk-in Order #${synced.id} (Code #${getPickupCode(synced)}) synced to live cafeteria records.`,
+                  type: 'success'
+                });
+              }
+              setOrders(prev => (prev || []).map(o => o.id === order.id ? { ...o, ...synced, isOfflineOrder: false } : o));
+            } else {
+              remaining.push(order);
+            }
+          } catch (e) {
+            remaining.push(order);
+          }
+        }
+
+        localStorage.setItem('olaronke_pending_offline_orders', JSON.stringify(remaining));
+      } catch (err) {
+        console.warn('Sync walk-in orders notice:', err);
+      }
+    };
+
+    window.addEventListener('online', syncWalkInOrders);
+    const syncWalkInInterval = setInterval(syncWalkInOrders, 4000);
+    syncWalkInOrders();
+    return () => {
+      window.removeEventListener('online', syncWalkInOrders);
+      clearInterval(syncWalkInInterval);
     };
   }, [token]);
 
@@ -590,10 +672,22 @@ export default function AdminDashboard({ onOpenHowToUse }) {
   };
 
   const handleOrderStatusChange = async (orderId, newStatus) => {
-    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus, confirmedByAdmin: currentUser?.name } : o));
+    const isPaymentConfirmed = newStatus.includes('Confirmed') || newStatus === 'Completed' || newStatus === 'Paid' || newStatus.includes('Preparing') || newStatus.includes('Ready');
+    setOrders(prev => {
+      const updated = (prev || []).map(o => o.id === orderId ? {
+        ...o,
+        status: newStatus,
+        paymentConfirmed: isPaymentConfirmed ? true : o.paymentConfirmed,
+        confirmedByAdmin: currentUser?.name || user?.name || 'Staff'
+      } : o);
+      try {
+        localStorage.setItem('olaronke_cached_orders', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
 
     try {
-      await fetch(`/api/orders/${orderId}/status`, {
+      const res = await fetch(`/api/orders/${orderId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -601,6 +695,16 @@ export default function AdminDashboard({ onOpenHowToUse }) {
         },
         body: JSON.stringify({ status: newStatus })
       });
+      if (res.ok) {
+        const updatedOrder = await res.json();
+        setOrders(prev => {
+          const updated = (prev || []).map(o => o.id === orderId ? { ...o, ...updatedOrder } : o);
+          try {
+            localStorage.setItem('olaronke_cached_orders', JSON.stringify(updated));
+          } catch (e) {}
+          return updated;
+        });
+      }
     } catch (err) {
       console.error('Failed to update order status:', err);
     }
@@ -1019,16 +1123,6 @@ export default function AdminDashboard({ onOpenHowToUse }) {
               <span className="truncate">Record Walk-in Sale</span>
             </button>
 
-            {/* Kitchen Screen Tablet Mode Button */}
-            <button
-              onClick={() => setIsKdsOpen(true)}
-              className="flex items-center justify-center space-x-1.5 px-3.5 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-brand-orange to-amber-600 hover:from-orange-500 hover:to-amber-700 text-white shadow-orange-glow transition-all w-full sm:w-auto"
-              title="Launch Kitchen Orders Screen"
-            >
-              <Tv className="w-4 h-4 shrink-0" />
-              <span className="truncate">Kitchen Screen</span>
-            </button>
-
             {/* Table & Counter QR Code Generator */}
             <button
               onClick={() => setIsQrModalOpen(true)}
@@ -1107,7 +1201,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
             </div>
             <p className="text-3xl font-black text-brand-lemon-glow">₦{totalRevenue.toLocaleString()}</p>
             <div className="flex items-center justify-between text-[11px] text-slate-400 mt-1.5 pt-1 border-t border-slate-800 font-bold">
-              <span>💵 Cash: <strong className="text-emerald-400">₦{filteredOrders.filter(o => o.paymentMethod === 'Cash' || o.studentEmail === 'walkin@topfaith.edu.ng' || (o.studentName && o.studentName.toLowerCase().includes('walk-in'))).reduce((sum, o) => sum + (o.status !== 'Cancelled' ? o.totalPrice : 0), 0).toLocaleString()}</strong></span>
+              <span>💵 Physical: <strong className="text-emerald-400">₦{filteredOrders.filter(o => o.paymentMethod === 'Cash' || o.studentEmail === 'walkin@topfaith.edu.ng' || (o.studentName && o.studentName.toLowerCase().includes('walk-in'))).reduce((sum, o) => sum + (o.status !== 'Cancelled' ? o.totalPrice : 0), 0).toLocaleString()}</strong></span>
               <span>📱 Online: <strong className="text-sky-400">₦{filteredOrders.filter(o => o.paymentMethod !== 'Cash' && o.studentEmail !== 'walkin@topfaith.edu.ng' && (!o.studentName || !o.studentName.toLowerCase().includes('walk-in'))).reduce((sum, o) => sum + (o.status !== 'Cancelled' ? o.totalPrice : 0), 0).toLocaleString()}</strong></span>
             </div>
           </div>
@@ -2211,15 +2305,6 @@ export default function AdminDashboard({ onOpenHowToUse }) {
             </form>
           </div>
         )}
-
-        {/* Kitchen Display System (KDS) Tablet View Modal */}
-        <KitchenDisplayModal
-          isOpen={isKdsOpen}
-          onClose={() => setIsKdsOpen(false)}
-          orders={orders}
-          onUpdateStatus={handleOrderStatusChange}
-          token={token}
-        />
 
         {/* Table & Counter QR Code Generator Modal */}
         <QRCodeModal

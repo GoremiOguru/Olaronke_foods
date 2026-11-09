@@ -605,44 +605,18 @@ app.patch('/api/orders/:id/status', authenticateToken, requireAdmin, (req, res) 
   order.status = status;
   order.confirmedByAdmin = req.user.name;
 
+  if (status.includes('Confirmed') || status === 'Completed' || status === 'Paid' || status.includes('Preparing') || status.includes('Ready')) {
+    order.paymentConfirmed = true;
+  }
+
   const isNewStatusCancelled = status.toLowerCase().includes('cancel') || status.toLowerCase().includes('reject') || status.toLowerCase().includes('fail');
   const wasPreviouslyCancelled = Boolean(order.isCancelled);
 
   if (isNewStatusCancelled && !wasPreviouslyCancelled) {
     order.isCancelled = true;
     order.paymentConfirmed = false;
-
-    if (Array.isArray(order.items)) {
-      for (const item of order.items) {
-        const scoopsToRestore = Math.floor(Number(item.scoops) || 1);
-        const dish = db.dishes.find(d => d.id === item.dishId || (item.dishName && d.name && item.dishName.includes(d.name)));
-        if (dish) {
-          dish.scoopsLeft = Math.max(0, Number(dish.scoopsLeft || 0) + scoopsToRestore);
-          if (dish.scoopsLeft > 0) {
-            dish.isAvailable = true;
-          }
-        }
-      }
-    }
   } else if (!isNewStatusCancelled && wasPreviouslyCancelled) {
     order.isCancelled = false;
-
-    if (Array.isArray(order.items)) {
-      for (const item of order.items) {
-        const scoopsToDeduct = Math.floor(Number(item.scoops) || 1);
-        const dish = db.dishes.find(d => d.id === item.dishId || (item.dishName && d.name && item.dishName.includes(d.name)));
-        if (dish) {
-          dish.scoopsLeft = Math.max(0, Number(dish.scoopsLeft || 0) - scoopsToDeduct);
-          if (dish.scoopsLeft === 0) {
-            dish.isAvailable = false;
-          }
-        }
-      }
-    }
-  }
-
-  if (status.includes('Confirmed') || status === 'Completed' || status === 'Paid' || status.includes('Preparing') || status.includes('Ready')) {
-    order.paymentConfirmed = true;
   }
 
   saveDB(db);

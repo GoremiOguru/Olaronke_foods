@@ -147,18 +147,18 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
 
   const adminSteps = [
     {
-      id: 'admin-kds',
+      id: 'admin-orders',
       targetId: 'admin-panel',
-      title: "1. Kitchen KDS Tablet View & Strobe Alerts",
-      badge: "Touchscreen KDS",
+      title: "1. Order Queue & Live Status Management",
+      badge: "Live Orders",
       color: "from-brand-orange to-amber-600",
-      description: "Launch the full-screen Kitchen Display System (KDS) on wall tablets or kitchen TVs. Cards organize automatically into 3 columns: Awaiting Payment, Cooking & Packing, and Ready for Pickup.",
+      description: "Manage incoming student orders and walk-in counter sales in real time. As you advance statuses, student receipts unlock instantly.",
       image: "/images/admin_guide.jpg",
-      actionText: "Launch KDS Tablet View",
+      actionText: "Go to Student Orders",
       bullets: [
-        "🚨 Visual Screen-Flash Strobe: Flashes neon amber for 5 seconds when new orders arrive so cooks never miss tickets in noisy kitchens",
-        "1-Second Quick Dispense: Type customer code (e.g. '005' or 'GEN-005') in the top search bar and tap 'Dispense & Hand Over ✓'",
-        "Common Confusion: Tap 'Verify Payment & Cook' only after confirming the student's bank transfer alert"
+        "Status Flow: Advance orders from 'Verify Payment' ➔ 'Preparing & Cooking' ➔ 'Ready for Pickup / Out for Delivery' ➔ 'Completed'",
+        "1-Second Quick Dispense: Type customer code (e.g. '005' or 'GEN-005') in the search bar to instantly find and dispense the order",
+        "Common Confusion: Updating an order to Preparing or Ready automatically verifies payment and unlocks official printable receipts on the student's phone"
       ],
       action: () => {
         onClose();
