@@ -1,14 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bug, MessageSquare, X, Wrench, ShieldAlert } from 'lucide-react';
 
 export default function TechSupportFloatingWidget() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isAnyModalOpen, setIsAnyModalOpen] = useState(false);
+
   const techSupportPhone = '08057357728';
   const cleanPhone = '2348057357728';
   const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent("Hello Tech Support, I'm experiencing an issue/bug on the B'feastas website:")}`;
 
+  // Automatically hide floating widget whenever any modal or drawer is active
+  useEffect(() => {
+    const checkModal = () => {
+      const modal = document.querySelector('.fixed.inset-0');
+      setIsAnyModalOpen(Boolean(modal));
+    };
+
+    checkModal();
+    const observer = new MutationObserver(checkModal);
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+
+    return () => observer.disconnect();
+  }, []);
+
+  if (isAnyModalOpen) return null;
+
   return (
-    <div className="fixed bottom-5 right-5 z-50">
+    <div className="fixed bottom-5 right-5 z-30">
       {isOpen ? (
         <div className="bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl p-4 w-72 text-slate-100 animate-in fade-in slide-in-from-bottom-4 duration-200">
           <div className="flex items-center justify-between pb-3 border-b border-slate-800">

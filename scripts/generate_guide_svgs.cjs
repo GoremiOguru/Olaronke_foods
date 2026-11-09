@@ -38,7 +38,7 @@ function wrapSvg(content) {
 </svg>`;
 }
 
-// 1. Student: Live Menu & Scoops Countdown
+// 1. Student: Live Menu &amp; Scoops Countdown
 const studentMenuStock = wrapSvg(`
   <!-- Dish Card Mockup -->
   <rect x="220" y="40" width="360" height="370" rx="24" fill="url(#cardGrad)" stroke="#334155" stroke-width="2"/>
@@ -52,7 +52,7 @@ const studentMenuStock = wrapSvg(`
   <rect x="420" y="70" width="130" height="28" rx="14" fill="#84cc16" opacity="0.9" filter="url(#glow)"/>
   <text x="485" y="89" fill="#020617" font-family="system-ui, sans-serif" font-weight="900" font-size="12" text-anchor="middle">⚡ 14 SCOOPS LEFT</text>
   
-  <!-- Dish Name & Category -->
+  <!-- Dish Name &amp; Category -->
   <text x="250" y="240" fill="#ffffff" font-family="system-ui, sans-serif" font-weight="900" font-size="18">Smoky Party Jollof Rice</text>
   <text x="250" y="260" fill="#94a3b8" font-family="system-ui, sans-serif" font-weight="600" font-size="12">Main Dishes • Fresh Pot from Cafeteria</text>
   
@@ -70,7 +70,7 @@ const studentMenuStock = wrapSvg(`
   <text x="470" y="357" fill="#ffffff" font-family="system-ui, sans-serif" font-weight="900" font-size="14" text-anchor="middle">Add to Tray • ₦2,400</text>
 `);
 
-// 2. Student: Takeout Packs & Multi-Plate Arranger
+// 2. Student: Takeout Packs &amp; Multi-Plate Arranger
 const studentTakeoutPacks = wrapSvg(`
   <text x="400" y="65" fill="#f8fafc" font-family="system-ui, sans-serif" font-weight="900" font-size="20" text-anchor="middle">Smart Takeout Packaging</text>
   <text x="400" y="90" fill="#94a3b8" font-family="system-ui, sans-serif" font-weight="600" font-size="13" text-anchor="middle">Max 5 scoops per plate • Choose your container</text>
@@ -103,9 +103,9 @@ const studentTakeoutPacks = wrapSvg(`
   <text x="620" y="295" fill="#94a3b8" font-family="system-ui, sans-serif" font-weight="500" font-size="11" text-anchor="middle">Full plate (5 scoops max)</text>
 `);
 
-// 3. Student: Delivery Options & ₦100 Multi-Plate Discount
+// 3. Student: Delivery Options &amp; ₦100 Multi-Plate Discount
 const studentDeliveryOptions = wrapSvg(`
-  <text x="400" y="55" fill="#f8fafc" font-family="system-ui, sans-serif" font-weight="900" font-size="20" text-anchor="middle">Campus Delivery & Free Pickup</text>
+  <text x="400" y="55" fill="#f8fafc" font-family="system-ui, sans-serif" font-weight="900" font-size="20" text-anchor="middle">Campus Delivery &amp; Free Pickup</text>
   
   <!-- Discount Banner Ribbon -->
   <rect x="180" y="75" width="440" height="34" rx="17" fill="url(#lemonGrad)"/>
@@ -132,7 +132,7 @@ const studentDeliveryOptions = wrapSvg(`
   <text x="620" y="185" text-anchor="middle" font-size="34">🏢</text>
   <text x="620" y="235" fill="#ffffff" font-family="system-ui, sans-serif" font-weight="900" font-size="16" text-anchor="middle">Faculty Buildings</text>
   <text x="620" y="265" fill="#f97316" font-family="system-ui, sans-serif" font-weight="900" font-size="18" text-anchor="middle">₦700 <tspan fill="#84cc16" font-size="13">(₦600 for 2+)</tspan></text>
-  <text x="620" y="295" fill="#94a3b8" font-family="system-ui, sans-serif" font-weight="500" font-size="11" text-anchor="middle">Mass Comm & Engr.</text>
+  <text x="620" y="295" fill="#94a3b8" font-family="system-ui, sans-serif" font-weight="500" font-size="11" text-anchor="middle">Mass Comm &amp; Engr.</text>
   <text x="620" y="315" fill="#94a3b8" font-family="system-ui, sans-serif" font-weight="500" font-size="11" text-anchor="middle">Ground Floor Lobby Pickup</text>
 `);
 
@@ -163,7 +163,7 @@ const studentPreorderTime = wrapSvg(`
   <text x="505" y="325" fill="#94a3b8" font-family="system-ui, sans-serif" font-weight="600" font-size="12">Evening Dinner Pack</text>
 `);
 
-// 5. Student: Secret Pickup Code & E-Receipt
+// 5. Student: Secret Pickup Code &amp; E-Receipt
 const studentPickupCode = wrapSvg(`
   <!-- Receipt Card Frame -->
   <rect x="240" y="40" width="320" height="370" rx="20" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
@@ -278,7 +278,7 @@ const studentOfflineSave = wrapSvg(`
   <text x="400" y="347" fill="#38bdf8" font-family="system-ui, sans-serif" font-weight="700" font-size="11" text-anchor="middle">🔄 Auto-syncs to cloud when online</text>
 `);
 
-// 8. Staff: Order Queue & Real-Time Status Management
+// 8. Staff: Order Queue &amp; Real-Time Status Management
 const staffStatusManagement = wrapSvg(`
   <text x="400" y="55" fill="#f8fafc" font-family="system-ui, sans-serif" font-weight="900" font-size="20" text-anchor="middle">Order Queue &amp; Real-Time Status Flow</text>
   <text x="400" y="80" fill="#fbbf24" font-family="system-ui, sans-serif" font-weight="700" font-size="13" text-anchor="middle">⚠️ Crucial: Updating status updates student phones &amp; unlocks receipts in real-time!</text>
@@ -348,14 +348,14 @@ const staffWalkinPos = wrapSvg(`
   <rect x="490" y="180" width="90" height="32" rx="8" fill="#1e293b" stroke="#334155"/>
   <text x="535" y="201" fill="#ffffff" font-family="system-ui, sans-serif" font-weight="700" font-size="12" text-anchor="middle">📱 Transfer</text>
 
-  <!-- Options: Takeout Pack & Direct Handover -->
+  <!-- Options: Takeout Pack &amp; Direct Handover -->
   <rect x="170" y="230" width="220" height="40" rx="10" fill="#090d16" stroke="#334155"/>
   <text x="190" y="255" fill="#f97316" font-family="system-ui, sans-serif" font-weight="900" font-size="12">☑ Takeout Pack (+₦300)</text>
 
   <rect x="410" y="230" width="220" height="40" rx="10" fill="#090d16" stroke="#10b981"/>
   <text x="430" y="255" fill="#10b981" font-family="system-ui, sans-serif" font-weight="900" font-size="12">☑ Direct Handover (Done)</text>
 
-  <!-- Submit & Print Button -->
+  <!-- Submit &amp; Print Button -->
   <rect x="170" y="290" width="460" height="52" rx="14" fill="url(#lemonGrad)"/>
   <text x="400" y="322" fill="#020617" font-family="system-ui, sans-serif" font-weight="900" font-size="16" text-anchor="middle">Confirm Sale &amp; Print Thermal Receipt • ₦2,700</text>
   <text x="400" y="375" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="11" text-anchor="middle">⚡ Works offline! Auto-syncs to cloud records when connected</text>
@@ -394,7 +394,7 @@ const staffMenuDeleteSoldout = wrapSvg(`
   <text x="560" y="355" fill="#f87171" font-family="system-ui, sans-serif" font-weight="800" font-size="11" text-anchor="middle">⚠️ Use only for cancelled dishes</text>
 `);
 
-// 11. Staff: Uploading New Meals & Camera Photo Upload
+// 11. Staff: Uploading New Meals &amp; Camera Photo Upload
 const staffUploadFood = wrapSvg(`
   <text x="400" y="55" fill="#f8fafc" font-family="system-ui, sans-serif" font-weight="900" font-size="20" text-anchor="middle">Add New Dish &amp; Camera Upload</text>
   <text x="400" y="80" fill="#94a3b8" font-family="system-ui, sans-serif" font-weight="600" font-size="13" text-anchor="middle">Works 100% offline • Photos compress directly on device</text>
@@ -425,7 +425,7 @@ const staffUploadFood = wrapSvg(`
   <text x="400" y="365" fill="#ffffff" font-family="system-ui, sans-serif" font-weight="900" font-size="15" text-anchor="middle">Publish to Student Phones ⚡</text>
 `);
 
-// 12. Staff: 1-Second Counter Lookup & Thermal Printing
+// 12. Staff: 1-Second Counter Lookup &amp; Thermal Printing
 const staffQuickHandover = wrapSvg(`
   <text x="400" y="55" fill="#f8fafc" font-family="system-ui, sans-serif" font-weight="900" font-size="20" text-anchor="middle">Counter 1-Second Code Handover</text>
   <text x="400" y="80" fill="#94a3b8" font-family="system-ui, sans-serif" font-weight="600" font-size="13" text-anchor="middle">Type customer 3-digit code to instantly dispense food in 1 second</text>
@@ -456,7 +456,7 @@ const staffQuickHandover = wrapSvg(`
   <text x="592" y="341" text-anchor="middle" font-size="20">🖨️</text>
 `);
 
-// 13. Staff: Daily Cashflow Summary & WhatsApp Broadcast
+// 13. Staff: Daily Cashflow Summary &amp; WhatsApp Broadcast
 const staffCashflowSummary = wrapSvg(`
   <text x="400" y="55" fill="#f8fafc" font-family="system-ui, sans-serif" font-weight="900" font-size="20" text-anchor="middle">Daily Cashflow &amp; WhatsApp Broadcast</text>
   <text x="400" y="80" fill="#94a3b8" font-family="system-ui, sans-serif" font-weight="600" font-size="13" text-anchor="middle">End-of-day financial reconciliation at cafeteria closing time</text>

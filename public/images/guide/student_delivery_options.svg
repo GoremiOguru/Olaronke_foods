@@ -28,7 +28,7 @@
   </defs>
   <rect width="800" height="450" fill="url(#bgGrad)"/>
   
-  <text x="400" y="55" fill="#f8fafc" font-family="system-ui, sans-serif" font-weight="900" font-size="20" text-anchor="middle">Campus Delivery & Free Pickup</text>
+  <text x="400" y="55" fill="#f8fafc" font-family="system-ui, sans-serif" font-weight="900" font-size="20" text-anchor="middle">Campus Delivery &amp; Free Pickup</text>
   
   <!-- Discount Banner Ribbon -->
   <rect x="180" y="75" width="440" height="34" rx="17" fill="url(#lemonGrad)"/>
@@ -55,7 +55,7 @@
   <text x="620" y="185" text-anchor="middle" font-size="34">🏢</text>
   <text x="620" y="235" fill="#ffffff" font-family="system-ui, sans-serif" font-weight="900" font-size="16" text-anchor="middle">Faculty Buildings</text>
   <text x="620" y="265" fill="#f97316" font-family="system-ui, sans-serif" font-weight="900" font-size="18" text-anchor="middle">₦700 <tspan fill="#84cc16" font-size="13">(₦600 for 2+)</tspan></text>
-  <text x="620" y="295" fill="#94a3b8" font-family="system-ui, sans-serif" font-weight="500" font-size="11" text-anchor="middle">Mass Comm & Engr.</text>
+  <text x="620" y="295" fill="#94a3b8" font-family="system-ui, sans-serif" font-weight="500" font-size="11" text-anchor="middle">Mass Comm &amp; Engr.</text>
   <text x="620" y="315" fill="#94a3b8" font-family="system-ui, sans-serif" font-weight="500" font-size="11" text-anchor="middle">Ground Floor Lobby Pickup</text>
 
 </svg>

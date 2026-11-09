@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, ChevronLeft, ChevronRight, HelpCircle, Sparkles, UtensilsCrossed, ShieldCheck, Flame, Package, MapPin, Key, Printer, Phone, CheckCircle2, Play, Pause, Eye, ArrowRight, Zap, MousePointer, Bug } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, HelpCircle, Sparkles, UtensilsCrossed, ShieldCheck, Flame, Package, MapPin, Key, Printer, Phone, CheckCircle2, Eye, ArrowRight, Zap, MousePointer, Bug } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { lockScroll, unlockScroll, forceUnlockScroll } from '../utils/scrollLock';
@@ -8,7 +8,6 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
   const { setIsCartOpen } = useCart();
   const { isAdmin } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
 
   // Disable background scrolling safely without getting stuck on hidden
   useEffect(() => {
@@ -297,17 +296,6 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, currentStep]);
 
-  // Autoplay presentation timer
-  useEffect(() => {
-    let timer;
-    if (isOpen && isPlaying) {
-      timer = setInterval(() => {
-        setCurrentStep(prev => (prev + 1) % steps.length);
-      }, 5500);
-    }
-    return () => clearInterval(timer);
-  }, [isOpen, isPlaying, steps.length]);
-
   if (!isOpen) return null;
 
   const handleNext = () => {
@@ -322,7 +310,7 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-3 sm:p-6 bg-slate-950/85 backdrop-blur-2xl animate-in fade-in duration-300 cursor-pointer"
+      className="fixed inset-0 z-[70] overflow-y-auto flex items-center justify-center p-3 sm:p-6 bg-slate-950/85 backdrop-blur-2xl animate-in fade-in duration-300 cursor-pointer"
       onClick={handleClose}
     >
       
@@ -350,16 +338,6 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
           </div>
 
           <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setIsPlaying(!isPlaying)}
-              className={`p-2 rounded-xl transition-all text-xs font-bold flex items-center space-x-1 ${
-                isPlaying ? 'bg-brand-orange text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-              }`}
-              title={isPlaying ? "Pause auto-tour" : "Play auto-tour slideshow"}
-            >
-              {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-            </button>
-
             <button
               onClick={handleClose}
               className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
