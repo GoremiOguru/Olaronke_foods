@@ -3,6 +3,7 @@ import { ShoppingBag, User, LogOut, ShieldCheck, Flame, Bell, ChevronDown, Menu,
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useSocket } from '../context/SocketContext';
+import { lockScroll, unlockScroll } from '../utils/scrollLock';
 
 export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdminView, onOpenMyOrders, onOpenChangePassword, onOpenHowToUse }) {
   const { user, logout, isAdmin } = useAuth();
@@ -15,10 +16,9 @@ export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdmi
   // Disable background scrolling when mobile hamburger menu is open
   React.useEffect(() => {
     if (mobileMenuOpen) {
-      const originalStyle = window.getComputedStyle(document.body).overflow;
-      document.body.style.overflow = 'hidden';
+      lockScroll();
       return () => {
-        document.body.style.overflow = originalStyle;
+        unlockScroll();
       };
     }
   }, [mobileMenuOpen]);
@@ -332,21 +332,6 @@ export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdmi
                   </span>
                 </div>
               </div>
-
-              {/* My Orders & Receipts Button */}
-              <button
-                onClick={() => {
-                  if (onOpenMyOrders) onOpenMyOrders();
-                  setMobileMenuOpen(false);
-                }}
-                className="w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-black transition-all text-left"
-              >
-                <ShoppingBag className="w-4 h-4 text-brand-orange shrink-0" />
-                <div className="flex-1">
-                  <span className="block font-bold">My Orders & Official Receipts</span>
-                  <span className="text-[10px] text-amber-400/80 font-normal">Track order status, pickup code & receipts</span>
-                </div>
-              </button>
 
               {/* Change Password Button */}
               <button
