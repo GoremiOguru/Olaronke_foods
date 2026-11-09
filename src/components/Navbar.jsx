@@ -44,7 +44,7 @@ export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdmi
                   Topfaith Cafeteria
                 </span>
               </div>
-              <p className="text-[10px] sm:text-xs text-slate-400 font-medium flex items-center gap-1.5 truncate">
+              <p className="text-xs text-slate-300 font-semibold flex items-center gap-1.5 truncate">
                 <span className={`w-2 h-2 rounded-full shrink-0 ${!isOnline ? 'bg-rose-500 animate-pulse' : isConnected ? 'bg-brand-lemon-glow animate-ping' : 'bg-amber-400'}`}></span>
                 <span className="truncate">{!isOnline ? 'Offline' : 'Kitchen Live'}</span>
               </p>
@@ -239,17 +239,17 @@ export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdmi
                     <h4 className="font-bold text-xs text-white flex items-center gap-1.5">
                       <Bell className="w-3.5 h-3.5 text-brand-orange" /> Notifications
                     </h4>
-                    <span className="text-[10px] text-slate-400">{notifications.length} new</span>
+                    <span className="text-xs font-bold text-slate-300">{notifications.length} new</span>
                   </div>
                   <div className="max-h-56 overflow-y-auto space-y-2 mt-2 pr-0.5">
                     {notifications.length === 0 ? (
-                      <p className="text-[11px] text-slate-400 text-center py-3">No recent notifications</p>
+                      <p className="text-xs text-slate-300 font-medium text-center py-3">No recent notifications</p>
                     ) : (
                       notifications.map(n => (
-                        <div key={n.id} className="p-2.5 bg-slate-950 rounded-xl border border-slate-800 text-[11px]">
-                          <p className="font-semibold text-white mb-0.5">{n.title}</p>
-                          <p className="text-slate-300">{n.message}</p>
-                          {n.timestamp && <span className="text-[9px] text-slate-500 mt-0.5 block">{n.timestamp}</span>}
+                        <div key={n.id} className="p-2.5 bg-slate-950 rounded-xl border border-slate-800 text-xs">
+                          <p className="font-bold text-white mb-0.5">{n.title}</p>
+                          <p className="text-slate-200">{n.message}</p>
+                          {n.timestamp && <span className="text-[11px] text-slate-400 mt-1 block font-medium">{n.timestamp}</span>}
                         </div>
                       ))
                     )}
@@ -321,9 +321,9 @@ export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdmi
                   {user.name ? user.name.charAt(0) : 'U'}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-bold text-white truncate">{user.name}</p>
-                  <p className="text-[11px] text-slate-400 font-mono truncate">{user.email}</p>
-                  <span className="inline-block mt-0.5 px-2 py-0.5 text-[9px] font-bold bg-brand-lemon/20 text-brand-lemon-glow rounded">
+                  <p className="text-sm font-bold text-white truncate">{user.name}</p>
+                  <p className="text-xs text-slate-300 font-mono truncate">{user.email}</p>
+                  <span className="inline-block mt-1 px-2.5 py-0.5 text-xs font-bold bg-brand-lemon/20 text-brand-lemon-glow rounded-md">
                     {user.role === 'admin' ? 'Cafeteria Staff' : 'Verified Student'}
                   </span>
                 </div>
@@ -340,7 +340,7 @@ export default function Navbar({ onOpenAuth, onOpenAdmin, isAdminView, setIsAdmi
                 <KeyRound className="w-4 h-4 text-sky-400 shrink-0" />
                 <div className="flex-1">
                   <span className="block font-bold">Change Account Password</span>
-                  <span className="text-[10px] text-sky-400/80 font-normal">Update your login security password</span>
+                  <span className="text-xs text-sky-300 font-normal">Update your login security password</span>
                 </div>
               </button>
 

@@ -105,7 +105,7 @@ export default function WhatsAppModal() {
                 <span className="text-lg shrink-0">📱</span>
                 <div className="space-y-0.5">
                   <p className="text-white font-extrabold text-xs">Order Saved on Your Phone</p>
-                  <p className="text-[11px] text-emerald-200/90 font-medium">
+                  <p className="text-xs text-emerald-200 font-medium">
                     Even without internet, show Code <strong className="text-white font-mono">#{pickupCodeDisplay}</strong> at the counter to get your food. Your order is saved on your phone and will send to the kitchen automatically.
                   </p>
                 </div>
@@ -114,13 +114,13 @@ export default function WhatsAppModal() {
 
             {/* Secret 3-Digit Pickup Code Box */}
             <div className="bg-gradient-to-r from-brand-orange/20 via-brand-orange/10 to-brand-orange/20 border-2 border-brand-orange/50 p-4 rounded-2xl text-center space-y-1">
-              <span className="text-[11px] font-black uppercase text-brand-orange tracking-wider flex items-center justify-center gap-1.5">
+              <span className="text-xs font-black uppercase text-brand-orange tracking-wider flex items-center justify-center gap-1.5">
                 <Key className="w-4 h-4" /> Pickup Verification Code
               </span>
               <p className="text-4xl font-black text-amber-300 font-mono tracking-widest">
                 #{pickupCodeDisplay}
               </p>
-              <p className="text-[11px] text-slate-300">
+              <p className="text-xs sm:text-sm text-slate-200 font-medium">
                 Show or say Code <strong className="text-white font-mono">#{pickupCodeDisplay}</strong> when collecting your food!
               </p>
             </div>
@@ -153,14 +153,14 @@ export default function WhatsAppModal() {
             <div className="bg-slate-950 p-4 rounded-2xl border border-brand-orange/30 space-y-3">
               <div className="flex items-center justify-between text-xs font-bold text-brand-orange">
                 <span>💳 Transfer to {bankName} Account</span>
-                <span className="text-[10px] bg-brand-orange/20 text-brand-orange-glow px-2.5 py-0.5 rounded font-black border border-brand-orange/30">
+                <span className="text-xs bg-brand-orange/20 text-brand-orange-glow px-2.5 py-0.5 rounded font-black border border-brand-orange/30">
                   {bankName}
                 </span>
               </div>
 
               <div className="bg-slate-900 p-3 rounded-xl border border-slate-800 flex items-center justify-between">
                 <div>
-                  <p className="text-[11px] text-slate-400">
+                  <p className="text-xs text-slate-300 font-medium">
                     Account Name: <strong className="text-white">{accountName}</strong>
                   </p>
                   <p className="text-lg font-black text-amber-300 font-mono tracking-wider">
@@ -184,11 +184,11 @@ export default function WhatsAppModal() {
 
             {/* Step 1: WhatsApp Direct Section */}
             <div className="space-y-2">
-              <p className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+              <p className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
                 <MessageCircle className="w-4 h-4 text-brand-lemon-glow" />
                 Step 1: Forward Payment Proof on WhatsApp ({whatsappPhone})
               </p>
-              <p className="text-xs text-slate-400 leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-medium">
                 Click below to send {staffName} your bank transfer receipt & secret code <strong>#{pickupCodeDisplay}</strong>.
               </p>
             </div>
@@ -207,7 +207,7 @@ export default function WhatsAppModal() {
 
             {/* Step 2: Payment Verification Notice & E-Receipt Access */}
             <div className="pt-3 border-t border-slate-800 space-y-2">
-              <p className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+              <p className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
                 <Printer className="w-4 h-4 text-amber-400" />
                 Step 2: Official Printable Receipt
               </p>
@@ -226,7 +226,7 @@ export default function WhatsAppModal() {
                     <Clock className="w-4 h-4 animate-pulse text-amber-400" />
                     <span>⏳ Payment Verification Pending</span>
                   </div>
-                  <p className="text-[11px] text-slate-400 font-medium leading-relaxed">
+                  <p className="text-xs text-slate-300 font-medium leading-relaxed">
                     Official printable receipt will be unlocked in <strong>My Orders</strong> once Admin / Super Admin confirms your payment transfer.
                   </p>
                 </div>
@@ -236,7 +236,7 @@ export default function WhatsAppModal() {
             <div className="text-center pt-2">
               <button
                 onClick={() => setActiveReceiptModal(null)}
-                className="text-xs text-slate-500 hover:text-slate-300 font-semibold"
+                className="text-xs text-slate-400 hover:text-white font-bold"
               >
                 Close and return to catalog
               </button>

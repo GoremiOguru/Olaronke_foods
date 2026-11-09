@@ -17,7 +17,7 @@ export default function Footer({ onOpenHowToUse }) {
   const techSupportUrl = `https://wa.me/${cleanTechPhone}?text=${encodeURIComponent("Hello Tech Support, I'm experiencing an issue/bug on the B'feastas website:")}`;
 
   return (
-    <footer className="bg-slate-950 border-t border-slate-800 pt-12 pb-8 text-slate-400 text-xs">
+    <footer className="bg-slate-950 border-t border-slate-800 pt-12 pb-8 text-slate-300 text-xs sm:text-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
 
@@ -33,7 +33,7 @@ export default function Footer({ onOpenHowToUse }) {
                 B'<span className="text-brand-orange">fea</span><span className="text-brand-lemon">stas</span>
               </span>
             </div>
-            <p className="text-slate-400 text-xs leading-relaxed">
+            <p className="text-slate-300 text-xs sm:text-sm leading-relaxed font-normal">
               Topfaith University's official campus cafeteria. Real-time portion tracking, student email authentication, and instant WhatsApp receipt confirmation with {staffName}.
             </p>
           </div>
@@ -87,14 +87,14 @@ export default function Footer({ onOpenHowToUse }) {
             <h4 className="font-bold text-white text-xs flex items-center gap-1.5">
               <ShieldCheck className="w-4 h-4 text-brand-lemon-glow" /> Live Kitchen Counter
             </h4>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-xs text-slate-300 font-medium">
               Stock portion counters auto-deduct live across all connected student and staff screens.
             </p>
           </div>
 
         </div>
 
-        <div className="pt-6 border-t border-slate-800 text-center text-slate-500 text-[11px]">
+        <div className="pt-6 border-t border-slate-800 text-center text-slate-400 text-xs font-medium">
           © {new Date().getFullYear()} B'feastas. All rights reserved. Topfaith University Campus Cafeteria. Made by Goremi Oguru
         </div>
       </div>

@@ -138,12 +138,12 @@ export default function AuthModal({ isOpen, onClose }) {
         </div>
 
         {/* Tab Selection Bar */}
-        <div className="grid grid-cols-3 bg-slate-950 border-b border-slate-800 text-[11px] font-bold text-slate-400">
+        <div className="grid grid-cols-3 bg-slate-950 border-b border-slate-800 text-xs font-bold text-slate-300">
           <button
             type="button"
             onClick={() => { setMode('login'); setError(''); setSuccessMsg(''); setEmail(''); setPassword(''); }}
             className={`py-3 text-center transition-colors border-b-2 ${
-              mode === 'login' ? 'border-brand-orange text-white bg-slate-900' : 'border-transparent hover:text-slate-200'
+              mode === 'login' ? 'border-brand-orange text-white bg-slate-900 font-extrabold' : 'border-transparent hover:text-white'
             }`}
           >
             Campus Sign In
@@ -152,7 +152,7 @@ export default function AuthModal({ isOpen, onClose }) {
             type="button"
             onClick={() => { setMode('register'); setError(''); setSuccessMsg(''); setEmail(''); setPassword(''); }}
             className={`py-3 text-center transition-colors border-b-2 ${
-              mode === 'register' ? 'border-brand-orange text-white bg-slate-900' : 'border-transparent hover:text-slate-200'
+              mode === 'register' ? 'border-brand-orange text-white bg-slate-900 font-extrabold' : 'border-transparent hover:text-white'
             }`}
           >
             Campus Join
@@ -167,7 +167,7 @@ export default function AuthModal({ isOpen, onClose }) {
               setPassword('');
             }}
             className={`py-3 text-center transition-colors border-b-2 ${
-              mode === 'admin-login' ? 'border-brand-lemon text-brand-lemon-glow bg-slate-900' : 'border-transparent hover:text-slate-200'
+              mode === 'admin-login' ? 'border-brand-lemon text-brand-lemon-glow bg-slate-900 font-extrabold' : 'border-transparent hover:text-white'
             }`}
           >
             Staff Sign In
@@ -264,7 +264,7 @@ export default function AuthModal({ isOpen, onClose }) {
               />
             </div>
             {mode === 'register' && (
-              <p className="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
+              <p className="text-xs text-slate-300 mt-1 flex items-center gap-1 font-medium">
                 <CheckCircle2 className="w-3.5 h-3.5 text-brand-lemon-glow" />
                 Must end with <strong className="text-white">@topfaith.edu.ng</strong>
               </p>
@@ -280,7 +280,7 @@ export default function AuthModal({ isOpen, onClose }) {
                 <button
                   type="button"
                   onClick={() => { setMode('reset-password'); setError(''); setSuccessMsg(''); setPassword(''); }}
-                  className="text-[11px] text-brand-orange hover:underline font-bold"
+                  className="text-xs text-brand-orange hover:underline font-bold"
                 >
                   Forgot Password?
                 </button>

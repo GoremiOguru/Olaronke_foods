@@ -161,16 +161,16 @@ export default function CartDrawer({ onOpenAuth }) {
               <div className="p-3 rounded-2xl bg-brand-lemon/10 border border-brand-lemon/30 flex items-center justify-between text-xs">
                 <div>
                   <p className="font-bold text-brand-lemon-glow">Ordering as: {user.name}</p>
-                  <p className="text-slate-300 text-[11px] font-mono">{user.email}</p>
+                  <p className="text-slate-200 text-xs font-mono">{user.email}</p>
                 </div>
-                <span className="px-2 py-0.5 bg-brand-lemon text-slate-950 font-black rounded text-[10px]">VERIFIED</span>
+                <span className="px-2.5 py-1 bg-brand-lemon text-slate-950 font-black rounded-md text-xs">VERIFIED</span>
               </div>
             ) : (
               <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-200 flex items-start gap-2">
                 <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                 <div>
                   <p className="font-bold">Student Login Required</p>
-                  <p className="text-[11px] text-slate-300">Log in with your @topfaith.edu.ng email so staff identify your order.</p>
+                  <p className="text-xs text-slate-200 font-medium mt-0.5">Log in with your @topfaith.edu.ng email so staff identify your order.</p>
                 </div>
               </div>
             )}
@@ -188,7 +188,7 @@ export default function CartDrawer({ onOpenAuth }) {
                   <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
                   <div>
                     <p className="font-extrabold text-white text-xs">Rice Packaging Notice</p>
-                    <p className="text-[11px] text-amber-200/90 leading-relaxed mt-0.5">
+                    <p className="text-xs text-amber-100 leading-relaxed mt-0.5 font-medium">
                       One Takeout Plate can hold a maximum of <strong>5 scoops of rice</strong>. Anything more than 5 scoops requires another Takeout Plate (e.g. ₦600 for 2 plates, ₦900 for 3 plates).
                     </p>
                   </div>
@@ -208,7 +208,7 @@ export default function CartDrawer({ onOpenAuth }) {
               <div className="text-center py-16 space-y-3">
                 <ShoppingBag className="w-16 h-16 text-slate-700 mx-auto" />
                 <p className="font-extrabold text-white text-base">Your tray is empty!</p>
-                <p className="text-xs text-slate-400 max-w-xs mx-auto">
+                <p className="text-sm text-slate-300 max-w-xs mx-auto">
                   Browse B'feastas catalog to select Jollof, Chicken, Egusi or cold Zobo!
                 </p>
               </div>
@@ -221,7 +221,7 @@ export default function CartDrawer({ onOpenAuth }) {
                       <span className="text-xs font-black text-brand-orange flex items-center gap-1.5 uppercase tracking-wider">
                         <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" /> Complete Your Plate!
                       </span>
-                      <span className="text-[10px] text-slate-400 font-semibold">1-Tap Quick Add</span>
+                      <span className="text-xs text-slate-300 font-bold">1-Tap Quick Add</span>
                     </div>
                     <div className={`grid ${dynamicUpsellItems.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}>
                       {dynamicUpsellItems.map((item) => (
@@ -233,8 +233,8 @@ export default function CartDrawer({ onOpenAuth }) {
                         >
                           <img src={item.image} alt={item.name} className="w-8 h-8 rounded-lg object-cover" />
                           <div className="min-w-0 flex-1">
-                            <p className="text-[11px] font-bold text-white truncate group-hover:text-brand-orange">+ {item.name}</p>
-                            <p className="text-[10px] text-brand-lemon-glow font-black">₦{item.price.toLocaleString()}</p>
+                            <p className="text-xs font-bold text-white truncate group-hover:text-brand-orange">+ {item.name}</p>
+                            <p className="text-xs text-brand-lemon-glow font-black">₦{item.price.toLocaleString()}</p>
                           </div>
                         </button>
                       ))}
@@ -245,10 +245,10 @@ export default function CartDrawer({ onOpenAuth }) {
                 {/* Organised Items Grouped by Takeout Plate */}
                 <div className="space-y-6">
                   <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                    <h4 className="text-xs uppercase font-extrabold text-slate-400 tracking-wider flex items-center gap-1.5">
+                    <h4 className="text-xs uppercase font-extrabold text-slate-200 tracking-wider flex items-center gap-1.5">
                       <Package className="w-4 h-4 text-brand-orange" /> Takeout Plate Arrangement
                     </h4>
-                    <span className="text-[11px] font-bold text-brand-lemon-glow">
+                    <span className="text-xs font-bold text-brand-lemon-glow">
                       {activePlatesCount} Plate{activePlatesCount === 1 ? '' : 's'} (₦{takeoutFee.toLocaleString()})
                     </span>
                   </div>
@@ -272,11 +272,11 @@ export default function CartDrawer({ onOpenAuth }) {
                           </div>
 
                           <div className="text-right">
-                            <span className="text-[11px] font-bold text-slate-400 block">
+                            <span className="text-xs font-bold text-slate-200 block">
                               Container Fee: <strong className="text-brand-orange">₦{perPackFee}</strong>
                             </span>
                             {plateRiceScoops > 0 && (
-                              <span className={`text-[10px] font-black px-2 py-0.5 rounded ${
+                              <span className={`text-xs font-black px-2.5 py-0.5 rounded-md ${
                                 plateRiceScoops > 5 
                                   ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' 
                                   : 'bg-emerald-500/20 text-emerald-300'
@@ -301,8 +301,8 @@ export default function CartDrawer({ onOpenAuth }) {
                                   className="w-12 h-12 rounded-xl object-cover border border-slate-800"
                                 />
                                 <div className="flex-1 min-w-0">
-                                  <h5 className="font-extrabold text-white text-xs truncate">{item.dishName}</h5>
-                                  <p className="text-[11px] text-brand-orange font-bold">
+                                  <h5 className="font-extrabold text-white text-sm truncate">{item.dishName}</h5>
+                                  <p className="text-xs text-brand-orange font-bold">
                                     ₦{item.price.toLocaleString()} / {item.unitType || 'portion'}
                                   </p>
 
@@ -327,12 +327,12 @@ export default function CartDrawer({ onOpenAuth }) {
                                 </div>
 
                                 <div className="text-right">
-                                  <p className="text-xs font-black text-white">
+                                  <p className="text-sm font-black text-white">
                                     ₦{(item.price * item.scoops).toLocaleString()}
                                   </p>
                                   <button
                                     onClick={() => removeFromCart(item.cartItemId)}
-                                    className="text-slate-500 hover:text-rose-400 p-1 mt-1 inline-block"
+                                    className="text-slate-400 hover:text-rose-400 p-1 mt-1 inline-block"
                                     title="Remove item"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
@@ -341,17 +341,17 @@ export default function CartDrawer({ onOpenAuth }) {
                               </div>
 
                               {/* Plate Assignment Selector */}
-                              <div className="pt-2 border-t border-slate-900 flex items-center justify-between text-[11px]">
-                                <span className="text-slate-400 font-medium">Assign to Plate:</span>
+                              <div className="pt-2 border-t border-slate-900 flex items-center justify-between text-xs">
+                                <span className="text-slate-300 font-semibold">Assign to Plate:</span>
                                 <div className="flex items-center space-x-1">
                                   {[1, 2, 3, 4, 5].map((num) => (
                                     <button
                                       key={num}
                                       onClick={() => assignItemToPlate(item.cartItemId, num)}
-                                      className={`px-2 py-0.5 rounded-lg font-bold text-[10px] border transition-colors ${
+                                      className={`px-2.5 py-1 rounded-lg font-bold text-xs border transition-colors ${
                                         (item.plateNumber || 1) === num
                                           ? 'bg-brand-orange text-white border-brand-orange shadow'
-                                          : 'bg-slate-900 text-slate-400 border-slate-800 hover:bg-slate-800'
+                                          : 'bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-800'
                                       }`}
                                     >
                                       Plate #{num}
@@ -379,7 +379,7 @@ export default function CartDrawer({ onOpenAuth }) {
                       <Package className="w-4 h-4 text-brand-lemon-glow" />
                       <div>
                         <p className="text-xs font-extrabold text-white">Plastic Takeout Containers</p>
-                        <p className="text-[11px] text-slate-400">
+                        <p className="text-xs text-slate-300">
                           {activePlatesCount} container plate{activePlatesCount === 1 ? '' : 's'}
                         </p>
                       </div>
@@ -396,7 +396,7 @@ export default function CartDrawer({ onOpenAuth }) {
 
                   {includeTakeoutPack && (
                     <div className="pt-2 border-t border-slate-800/80 space-y-1.5 animate-in fade-in">
-                      <span className="text-[11px] font-bold text-slate-300 block">
+                      <span className="text-xs font-bold text-slate-200 block">
                         Select Takeout Plate Size:
                       </span>
                       <div className="grid grid-cols-3 gap-2">
@@ -412,11 +412,11 @@ export default function CartDrawer({ onOpenAuth }) {
                             className={`py-2 px-1 rounded-xl text-xs font-extrabold border transition-all text-center ${
                               plateSize === plate.price
                                 ? 'bg-brand-orange text-white border-brand-orange shadow-orange-glow'
-                                : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                                : 'bg-slate-950 border-slate-800 text-slate-300 hover:text-white'
                             }`}
                           >
-                            <span className="block text-[11px]">{plate.label}</span>
-                            <span className="block text-[10px] font-mono text-amber-300">{plate.fee}</span>
+                            <span className="block text-xs">{plate.label}</span>
+                            <span className="block text-xs font-mono text-amber-300">{plate.fee}</span>
                           </button>
                         ))}
                       </div>
@@ -437,7 +437,7 @@ export default function CartDrawer({ onOpenAuth }) {
                     placeholder="e.g. 08123456789"
                     className="w-full bg-slate-950 border border-slate-700 focus:border-brand-orange text-white px-3.5 py-2.5 rounded-xl text-xs font-mono focus:outline-none"
                   />
-                  <p className="text-[10px] text-slate-400">
+                  <p className="text-xs text-slate-300">
                     Vendor staff will contact you on WhatsApp using this number.
                   </p>
                 </div>
@@ -448,7 +448,7 @@ export default function CartDrawer({ onOpenAuth }) {
                     <label className="block text-xs font-extrabold text-white flex items-center gap-1.5">
                       <Clock className="w-3.5 h-3.5 text-brand-orange" /> Pickup / Delivery Time Slot:
                     </label>
-                    <span className="text-[10px] font-bold text-brand-lemon-glow bg-brand-lemon/10 px-2 py-0.5 rounded border border-brand-lemon/30">
+                    <span className="text-xs font-bold text-brand-lemon-glow bg-brand-lemon/10 px-2 py-0.5 rounded border border-brand-lemon/30">
                       Off-Peak Pre-Order
                     </span>
                   </div>
@@ -468,11 +468,11 @@ export default function CartDrawer({ onOpenAuth }) {
                         className={`p-2 rounded-xl text-center border transition-all ${
                           scheduledTime === slot.id
                             ? 'bg-brand-orange text-white border-brand-orange shadow-orange-glow'
-                            : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                            : 'bg-slate-950 border-slate-800 text-slate-300 hover:text-white'
                         }`}
                       >
-                        <span className="block text-[11px] font-extrabold">{slot.label}</span>
-                        <span className="block text-[9px] opacity-80">{slot.desc}</span>
+                        <span className="block text-xs font-extrabold">{slot.label}</span>
+                        <span className="block text-xs opacity-90">{slot.desc}</span>
                       </button>
                     ))}
                   </div>
@@ -519,10 +519,10 @@ export default function CartDrawer({ onOpenAuth }) {
                           <button
                             type="button"
                             onClick={() => setDeliveryCategory('faculty')}
-                            className={`flex-1 py-1.5 px-2 rounded-lg text-[11px] font-extrabold transition-all flex items-center justify-center gap-1.5 ${
+                            className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 ${
                               deliveryCategory === 'faculty'
                                 ? 'bg-sky-500 text-slate-950 shadow'
-                                : 'text-slate-400 hover:text-white'
+                                : 'text-slate-300 hover:text-white'
                             }`}
                           >
                             <Building2 className="w-3.5 h-3.5" />
@@ -531,17 +531,17 @@ export default function CartDrawer({ onOpenAuth }) {
                           <button
                             type="button"
                             onClick={() => setDeliveryCategory('hostel')}
-                            className={`flex-1 py-1.5 px-2 rounded-lg text-[11px] font-extrabold transition-all flex items-center justify-center gap-1.5 ${
+                            className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 ${
                               deliveryCategory === 'hostel'
                                 ? 'bg-sky-500 text-slate-950 shadow'
-                                : 'text-slate-400 hover:text-white'
+                                : 'text-slate-300 hover:text-white'
                             }`}
                           >
                             <span>🏫 Hostels (Students)</span>
                           </button>
                         </div>
 
-                        <label className="block text-[11px] font-bold text-slate-300 flex items-center gap-1 mb-1.5">
+                        <label className="block text-xs font-bold text-slate-200 flex items-center gap-1 mb-1.5">
                           <MapPin className="w-3.5 h-3.5 text-sky-400" />
                           {deliveryCategory === 'faculty' 
                             ? 'Select Faculty Building / Campus House:' 
@@ -560,18 +560,18 @@ export default function CartDrawer({ onOpenAuth }) {
                                 key={loc}
                                 type="button"
                                 onClick={() => setHostelAddress(loc)}
-                                className={`p-2.5 rounded-xl text-[11px] font-extrabold border transition-all text-left line-clamp-1 flex items-center justify-between gap-1 ${
+                                className={`p-2.5 rounded-xl text-xs font-extrabold border transition-all text-left line-clamp-1 flex items-center justify-between gap-1 ${
                                   isSelected
                                     ? 'bg-sky-500/20 border-sky-400 text-sky-300 shadow-sm'
-                                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                                    : 'bg-slate-950 border-slate-800 text-slate-300 hover:text-white'
                                 }`}
                               >
                                 <span>{deliveryCategory === 'faculty' ? '🏢' : '🏫'} {loc}</span>
                                 <div className="flex items-center gap-1 shrink-0">
                                   {activePlatesCount >= 2 && (
-                                    <span className="text-[9px] line-through text-slate-500 font-normal">₦{baseLocFee}</span>
+                                    <span className="text-xs line-through text-slate-400 font-normal">₦{baseLocFee}</span>
                                   )}
-                                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-black ${isSelected ? 'bg-sky-400 text-slate-950' : 'bg-slate-800 text-slate-300'}`}>{feeTag}</span>
+                                  <span className={`text-xs px-2 py-0.5 rounded font-black ${isSelected ? 'bg-sky-400 text-slate-950' : 'bg-slate-800 text-slate-200'}`}>{feeTag}</span>
                                 </div>
                               </button>
                             );
@@ -579,7 +579,7 @@ export default function CartDrawer({ onOpenAuth }) {
                         </div>
                       </div>
 
-                      <div className="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800 text-[11px] text-slate-400 flex items-center gap-2">
+                      <div className="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800 text-xs text-slate-200 flex items-center gap-2">
                         <MapPin className="w-4 h-4 text-sky-400 shrink-0" />
                         <span>Pickup point: Ground-floor entrance / foyer of selected building.</span>
                       </div>
@@ -595,34 +595,34 @@ export default function CartDrawer({ onOpenAuth }) {
           {cart.length > 0 && (
             <div className="p-6 bg-slate-900 border-t border-slate-800 space-y-4">
               
-              <div className="space-y-2 text-xs text-slate-300 bg-slate-950 p-3.5 rounded-2xl border border-slate-800">
-                <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-1">
+              <div className="space-y-2 text-xs text-slate-200 bg-slate-950 p-3.5 rounded-2xl border border-slate-800">
+                <p className="text-xs uppercase font-extrabold text-slate-300 tracking-wider mb-1">
                   Order Summary:
                 </p>
 
                 {cart.map((item) => (
-                  <div key={item.cartItemId} className="flex justify-between items-center text-slate-400 gap-2">
+                  <div key={item.cartItemId} className="flex justify-between items-center text-slate-200 gap-2 font-medium">
                     <span className="truncate max-w-[200px] sm:max-w-[260px]">
                       [Plate #{item.plateNumber || 1}] {item.dishName} ({item.scoops} × ₦{item.price.toLocaleString()})
                     </span>
-                    <span className="font-mono font-bold text-slate-200 shrink-0">
+                    <span className="font-mono font-bold text-white shrink-0">
                       ₦{(item.price * item.scoops).toLocaleString()}
                     </span>
                   </div>
                 ))}
 
                 {takeoutFee > 0 && (
-                  <div className="flex justify-between items-center text-brand-orange">
+                  <div className="flex justify-between items-center text-brand-orange font-bold">
                     <span>Takeout Food Containers ({activePlatesCount} plate{activePlatesCount === 1 ? '' : 's'})</span>
                     <span className="font-mono font-bold shrink-0">₦{takeoutFee.toLocaleString()}</span>
                   </div>
                 )}
 
-                <div className="flex justify-between items-center text-sky-300">
+                <div className="flex justify-between items-center text-sky-300 font-bold">
                   <div className="truncate max-w-[210px] sm:max-w-[270px]">
                     <span>{isHostelDelivery ? (hostelAddress && (hostelAddress.toLowerCase().includes('faculty') || hostelAddress.toLowerCase().includes('house')) ? 'Faculty Delivery' : 'Hostel Delivery') : 'Cafeteria Pickup'}</span>
                     {isHostelDelivery && activePlatesCount >= 2 && (
-                      <span className="block text-[10px] text-emerald-400 font-extrabold">🎁 ₦100 2-Plate Discount applied!</span>
+                      <span className="block text-xs text-emerald-400 font-black">🎁 ₦100 2-Plate Discount applied!</span>
                     )}
                   </div>
                   <span className="font-mono font-bold shrink-0">{deliveryFee > 0 ? `₦${deliveryFee.toLocaleString()}` : 'FREE'}</span>
@@ -630,7 +630,7 @@ export default function CartDrawer({ onOpenAuth }) {
 
                 <div className="flex justify-between items-center pt-2 border-t border-slate-800 text-base font-black text-white">
                   <span>Grand Total</span>
-                  <span className="text-brand-orange text-lg">₦{grandTotal.toLocaleString()}</span>
+                  <span className="text-brand-orange text-lg font-black">₦{grandTotal.toLocaleString()}</span>
                 </div>
               </div>
 

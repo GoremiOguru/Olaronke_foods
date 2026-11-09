@@ -333,7 +333,7 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
                 <span>{isStaffMode ? "Staff Portal Guide" : "Student Ordering Guide"}</span>
                 <Sparkles className="w-4 h-4 text-brand-lemon-glow animate-pulse" />
               </h3>
-              <p className="text-[10px] sm:text-xs text-slate-400">Interactive Guided Tour & App Assist</p>
+              <p className="text-xs sm:text-sm text-slate-300 font-medium">Interactive Guided Tour & App Assist</p>
             </div>
           </div>
 
@@ -380,7 +380,7 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
                 {activeStep.title}
               </h4>
             </div>
-            <span className="text-xs font-bold text-slate-400 font-mono">
+            <span className="text-sm font-bold text-slate-200 font-mono">
               Step {currentStep + 1} of {steps.length}
             </span>
           </div>
@@ -394,8 +394,8 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
             
-            <div className="absolute bottom-3 left-3 right-3 p-3 bg-slate-950/90 border border-slate-800 rounded-xl backdrop-blur-md">
-              <p className="text-xs text-slate-200 leading-relaxed font-medium">
+            <div className="absolute bottom-3 left-3 right-3 p-3.5 bg-slate-950/95 border border-slate-800 rounded-xl backdrop-blur-md">
+              <p className="text-sm sm:text-base text-slate-100 leading-relaxed font-normal">
                 {activeStep.description}
               </p>
             </div>
@@ -406,7 +406,7 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
             <h5 className="text-xs font-extrabold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5" /> Key Feature Highlights:
             </h5>
-            <ul className="space-y-1.5 text-xs text-slate-300 font-medium">
+            <ul className="space-y-2 text-xs sm:text-sm text-slate-200 font-medium">
               {activeStep.bullets.map((bullet, idx) => (
                 <li key={idx} className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-brand-lemon-glow shrink-0 mt-0.5" />
@@ -418,10 +418,10 @@ export default function HowToUseModal({ isOpen, onClose, mode = 'student' }) {
             {/* Interactive Try Feature Button */}
             {activeStep.action && (
               <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between">
-                <span className="text-[11px] text-slate-400">Want to test this feature right now?</span>
+                <span className="text-xs text-slate-300 font-medium">Want to test this feature right now?</span>
                 <button
                   onClick={activeStep.action}
-                  className="px-3.5 py-2 rounded-xl text-xs font-black bg-brand-orange hover:bg-orange-600 text-white transition-all flex items-center space-x-1.5 shadow-md active:scale-95"
+                  className="px-4 py-2 rounded-xl text-xs font-black bg-brand-orange hover:bg-orange-600 text-white transition-all flex items-center space-x-1.5 shadow-md active:scale-95"
                 >
                   <MousePointer className="w-3.5 h-3.5" />
                   <span>{activeStep.actionText || "Try Feature"}</span>

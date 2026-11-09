@@ -1257,7 +1257,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
               <PackageCheck className="w-5 h-5 text-sky-400" />
             </div>
             <p className="text-3xl font-black text-white">{orders.length}</p>
-            <p className="text-[11px] text-slate-500 mt-1">Live student order queue</p>
+            <p className="text-xs text-slate-300 font-medium mt-1">Live student order queue</p>
           </div>
 
           <div className="glass-card p-5 rounded-2xl border border-slate-800">
@@ -1266,7 +1266,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
               <DollarSign className="w-5 h-5 text-brand-lemon-glow" />
             </div>
             <p className="text-3xl font-black text-brand-lemon-glow">₦{totalRevenue.toLocaleString()}</p>
-            <div className="flex items-center justify-between text-[11px] text-slate-400 mt-1.5 pt-1 border-t border-slate-800 font-bold">
+            <div className="flex items-center justify-between text-xs text-slate-300 mt-1.5 pt-1 border-t border-slate-800 font-bold">
               <span>💵 Physical: <strong className="text-emerald-400">₦{filteredOrders.filter(o => o.paymentMethod === 'Cash' || o.studentEmail === 'walkin@topfaith.edu.ng' || (o.studentName && o.studentName.toLowerCase().includes('walk-in'))).reduce((sum, o) => sum + (o.status !== 'Cancelled' ? o.totalPrice : 0), 0).toLocaleString()}</strong></span>
               <span>📱 Online: <strong className="text-sky-400">₦{filteredOrders.filter(o => o.paymentMethod !== 'Cash' && o.studentEmail !== 'walkin@topfaith.edu.ng' && (!o.studentName || !o.studentName.toLowerCase().includes('walk-in'))).reduce((sum, o) => sum + (o.status !== 'Cancelled' ? o.totalPrice : 0), 0).toLocaleString()}</strong></span>
             </div>
@@ -1278,7 +1278,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
               <Flame className="w-5 h-5 text-brand-orange" />
             </div>
             <p className="text-3xl font-black text-white">{dishes.length}</p>
-            <p className="text-[11px] text-slate-500 mt-1">{dishes.filter(d => d.isAvailable).length} available for order</p>
+            <p className="text-xs text-slate-300 font-medium mt-1">{dishes.filter(d => d.isAvailable).length} available for order</p>
           </div>
 
           <div className="glass-card p-5 rounded-2xl border border-slate-800">
@@ -1287,7 +1287,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
               <Users className="w-5 h-5 text-brand-orange" />
             </div>
             <p className="text-3xl font-black text-brand-orange">{staffList.length}</p>
-            <p className="text-[11px] text-slate-500 mt-1">Registered admin staff</p>
+            <p className="text-xs text-slate-300 font-medium mt-1">Registered admin staff</p>
           </div>
         </div>
 
@@ -1670,9 +1670,9 @@ export default function AdminDashboard({ onOpenHowToUse }) {
                   <div>
                     <h3 className="text-sm font-black text-white flex items-center gap-2">
                       <span>Counter 1-Second Code Handover</span>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold uppercase">Rush Fast-Pass</span>
+                      <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold uppercase">Rush Fast-Pass</span>
                     </h3>
-                    <p className="text-[11px] text-slate-400">Type customer's 3-digit code to instantly dispense food & complete order.</p>
+                    <p className="text-xs text-slate-300 font-medium">Type customer's 3-digit code to instantly dispense food & complete order.</p>
                   </div>
                 </div>
 
@@ -1710,7 +1710,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
                       </span>
                       <span className="font-extrabold text-white text-sm">{matchedQuickOrder.studentName}</span>
                       <span className="text-xs text-emerald-400 font-bold">₦{matchedQuickOrder.totalPrice.toLocaleString()} ({matchedQuickOrder.paymentMethod})</span>
-                      <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${matchedQuickOrder.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}`}>
+                      <span className={`text-xs px-2.5 py-0.5 rounded font-bold uppercase ${matchedQuickOrder.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}`}>
                         {matchedQuickOrder.status}
                       </span>
                     </div>
@@ -1841,7 +1841,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
                           </span>
 
                           {ord.isOfflineOrder && (
-                            <span className="flex items-center gap-1 font-mono text-[10px] font-bold bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-lg border border-emerald-500/40">
+                            <span className="flex items-center gap-1 font-mono text-xs font-bold bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-lg border border-emerald-500/40">
                               📶 Offline Token
                             </span>
                           )}
@@ -1863,7 +1863,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
 
                             <button
                               onClick={() => setSelectedPrintOrder(ord)}
-                              className="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-amber-300 text-[11px] font-bold rounded-lg border border-amber-500/30 flex items-center gap-1"
+                              className="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-amber-300 text-xs font-bold rounded-lg border border-amber-500/30 flex items-center gap-1"
                               title="Print official receipt"
                             >
                               <Printer className="w-3 h-3 text-amber-400" />
@@ -1871,7 +1871,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
                             </button>
                           </div>
 
-                          <p className="text-xs text-slate-400 font-mono">{ord.studentEmail}</p>
+                          <p className="text-xs text-slate-300 font-mono">{ord.studentEmail}</p>
 
                           {ord.studentPhone && (
                             <div className="pt-0.5">
@@ -1903,15 +1903,15 @@ export default function AdminDashboard({ onOpenHowToUse }) {
                           </p>
 
                           {ord.confirmedByAdmin && (
-                            <p className="text-[10px] text-slate-500 pt-0.5">
-                              Last updated by: <strong className="text-slate-300">{ord.confirmedByAdmin}</strong>
+                            <p className="text-xs text-slate-400 pt-0.5 font-medium">
+                              Last updated by: <strong className="text-slate-200">{ord.confirmedByAdmin}</strong>
                             </p>
                           )}
                         </div>
 
                         {/* Itemized Order Breakdown */}
                         <div className="space-y-1">
-                          <p className="text-[11px] uppercase font-bold text-slate-500">Items Ordered:</p>
+                          <p className="text-xs uppercase font-extrabold text-slate-300">Items Ordered:</p>
                           <div className="flex flex-wrap gap-2">
                             {ord.items.map((item, idx) => (
                               <span key={idx} className="bg-slate-950 text-slate-200 text-xs font-semibold px-2.5 py-1 rounded-xl border border-slate-800">
@@ -1931,7 +1931,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
                       {/* Right Action Column */}
                       <div className="lg:text-right space-y-3">
                         <div>
-                          <span className="text-[10px] uppercase font-bold text-slate-500 block">Total Amount</span>
+                          <span className="text-xs uppercase font-extrabold text-slate-300 block">Total Amount</span>
                           <span className="text-2xl font-black text-white">₦{ord.totalPrice.toLocaleString()}</span>
                         </div>
 
@@ -2463,7 +2463,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
                       value={walkInSearch}
                       onChange={(e) => setWalkInSearch(e.target.value)}
                       placeholder="Filter dishes..."
-                      className="bg-slate-950 border border-slate-800 text-white px-2.5 py-1 rounded-lg text-[11px] focus:outline-none focus:border-emerald-500"
+                      className="bg-slate-950 border border-slate-800 text-white px-2.5 py-1.5 rounded-lg text-xs focus:outline-none focus:border-emerald-500"
                     />
                   </div>
 
@@ -2488,14 +2488,14 @@ export default function AdminDashboard({ onOpenHowToUse }) {
                             }`}
                           >
                             <p className="text-xs font-bold line-clamp-1">{dish.name}</p>
-                            <div className="flex items-center justify-between mt-1 text-[11px]">
+                            <div className="flex items-center justify-between mt-1 text-xs">
                               <span className="font-mono text-emerald-400 font-extrabold">₦{Number(dish.price).toLocaleString()}</span>
-                              <span className={`text-[10px] font-bold ${dish.scoopsLeft < 5 ? 'text-red-400' : 'text-slate-500'}`}>
+                              <span className={`text-xs font-bold ${dish.scoopsLeft < 5 ? 'text-red-400' : 'text-slate-400'}`}>
                                 {dish.scoopsLeft} left
                               </span>
                             </div>
                             {inCart && (
-                              <span className="absolute -top-1.5 -right-1.5 bg-emerald-500 text-slate-950 font-black text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-slate-900">
+                              <span className="absolute -top-1.5 -right-1.5 bg-emerald-500 text-slate-950 font-black text-xs w-5 h-5 rounded-full flex items-center justify-center border-2 border-slate-900">
                                 {inCart.scoops}
                               </span>
                             )}
@@ -2508,7 +2508,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
                 {/* Items in Cart Summary Table */}
                 {walkInCart.length > 0 && (
                   <div className="space-y-2 bg-slate-950 p-3.5 rounded-2xl border border-slate-800">
-                    <p className="text-[11px] font-black uppercase text-slate-400 tracking-wider">
+                    <p className="text-xs font-black uppercase text-slate-200 tracking-wider">
                       Selected Items ({walkInCart.reduce((sum, i) => sum + i.scoops, 0)} portions):
                     </p>
                     <div className="space-y-1.5 max-h-36 overflow-y-auto">
@@ -2568,7 +2568,7 @@ export default function AdminDashboard({ onOpenHowToUse }) {
               {/* Modal Footer with Total & Submit */}
               <div className="p-5 bg-slate-950 border-t border-slate-800 flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Grand Total:</span>
+                  <span className="text-xs font-extrabold text-slate-200 uppercase block">Grand Total:</span>
                   <span className="text-2xl font-black text-emerald-400">
                     ₦{(
                       walkInCart.reduce((sum, i) => sum + (i.price * i.scoops), 0) +

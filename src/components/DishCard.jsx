@@ -73,7 +73,7 @@ export default function DishCard({ dish }) {
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent"></div>
 
         {/* Category Pill Tag */}
-        <span className="absolute top-3 left-3 bg-slate-950/90 text-slate-200 text-[11px] font-bold px-3 py-1 rounded-full border border-slate-800 backdrop-blur-md">
+        <span className="absolute top-3 left-3 bg-slate-950/90 text-slate-100 text-xs font-bold px-3 py-1 rounded-full border border-slate-700 backdrop-blur-md">
           {category || 'Campus Meal'}
         </span>
 
@@ -96,22 +96,22 @@ export default function DishCard({ dish }) {
               {name}
             </h3>
           </div>
-          <p className="text-slate-400 text-xs leading-relaxed line-clamp-2">
+          <p className="text-slate-300 text-sm leading-relaxed line-clamp-2 font-normal">
             {description}
           </p>
 
           {/* Rice packaging rule note */}
           {isRiceDish && !isOutOfStock && (
-            <div className="mt-2 text-[11px] text-amber-300 font-semibold flex items-center gap-1 bg-amber-950/40 p-2 rounded-xl border border-amber-500/30">
-              <Package className="w-3.5 h-3.5 text-amber-400" />
+            <div className="mt-2 text-xs text-amber-200 font-semibold flex items-center gap-1.5 bg-amber-950/40 p-2.5 rounded-xl border border-amber-500/30">
+              <Package className="w-4 h-4 text-amber-400 shrink-0" />
               <span>Max 5 scoops per plate</span>
             </div>
           )}
 
           {/* Made to Order Prep Time Badge */}
           {isMadeToOrder && (
-            <div className="mt-2.5 inline-flex items-center gap-1.5 text-[11px] font-bold text-amber-300 bg-amber-950/80 border border-amber-500/40 px-3 py-1 rounded-xl">
-              <Clock className="w-3.5 h-3.5 text-amber-400 animate-spin-slow" />
+            <div className="mt-2.5 inline-flex items-center gap-1.5 text-xs font-bold text-amber-200 bg-amber-950/80 border border-amber-500/40 px-3 py-1.5 rounded-xl">
+              <Clock className="w-4 h-4 text-amber-400 animate-spin-slow shrink-0" />
               <span>Prep Time: {timeText}</span>
             </div>
           )}
@@ -121,7 +121,7 @@ export default function DishCard({ dish }) {
         <div className="pt-3 border-t border-slate-800 space-y-3">
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider block">
+              <span className="text-xs uppercase font-bold text-slate-300 tracking-wider block">
                 Price per {labelUnit}
               </span>
               <span className="text-2xl font-black text-white">

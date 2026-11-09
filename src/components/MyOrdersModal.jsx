@@ -178,7 +178,7 @@ export default function MyOrdersModal({ isOpen, onClose }) {
               <h2 className="text-xl font-black text-white flex items-center gap-2">
                 <ShoppingBag className="w-5 h-5 text-brand-orange" /> My Orders & Live Order Progress
               </h2>
-              <p className="text-xs text-slate-400">Track meal cooking stages in real time & print verified official receipts.</p>
+              <p className="text-xs sm:text-sm text-slate-200 mt-0.5">Track meal cooking stages in real time & print verified official receipts.</p>
             </div>
             <button
               onClick={handleClose}
@@ -190,15 +190,15 @@ export default function MyOrdersModal({ isOpen, onClose }) {
 
           <div className="max-h-[65vh] overflow-y-auto space-y-4 pr-1">
             {loading ? (
-              <div className="text-center py-12 text-slate-400 text-xs font-bold flex flex-col items-center gap-2">
+              <div className="text-center py-12 text-slate-300 text-sm font-bold flex flex-col items-center gap-2">
                 <RefreshCw className="w-6 h-6 text-brand-orange animate-spin" />
                 <span>Loading your order progress...</span>
               </div>
             ) : orders.length === 0 ? (
               <div className="text-center py-12 space-y-2 border border-slate-800 rounded-2xl bg-slate-950/50">
-                <ShoppingBag className="w-10 h-10 text-slate-600 mx-auto" />
-                <p className="font-bold text-white text-sm">No past orders found</p>
-                <p className="text-xs text-slate-500">Order your favorite meals from the catalog to see them here!</p>
+                <ShoppingBag className="w-10 h-10 text-slate-500 mx-auto" />
+                <p className="font-bold text-white text-base">No past orders found</p>
+                <p className="text-sm text-slate-300">Order your favorite meals from the catalog to see them here!</p>
               </div>
             ) : (
               orders.map((ord) => {
@@ -220,15 +220,15 @@ export default function MyOrdersModal({ isOpen, onClose }) {
                         <div className="flex items-center gap-2">
                           <span className="font-mono text-xs font-black text-amber-300">#{ord.id}</span>
                           {ord.isOfflineOrder && (
-                            <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-bold">
+                            <span className="text-xs bg-amber-500/20 text-amber-300 px-2.5 py-0.5 rounded-full font-bold">
                               ⚡ Pending Cloud Sync
                             </span>
                           )}
-                          <span className="text-[11px] text-slate-400">
+                          <span className="text-xs text-slate-300 font-medium">
                             {new Date(ord.createdAt).toLocaleDateString()} at {new Date(ord.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
-                        <p className="text-xs font-bold text-slate-300 mt-1">
+                        <p className="text-xs font-bold text-slate-200 mt-1">
                           Secret Pickup Code: <span className="font-mono text-brand-lemon-glow text-base font-black tracking-wide">#{code}</span>
                         </p>
                       </div>
@@ -242,16 +242,16 @@ export default function MyOrdersModal({ isOpen, onClose }) {
                         <AlertTriangle className="w-5 h-5 text-rose-400 shrink-0" />
                         <div>
                           <p className="font-bold">This order was cancelled</p>
-                          <p className="text-[11px] text-rose-400/80">Please message Isaac on WhatsApp or speak with the counter cashier.</p>
+                          <p className="text-xs text-rose-300">Please message Isaac on WhatsApp or speak with the counter cashier.</p>
                         </div>
                       </div>
                     ) : (
                       <div className="bg-slate-900/90 rounded-2xl p-4 border border-slate-800 space-y-3.5">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="font-extrabold text-slate-400 uppercase tracking-wider text-[10px]">
+                        <div className="flex items-center justify-between text-xs sm:text-sm">
+                          <span className="font-bold text-slate-300 uppercase tracking-wider text-xs">
                             Live Order Status:
                           </span>
-                          <span className="font-black text-amber-400">
+                          <span className="font-black text-amber-400 text-xs sm:text-sm">
                             {step === 1 && '⏳ Step 1/4: Awaiting Payment Verification'}
                             {step === 2 && '👨‍🍳 Step 2/4: Payment Verified & Cooking in Kitchen'}
                             {step === 3 && (ord.isHostelDelivery ? '🚴 Step 3/4: Ready & Out for Delivery!' : '🔔 Step 3/4: Ready for Counter Pickup!')}
@@ -295,8 +295,8 @@ export default function MyOrdersModal({ isOpen, onClose }) {
                                   >
                                     <Icon className="w-4 h-4" />
                                   </div>
-                                  <span className={`text-[10px] font-bold mt-1.5 leading-tight ${
-                                    isCurrent ? 'text-amber-400 font-black' : isDone ? 'text-emerald-400' : 'text-slate-500'
+                                  <span className={`text-xs font-bold mt-1.5 leading-tight ${
+                                    isCurrent ? 'text-amber-400 font-black' : isDone ? 'text-emerald-400' : 'text-slate-400'
                                   }`}>
                                     {label}
                                   </span>
@@ -307,8 +307,8 @@ export default function MyOrdersModal({ isOpen, onClose }) {
                         </div>
 
                         {/* Real-time Explanatory Banner */}
-                        <div className="bg-slate-950/70 rounded-xl p-2.5 border border-slate-800 text-[11px] text-slate-300 flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-brand-lemon-glow animate-pulse shrink-0"></span>
+                        <div className="bg-slate-950/70 rounded-xl p-3 border border-slate-800 text-xs text-slate-200 flex items-center gap-2 font-medium">
+                          <span className="w-2.5 h-2.5 rounded-full bg-brand-lemon-glow animate-pulse shrink-0"></span>
                           <span>
                             {step === 1 && 'Staff is reviewing your payment. Once confirmed, food preparation begins immediately.'}
                             {step === 2 && 'Your meal is being dished and packed hot. Official receipt is unlocked below!'}
@@ -320,16 +320,16 @@ export default function MyOrdersModal({ isOpen, onClose }) {
                     )}
 
                     {/* Delivery / Pickup address */}
-                    <div className="text-xs text-slate-400">
+                    <div className="text-xs sm:text-sm text-slate-300">
                       {ord.isHostelDelivery ? (
-                        <p className="flex items-center gap-1.5 text-sky-300">
-                          <MapPin className="w-3.5 h-3.5" /> 
+                        <p className="flex items-center gap-1.5 text-sky-300 font-semibold">
+                          <MapPin className="w-4 h-4 text-sky-400 shrink-0" /> 
                           {ord.hostelAddress?.toLowerCase().includes('faculty') || ord.hostelAddress?.toLowerCase().includes('house') ? '🏢 Faculty Delivery: ' : '🏫 Hostel Delivery: '}
-                          <strong className="text-white">{ord.hostelAddress}</strong>
+                          <strong className="text-white font-extrabold">{ord.hostelAddress}</strong>
                         </p>
                       ) : (
-                        <p className="flex items-center gap-1.5 text-slate-300">
-                          <MapPin className="w-3.5 h-3.5 text-brand-lemon" /> Cafeteria Pickup Counter
+                        <p className="flex items-center gap-1.5 text-slate-200 font-semibold">
+                          <MapPin className="w-4 h-4 text-brand-lemon shrink-0" /> Cafeteria Pickup Counter
                         </p>
                       )}
                     </div>
@@ -337,12 +337,12 @@ export default function MyOrdersModal({ isOpen, onClose }) {
                     {/* Item list */}
                     <div className="flex flex-wrap gap-2 pt-1">
                       {ord.items.map((it, idx) => (
-                        <span key={idx} className="bg-slate-900 text-slate-200 text-xs font-semibold px-3 py-1 rounded-xl border border-slate-800">
+                        <span key={idx} className="bg-slate-900 text-slate-100 text-xs font-semibold px-3 py-1.5 rounded-xl border border-slate-800">
                           {it.dishName} ({it.scoops} {it.unitType || 'portion'}{it.scoops > 1 ? 's' : ''})
                         </span>
                       ))}
                       {ord.includeTakeoutPack && (
-                        <span className="bg-brand-orange/10 text-brand-orange-glow text-xs font-semibold px-2.5 py-1 rounded-xl border border-brand-orange/30">
+                        <span className="bg-brand-orange/15 text-brand-orange-glow text-xs font-bold px-3 py-1.5 rounded-xl border border-brand-orange/30">
                           Takeout Pack (+₦300)
                         </span>
                       )}
@@ -351,21 +351,21 @@ export default function MyOrdersModal({ isOpen, onClose }) {
                     {/* Total & Action button */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-800/80">
                       <div>
-                        <span className="text-[10px] uppercase font-bold text-slate-500 block">Total Amount</span>
+                        <span className="text-xs uppercase font-extrabold text-slate-300 block">Total Amount</span>
                         <span className="text-xl font-black text-white">₦{ord.totalPrice.toLocaleString()}</span>
                       </div>
 
                       {canPrintReceipt ? (
                         <button
                           onClick={() => setSelectedReceiptOrder(ord)}
-                          className="px-4 py-2 bg-gradient-to-r from-amber-500 to-brand-orange hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-95"
+                          className="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-brand-orange hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black rounded-xl text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-95"
                         >
-                          <Printer className="w-3.5 h-3.5" />
+                          <Printer className="w-4 h-4" />
                           <span>View & Print Official Receipt</span>
                         </button>
                       ) : (
-                        <div className="flex items-center gap-2 bg-slate-950 px-3 py-2 rounded-xl border border-amber-500/30 text-[11px] text-amber-400 font-bold">
-                          <Clock className="w-3.5 h-3.5 text-amber-400 animate-pulse shrink-0" />
+                        <div className="flex items-center gap-2 bg-slate-950 px-3.5 py-2.5 rounded-xl border border-amber-500/30 text-xs text-amber-300 font-bold">
+                          <Clock className="w-4 h-4 text-amber-400 animate-pulse shrink-0" />
                           <span>⏳ Receipt Unlocks Once Staff Verifies Payment</span>
                         </div>
                       )}

@@ -109,7 +109,7 @@ export default function DishCatalog() {
           <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
             Today's B'feastas Dishes & Refreshments
           </h2>
-          <p className="text-slate-400 text-xs sm:text-sm mt-1">
+          <p className="text-slate-200 text-sm sm:text-base font-normal mt-1">
             Smoky Jollof & Meat at ₦500/scoop • Sweet Dodo at ₦100/piece • Swipe sideways to view category menus
           </p>
         </div>
@@ -217,8 +217,8 @@ export default function DishCatalog() {
                 }`}
               >
                 <span>{cat}</span>
-                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${
-                  isSelected ? 'bg-slate-950 text-brand-lemon-glow' : 'bg-slate-800 text-slate-400'
+                <span className={`px-2 py-0.5 rounded-full text-xs font-mono font-bold ${
+                  isSelected ? 'bg-slate-950 text-brand-lemon-glow' : 'bg-slate-800 text-slate-300'
                 }`}>
                   {count}
                 </span>
@@ -234,7 +234,7 @@ export default function DishCatalog() {
         <div className="glass-card rounded-3xl p-12 text-center border border-slate-800 my-8">
           <Sparkles className="w-12 h-12 text-slate-600 mx-auto mb-3" />
           <h3 className="text-lg font-extrabold text-white">No dishes match your search</h3>
-          <p className="text-slate-400 text-xs mt-1">Try resetting category filters or searching for another campus meal.</p>
+          <p className="text-slate-300 text-sm mt-1">Try resetting category filters or searching for another campus meal.</p>
           <button
             onClick={() => {
               setSearchQuery('');

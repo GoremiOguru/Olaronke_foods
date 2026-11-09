@@ -122,7 +122,7 @@ export default function QRCodeModal({ isOpen, onClose, restaurantName = "B'feast
 
           <div>
             <h2 className="text-2xl font-black text-white">Counter & Table QR Cards</h2>
-            <p className="text-xs text-slate-400 mt-1">Print tent cards for cafeteria tables so students scan and order instantly on their phones!</p>
+            <p className="text-sm text-slate-300 font-medium mt-1">Print tent cards for cafeteria tables so students scan and order instantly on their phones!</p>
           </div>
 
           {/* QR Code Container */}
@@ -132,7 +132,7 @@ export default function QRCodeModal({ isOpen, onClose, restaurantName = "B'feast
               alt="Scan to order B'feastas"
               className="w-48 h-48 mx-auto rounded-lg object-contain"
             />
-            <p className="text-[11px] font-bold text-slate-700 uppercase tracking-widest mt-2">Scan with Phone Camera</p>
+            <p className="text-xs font-black text-slate-900 uppercase tracking-widest mt-2">Scan with Phone Camera</p>
           </div>
 
           <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 flex items-center justify-between text-xs">

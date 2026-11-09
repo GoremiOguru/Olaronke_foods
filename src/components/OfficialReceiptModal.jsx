@@ -95,12 +95,12 @@ export default function OfficialReceiptModal({ order, onClose }) {
 
         {/* 1. Header (Centered, Reference Style) */}
         <div className="text-center space-y-0.5 pt-1">
-          <h2 className="text-sm font-black uppercase tracking-tight text-slate-950">
+          <h2 className="text-base font-black uppercase tracking-tight text-slate-950">
             Benefeastas Nig Enterprise
           </h2>
-          <p className="text-[11px] text-slate-600">Akwa Ibom State</p>
-          <p className="text-[11px] text-slate-600">07032739252</p>
-          <p className="text-[11px] font-bold uppercase tracking-wider text-slate-800 pt-0.5">
+          <p className="text-xs text-slate-700 font-medium">Akwa Ibom State</p>
+          <p className="text-xs text-slate-700 font-medium">07032739252</p>
+          <p className="text-xs font-black uppercase tracking-wider text-slate-900 pt-0.5">
             {order.isOfflineOrder ? 'OFFLINE RECEIPT' : 'ORDER RECEIPT'}
           </p>
         </div>
@@ -109,19 +109,19 @@ export default function OfficialReceiptModal({ order, onClose }) {
         <div className="border-b border-dashed border-slate-400 my-2.5"></div>
 
         {/* 2. Order Metadata */}
-        <div className="space-y-0.5 text-[11px] text-slate-800">
+        <div className="space-y-1 text-xs text-slate-900 font-medium">
           <div className="flex justify-between font-bold text-slate-950">
             <span>{displayOrderId}</span>
             <span>Code: #{pickupCode}</span>
           </div>
-          <p className="text-slate-600">{formattedDate}, {formattedTime}</p>
-          <p className="text-slate-700">
+          <p className="text-slate-700">{formattedDate}, {formattedTime}</p>
+          <p className="text-slate-800">
             {order.isWalkInSale ? 'Cashier: Counter Staff' : `Customer: ${order.studentName || 'Student'}`}
           </p>
           {order.isHostelDelivery ? (
-            <p className="text-slate-700">Delivery: {order.hostelAddress}</p>
+            <p className="text-slate-800 font-semibold">Delivery: {order.hostelAddress}</p>
           ) : (
-            <p className="text-slate-600">Pickup: Cafeteria Counter</p>
+            <p className="text-slate-700 font-semibold">Pickup: Cafeteria Counter</p>
           )}
         </div>
 
@@ -129,7 +129,7 @@ export default function OfficialReceiptModal({ order, onClose }) {
         <div className="border-b border-dashed border-slate-400 my-2.5"></div>
 
         {/* 3. Items List */}
-        <div className="space-y-2 text-[11px]">
+        <div className="space-y-2 text-xs">
           {order.items && order.items.map((item, idx) => {
             const cleanName = (item.dishName || 'Meal').replace(/^\[(Counter Walk-in|Plate #\d+)\]\s*/i, '');
             const itemTotal = Number(item.price || 0) * Number(item.scoops || 1);
@@ -139,7 +139,7 @@ export default function OfficialReceiptModal({ order, onClose }) {
                   <span className="truncate pr-2">{cleanName}</span>
                   <span className="shrink-0 font-bold">₦{itemTotal.toLocaleString()}.00</span>
                 </div>
-                <div className="text-[10px] text-slate-500">
+                <div className="text-xs text-slate-600 font-medium">
                   {item.scoops} {item.unitType || 'piece'}{item.scoops > 1 ? 's' : ''} × ₦{Number(item.price || 0).toLocaleString()}.00
                 </div>
               </div>
@@ -165,26 +165,26 @@ export default function OfficialReceiptModal({ order, onClose }) {
         <div className="border-b border-dashed border-slate-400 my-2.5"></div>
 
         {/* 4. Financial Totals */}
-        <div className="space-y-1 text-[11px] text-slate-800">
+        <div className="space-y-1 text-xs text-slate-900">
           <div className="flex justify-between">
             <span>Subtotal</span>
-            <span>₦{Number(order.totalPrice || 0).toLocaleString()}.00</span>
+            <span className="font-bold">₦{Number(order.totalPrice || 0).toLocaleString()}.00</span>
           </div>
-          <div className="flex justify-between text-xs font-black text-slate-950 pt-0.5">
+          <div className="flex justify-between text-sm font-black text-slate-950 pt-0.5">
             <span>TOTAL</span>
-            <span>₦{Number(order.totalPrice || 0).toLocaleString()}.00</span>
+            <span className="font-black">₦{Number(order.totalPrice || 0).toLocaleString()}.00</span>
           </div>
-          <div className="flex justify-between text-slate-600 pt-0.5">
+          <div className="flex justify-between text-slate-700 pt-0.5 font-medium">
             <span>Payment</span>
-            <span className="lowercase font-medium">{order.paymentMethod || 'cash'}</span>
+            <span className="uppercase font-bold">{order.paymentMethod || 'cash'}</span>
           </div>
           <div className="flex justify-between font-bold text-slate-900">
             <span>Paid</span>
             <span>₦{Number(order.totalPrice || 0).toLocaleString()}.00</span>
           </div>
-          <div className="flex justify-between text-[10px] text-slate-500 pt-0.5">
+          <div className="flex justify-between text-xs text-slate-600 pt-0.5 font-medium">
             <span>Status</span>
-            <span className="uppercase font-bold">{isPaymentVerified ? 'Verified' : 'Pending'}</span>
+            <span className="uppercase font-bold text-slate-900">{isPaymentVerified ? 'Verified' : 'Pending'}</span>
           </div>
         </div>
 
@@ -203,15 +203,15 @@ export default function OfficialReceiptModal({ order, onClose }) {
               />
             ))}
           </div>
-          <p className="text-[11px] font-mono font-bold tracking-widest text-slate-800">
+          <p className="text-xs font-mono font-bold tracking-widest text-slate-900">
             {displayOrderId}
           </p>
         </div>
 
         {/* 6. Footer Note */}
-        <div className="text-center text-[10px] text-slate-600 pt-1 space-y-0.5">
+        <div className="text-center text-xs text-slate-700 pt-1 space-y-0.5 font-medium">
           <p>Thank you for your purchase</p>
-          <p className="text-[9px] text-slate-400">Katalyst Offline • B'feastas</p>
+          <p className="text-xs text-slate-500 font-mono">Katalyst Offline • B'feastas</p>
         </div>
 
         {/* 7. Action Controls (Print, Copy, Close - Hidden in Print) */}
